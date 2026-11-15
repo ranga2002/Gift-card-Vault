@@ -920,6 +920,7 @@
     </div>
     <div class="topbar-actions">
       <div class="user-pill" id="activeUserPill"></div>
+      <button class="btn" id="topNotificationsBtn" onclick="switchMainView('notifications')">🔔 Notifications <span class="badge badge-amber" id="topNotifBadge" style="display:none; margin-left:4px;">0</span></button>
       <button class="btn" id="topBackupBtn" onclick="exportBackupJson()">💾 Save Backup to PC</button>
       <button class="btn btn-purple" id="topAdminBtn" onclick="switchMainView('admin')">👑 Super Admin</button>
       <button class="btn btn-primary" id="topAddCouponBtn" onclick="openCouponModal()">➕ Add Coupon</button>
@@ -959,6 +960,7 @@
         <button class="tab-btn" id="tab-expiring" onclick="switchMainView('expiring')">⏰ Expiring Soon</button>
         <button class="tab-btn" id="tab-all" onclick="switchMainView('all')">🗂️ All Active</button>
         <button class="tab-btn" id="tab-history" onclick="switchMainView('history')">✔️ Used / Expired</button>
+        <button class="tab-btn" id="tab-notifications" onclick="switchMainView('notifications')">🔔 Notifications (<span id="notifCountBadge">0</span>)</button>
         <button class="tab-btn" id="tab-logger" onclick="switchMainView('logger')">📜 Logger (<span id="logCountBadge">0</span>)</button>
         <button class="tab-btn" id="tab-admin" onclick="switchMainView('admin')">👑 Accounts &amp; Access (<span id="friendsCountBadge">0</span>)</button>
       </div>
@@ -966,6 +968,26 @@
 
     <!-- Vault Content Area -->
     <section id="vaultContentArea"></section>
+
+    <!-- Notifications Panel (Available to ALL signed-in users) -->
+    <section class="panel-box" id="notificationsPanel">
+      <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px; padding-bottom:14px; border-bottom:1px solid var(--border);">
+        <div>
+          <h2 style="font-size:19px; font-weight:800;">🔔 Notifications &amp; Code Access Requests</h2>
+          <p style="font-size:13px; color:var(--text-muted); margin-top:3px;">
+            See incoming pings from users requesting Private codes, approve or decline specific users, and get alerted when codes open for you.
+          </p>
+        </div>
+        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+          <button class="btn btn-sm btn-blue" onclick="fetchVaultStatus()">🔄 Refresh</button>
+          <button class="btn btn-sm" onclick="markAllNotificationsRead()">✓ Mark All Read</button>
+          <button class="btn btn-sm btn-danger" onclick="clearReadNotifications()">🗑️ Clear Read</button>
+        </div>
+      </div>
+
+      <div id="notificationsListContainer" style="margin-top:14px;"></div>
+      <div id="creatorRequestsContainer" style="margin-top:22px;"></div>
+    </section>
 
     <!-- PROTECTED ROUTE: SUPER ADMIN & ACCOUNTS ACCESS CONTROL PANEL -->
     <section class="panel-box" id="adminPanel">
@@ -1039,11 +1061,9 @@
             <option value="super_admin">👑 Co-Admin (Full control)</option>
           </select>
         </div>
-        <div class="form-group full" style="background:var(--bg-card); padding:12px 14px; border-radius:11px; border:1px solid var(--border);">
-          <label style="display:flex; align-items:center; gap:10px; cursor:pointer; font-size:13.5px;">
-            <input type="checkbox" id="invCanReadCodes" style="width:18px; height:18px;" />
-            <span>🔑 <strong>Allow Reading Secret Coupon Codes</strong> (If unchecked, codes are masked as 🔒 ••••-••••)</span>
-          </label>
+        <div class="form-group full" style="background:var(--bg-card); padding:11px 14px; border-radius:11px; border:1px solid var(--border); font-size:12.5px; color:var(--text-muted);">
+          <input type="checkbox" id="invCanReadCodes" style="display:none;" />
+          ℹ️ Secret coupon codes are <strong>always hidden by default</strong>. Any user can reveal <strong>🌐 Public</strong> coupons, while <strong>🔒 Private</strong> coupons require pinging the creator for permission.
         </div>
       </div>
       <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:18px;">
@@ -1197,7 +1217,10 @@
 
         <div class="form-group">
           <label>Secret Coupon Code / PIN (Optional)</label>
-          <input type="text" id="fCode" class="form-control" placeholder="e.g., AMZN-2000-XYZ" />
+          <div class="password-wrap">
+            <input type="password" id="fCode" class="form-control" placeholder="e.g., AMZN-2000-XYZ" autocomplete="off" />
+            <button type="button" class="password-toggle" id="fCodeEyeBtn" onclick="togglePasswordVisibility('fCode', this)" aria-label="Show secret code">👁️</button>
+          </div>
         </div>
 
         <div class="form-group full">
@@ -1205,11 +1228,15 @@
           <input type="text" id="fNotes" class="form-control" placeholder="e.g., Added to Amazon Pay wallet / Min order ₹999" />
         </div>
 
-        <div class="form-group full" style="background:var(--bg-card); padding:11px 14px; border-radius:11px; border:1px solid var(--border);">
-          <label style="display:flex; align-items:center; gap:10px; cursor:pointer; font-size:13px;">
-            <input type="checkbox" id="fAdminOnlyCode" style="width:17px; height:17px;" />
-            <span>🔒 <strong>Super Admin Only Code:</strong> Hide this specific coupon code from all friends (even friends with code-read access)</span>
-          </label>
+        <div class="form-group full" id="fCodeVisibilityGroup" style="background:var(--bg-card); padding:12px 14px; border-radius:11px; border:1px solid var(--border);">
+          <label for="fCodeVisibility">🔐 Secret Code Visibility (Always hidden until revealed)</label>
+          <select id="fCodeVisibility" class="form-control" style="margin-top:6px;">
+            <option value="public">🌐 Public — Any vault user can click "Reveal Code" to unlock it</option>
+            <option value="private">🔒 Private — Users must ping you &amp; wait for your approval</option>
+          </select>
+          <p id="fCodeVisibilityHint" style="font-size:12px; color:var(--text-muted); margin-top:6px;">
+            Codes are always hidden by default for everyone. Choose whether any member can reveal it immediately or must request your permission first.
+          </p>
         </div>
 
         <div class="form-group full" style="background:var(--bg-card); padding:11px 14px; border-radius:11px; border:1px solid var(--border);">
@@ -1276,6 +1303,27 @@
   </div>
 </div>
 
+<!-- REQUEST PRIVATE CODE ACCESS MODAL -->
+<div class="modal-backdrop" id="requestAccessModalBackdrop">
+  <div class="modal" style="max-width:480px;">
+    <div class="modal-header">
+      <h2 style="font-size:18px; font-weight:800;">🔔 Ping Creator to Reveal Code</h2>
+      <button class="btn btn-sm" onclick="closeRequestAccessModal()">✕</button>
+    </div>
+    <p id="reqAccessSummary" style="font-size:13.5px; color:var(--text-muted); margin-bottom:14px;"></p>
+    <form onsubmit="submitRequestAccessForm(event)">
+      <div class="form-group">
+        <label>Optional Note for the Creator</label>
+        <input type="text" id="reqAccessNote" class="form-control" placeholder="e.g., About to place order on checkout" maxlength="200" />
+      </div>
+      <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:16px;">
+        <button type="button" class="btn" onclick="closeRequestAccessModal()">Cancel</button>
+        <button type="submit" class="btn btn-amber" id="reqAccessSubmitBtn">🔔 Send Ping &amp; Request Code</button>
+      </div>
+    </form>
+  </div>
+</div>
+
 <script>
   let supabaseClient = null;
   let currentView = "grouped";
@@ -1283,14 +1331,20 @@
   let selectedSpendId = null;
   let selectedCalId = null;
   let selectedEmergencyMemberId = null;
+  let selectedRequestCouponId = null;
   let pendingInviteToken = null;
   let authSubscription = null;
+  let notifPollTimer = null;
+  let notifRealtimeChannel = null;
+  let revealedSecrets = {}; // couponId -> decrypted secret_code ONLY after clicking Reveal Code
 
   let currentUser = null; // { id, name, email, role, canReadCodes }
   let state = {
     updatedAt: 0,
     members: [],
     coupons: [],
+    accessRequests: [],
+    notifications: [],
     logs: []
   };
 
@@ -1680,7 +1734,42 @@
     }
   }
 
+  function stopNotificationsSync() {
+    if (notifPollTimer) {
+      clearInterval(notifPollTimer);
+      notifPollTimer = null;
+    }
+    if (notifRealtimeChannel && supabaseClient) {
+      try { supabaseClient.removeChannel(notifRealtimeChannel); } catch (e) {}
+      notifRealtimeChannel = null;
+    }
+  }
+
+  function startNotificationsSync() {
+    if (!supabaseClient || !currentUser) return;
+    if (!notifRealtimeChannel) {
+      notifRealtimeChannel = supabaseClient
+        .channel("vault-live-" + currentUser.id)
+        .on("postgres_changes", { event: "*", schema: "public", table: "notifications" }, () => {
+          fetchVaultStatus();
+        })
+        .on("postgres_changes", { event: "*", schema: "public", table: "coupon_access_requests" }, () => {
+          fetchVaultStatus();
+        })
+        .subscribe();
+    }
+    if (!notifPollTimer) {
+      notifPollTimer = setInterval(() => {
+        if (!document.hidden && currentUser && supabaseClient) {
+          fetchVaultStatus();
+        }
+      }, 20000);
+    }
+  }
+
   async function logoutCurrentUser() {
+    stopNotificationsSync();
+    revealedSecrets = {};
     currentUser = null;
     if (supabaseClient) {
       await supabaseClient.auth.signOut();
@@ -1691,6 +1780,7 @@
   function showMainAppScreen() {
     document.getElementById("authScreen").style.display = "none";
     document.getElementById("appScreen").style.display = "block";
+    startNotificationsSync();
     renderAll();
   }
 
@@ -1716,12 +1806,19 @@
 
       const couponsPromise = supabaseClient
         .from("coupons")
-        .select("id, store, account, benefit_type, amount, initial_amount, expiry, notes, status, admin_only_code, has_secret_code, created_at")
+        .select("id, store, account, benefit_type, amount, initial_amount, expiry, notes, status, admin_only_code, code_visibility, has_secret_code, created_by, created_at")
         .order("created_at", { ascending: false });
 
-      const secretsPromise = supabaseClient
-        .from("coupon_secrets")
-        .select("coupon_id, secret_code");
+      const requestsPromise = supabaseClient
+        .from("coupon_access_requests")
+        .select("id, coupon_id, requester_id, owner_id, status, request_note, responded_by, responded_at, created_at, updated_at")
+        .order("updated_at", { ascending: false });
+
+      const notificationsPromise = supabaseClient
+        .from("notifications")
+        .select("id, user_id, type, title, message, coupon_id, request_id, is_read, created_at")
+        .order("created_at", { ascending: false })
+        .limit(100);
 
       const logsPromise = isCurrentUserSuperAdmin()
         ? supabaseClient
@@ -1731,11 +1828,12 @@
             .limit(300)
         : Promise.resolve({ data: [], error: null });
 
-      const [profRes, invRes, cpnRes, secRes, logRes] = await Promise.all([
+      const [profRes, invRes, cpnRes, reqRes, notifRes, logRes] = await Promise.all([
         profilePromise,
         invitesPromise,
         couponsPromise,
-        secretsPromise,
+        requestsPromise,
+        notificationsPromise,
         logsPromise
       ]);
 
@@ -1784,15 +1882,8 @@
           createdAt: inv.created_at
         }));
 
-      const secretMap = {};
-      if (secRes && Array.isArray(secRes.data)) {
-        secRes.data.forEach(s => {
-          secretMap[s.coupon_id] = s.secret_code;
-        });
-      }
-
       const coupons = (cpnRes.data || []).map(c => {
-        const visibleSecret = secretMap[c.id];
+        const vis = c.code_visibility || (c.admin_only_code ? "private" : "public");
         return {
           id: c.id,
           store: c.store,
@@ -1804,10 +1895,51 @@
           notes: c.notes || "",
           status: c.status,
           adminOnlyCode: Boolean(c.admin_only_code),
+          codeVisibility: vis,
           hasSecretCode: Boolean(c.has_secret_code),
-          code: visibleSecret !== undefined ? visibleSecret : (c.has_secret_code ? "__HIDDEN__" : ""),
+          createdBy: c.created_by || null,
+          code: c.has_secret_code ? "__HIDDEN__" : "",
           createdAt: c.created_at
         };
+      });
+
+      const accessRequests = ((reqRes && !reqRes.error && reqRes.data) || []).map(r => ({
+        id: r.id,
+        couponId: r.coupon_id,
+        requesterId: r.requester_id,
+        ownerId: r.owner_id,
+        status: r.status,
+        requestNote: r.request_note || "",
+        respondedBy: r.responded_by || null,
+        respondedAt: r.responded_at || null,
+        createdAt: r.created_at,
+        updatedAt: r.updated_at
+      }));
+
+      const notifications = ((notifRes && !notifRes.error && notifRes.data) || []).map(n => ({
+        id: n.id,
+        userId: n.user_id,
+        type: n.type,
+        title: n.title,
+        message: n.message || "",
+        couponId: n.coupon_id || null,
+        requestId: n.request_id || null,
+        isRead: Boolean(n.is_read),
+        createdAt: n.created_at
+      }));
+
+      // Drop any cached revealed secret if the coupon vanished or user lost reveal access
+      Object.keys(revealedSecrets).forEach(cid => {
+        const c = coupons.find(x => x.id === cid);
+        if (!c) {
+          delete revealedSecrets[cid];
+          return;
+        }
+        const isOwnerOrAdmin = currentUser.role === "super_admin" || (c.createdBy && c.createdBy === currentUser.id);
+        const approved = accessRequests.some(r => r.couponId === cid && r.requesterId === currentUser.id && r.status === "approved");
+        if (!isOwnerOrAdmin && c.codeVisibility !== "public" && !approved) {
+          delete revealedSecrets[cid];
+        }
       });
 
       const logs = (logRes.data || []).map(l => ({
@@ -1822,6 +1954,8 @@
         updatedAt: Date.now(),
         members: [...activeMembers, ...pendingMembers],
         coupons,
+        accessRequests,
+        notifications,
         logs
       };
 
@@ -1846,12 +1980,182 @@
     return currentUser.role === "super_admin";
   }
 
-  function canCurrentUserSeeCode(coupon) {
-    if (!currentUser) return false;
-    if (!coupon || !coupon.code || coupon.code === "__HIDDEN__") return false;
+  function isCouponOwnerOrAdmin(coupon) {
+    if (!currentUser || !coupon) return false;
     if (currentUser.role === "super_admin") return true;
-    if (coupon.adminOnlyCode) return false;
-    return Boolean(currentUser.canReadCodes);
+    return Boolean(coupon.createdBy && coupon.createdBy === currentUser.id);
+  }
+
+  function getMemberDisplayById(memberId) {
+    if (!memberId) return "Super Admin";
+    const m = state.members.find(x => x.id === memberId);
+    return m ? `${m.name} (${m.email})` : "Creator";
+  }
+
+  function getMyAccessRequest(couponId) {
+    if (!currentUser) return null;
+    return state.accessRequests.find(r => r.couponId === couponId && r.requesterId === currentUser.id) || null;
+  }
+
+  function getPendingRequestsForCoupon(couponId) {
+    return state.accessRequests.filter(r => r.couponId === couponId && r.status === "pending");
+  }
+
+  function canCurrentUserRevealCode(coupon) {
+    if (!currentUser || !coupon) return false;
+    if (isCouponOwnerOrAdmin(coupon)) return true;
+    if (coupon.codeVisibility === "public") return true;
+    const req = getMyAccessRequest(coupon.id);
+    return Boolean(req && req.status === "approved");
+  }
+
+  function canCurrentUserSeeCode(coupon) {
+    return canCurrentUserRevealCode(coupon);
+  }
+
+  async function revealCouponCode(couponId) {
+    if (!supabaseClient || !currentUser) return;
+    const coupon = state.coupons.find(x => x.id === couponId);
+    if (!coupon) return;
+
+    if (!canCurrentUserRevealCode(coupon)) {
+      openRequestAccessModal(couponId);
+      return;
+    }
+
+    const { data, error } = await supabaseClient
+      .from("coupon_secrets")
+      .select("secret_code")
+      .eq("coupon_id", couponId)
+      .maybeSingle();
+
+    if (error || !data) {
+      alert((error && error.message) || "Code is locked or no secret code was stored for this coupon.");
+      await fetchVaultStatus();
+      return;
+    }
+
+    revealedSecrets[couponId] = data.secret_code;
+    renderVaultContent();
+    renderQuickSearchResult();
+  }
+
+  function hideCouponCode(couponId) {
+    delete revealedSecrets[couponId];
+    renderVaultContent();
+    renderQuickSearchResult();
+  }
+
+  function openRequestAccessModal(couponId) {
+    if (!currentUser) return;
+    const c = state.coupons.find(x => x.id === couponId);
+    if (!c) return;
+    selectedRequestCouponId = couponId;
+    const ownerLabel = getMemberDisplayById(c.createdBy);
+    document.getElementById("reqAccessSummary").innerHTML = `
+      This <strong>${escapeHtml(c.store)} (${escapeHtml(c.account)})</strong> coupon code is set to <strong>🔒 Private</strong>.<br/>
+      Send a ping to <strong>${escapeHtml(ownerLabel)}</strong> to allow you to reveal the code.
+    `;
+    document.getElementById("reqAccessNote").value = "";
+    document.getElementById("requestAccessModalBackdrop").classList.add("show");
+  }
+
+  function closeRequestAccessModal() {
+    selectedRequestCouponId = null;
+    document.getElementById("requestAccessModalBackdrop").classList.remove("show");
+  }
+
+  async function submitRequestAccessForm(e) {
+    e.preventDefault();
+    if (!selectedRequestCouponId || !supabaseClient) return;
+    const btn = document.getElementById("reqAccessSubmitBtn");
+    const note = document.getElementById("reqAccessNote").value.trim();
+    if (btn) {
+      btn.disabled = true;
+      btn.textContent = "⏳ Pinging Creator...";
+    }
+
+    try {
+      const { data, error } = await supabaseClient.rpc("request_coupon_access", {
+        p_coupon_id: selectedRequestCouponId,
+        p_note: note
+      });
+
+      if (error) {
+        alert(error.message || "Could not send request.");
+        return;
+      }
+
+      closeRequestAccessModal();
+      await fetchVaultStatus();
+
+      if (data && (data.status === "already_open" || data.status === "already_approved")) {
+        alert("✅ You already have access! Click Reveal Code on the coupon card.");
+      } else {
+        alert("🔔 Ping sent! The coupon creator received a notification and will allow your access shortly.");
+      }
+    } finally {
+      if (btn) {
+        btn.disabled = false;
+        btn.textContent = "🔔 Send Ping & Request Code";
+      }
+    }
+  }
+
+  async function respondToAccessRequest(requestId, decision) {
+    if (!supabaseClient || !currentUser) return;
+    const { error } = await supabaseClient.rpc("respond_coupon_access", {
+      p_request_id: requestId,
+      p_decision: decision
+    });
+    if (error) {
+      alert(error.message || "Failed updating access request.");
+      return;
+    }
+    await fetchVaultStatus();
+  }
+
+  async function markNotificationRead(notifId) {
+    if (!supabaseClient || !currentUser) return;
+    await supabaseClient
+      .from("notifications")
+      .update({ is_read: true })
+      .eq("id", notifId);
+    await fetchVaultStatus();
+  }
+
+  async function markAllNotificationsRead() {
+    if (!supabaseClient || !currentUser) return;
+    await supabaseClient
+      .from("notifications")
+      .update({ is_read: true })
+      .eq("user_id", currentUser.id)
+      .eq("is_read", false);
+    await fetchVaultStatus();
+  }
+
+  async function clearReadNotifications() {
+    if (!supabaseClient || !currentUser) return;
+    await supabaseClient
+      .from("notifications")
+      .delete()
+      .eq("user_id", currentUser.id)
+      .eq("is_read", true);
+    await fetchVaultStatus();
+  }
+
+  async function jumpAndRevealCoupon(couponId, notifId) {
+    if (notifId && supabaseClient) {
+      await supabaseClient
+        .from("notifications")
+        .update({ is_read: true })
+        .eq("id", notifId);
+    }
+    switchMainView("all");
+    await fetchVaultStatus();
+    if (couponId) {
+      await revealCouponCode(couponId);
+    }
   }
 
   async function writeActivityLog(action, title, detail) {
@@ -2229,22 +2533,58 @@
   }
 
   function renderCodeStripHtml(c) {
-    if (!c.code && !c.hasSecretCode) return "";
-    if (c.code && c.code !== "__HIDDEN__" && canCurrentUserSeeCode(c)) {
+    if (!c.hasSecretCode) return "";
+
+    const revealedCode = revealedSecrets[c.id];
+    const visBadge = c.codeVisibility === "private"
+      ? `<span class="badge badge-purple" style="margin-left:6px;">🔒 Private</span>`
+      : `<span class="badge badge-green" style="margin-left:6px;">🌐 Public</span>`;
+
+    if (revealedCode !== undefined) {
       return `
         <div class="code-strip" style="margin-top:10px;">
-          <span class="code-text">🔑 ${escapeHtml(c.code)} ${c.adminOnlyCode ? '<span class="badge badge-purple" style="margin-left:6px;">Admin-Only</span>' : ''}</span>
-          <button class="btn btn-sm btn-blue" onclick="copyCodeById('${c.id}')">📋 Copy</button>
-        </div>
-      `;
-    } else {
-      return `
-        <div class="code-strip locked" style="margin-top:10px;">
-          <span class="code-text" style="color:#f87171;">🔒 ••••-••••-•••• (Code hidden by Super Admin)</span>
-          <span class="badge badge-red">Restricted</span>
+          <span class="code-text">🔑 ${escapeHtml(revealedCode)} ${visBadge}</span>
+          <div style="display:flex; gap:6px; flex-wrap:wrap;">
+            <button class="btn btn-sm btn-blue" onclick="copyCodeById('${c.id}')">📋 Copy</button>
+            <button class="btn btn-sm" onclick="hideCouponCode('${c.id}')">🙈 Hide</button>
+          </div>
         </div>
       `;
     }
+
+    if (canCurrentUserRevealCode(c)) {
+      const myReq = getMyAccessRequest(c.id);
+      const grantedNote = (!isCouponOwnerOrAdmin(c) && c.codeVisibility === "private" && myReq && myReq.status === "approved")
+        ? `<span class="badge badge-green" style="margin-left:6px;">✅ Access Open</span>`
+        : visBadge;
+      return `
+        <div class="code-strip locked" style="margin-top:10px;">
+          <span class="code-text">🔒 ••••-••••-•••• ${grantedNote}</span>
+          <button class="btn btn-sm btn-primary" onclick="revealCouponCode('${c.id}')">👁️ Reveal Code</button>
+        </div>
+      `;
+    }
+
+    const myReq = getMyAccessRequest(c.id);
+    if (myReq && myReq.status === "pending") {
+      return `
+        <div class="code-strip locked" style="margin-top:10px;">
+          <span class="code-text" style="color:#fde68a;">🔒 ••••-••••-•••• <span class="badge badge-amber" style="margin-left:6px;">⏳ Requested</span></span>
+          <button class="btn btn-sm" onclick="openRequestAccessModal('${c.id}')">🔔 Ping Again</button>
+        </div>
+      `;
+    }
+
+    const statusBadge = (myReq && myReq.status === "rejected")
+      ? `<span class="badge badge-red" style="margin-left:6px;">Declined</span>`
+      : `<span class="badge badge-purple" style="margin-left:6px;">🔒 Private</span>`;
+
+    return `
+      <div class="code-strip locked" style="margin-top:10px;">
+        <span class="code-text" style="color:#f87171;">🔒 ••••-••••-•••• ${statusBadge}</span>
+        <button class="btn btn-sm btn-amber" onclick="openRequestAccessModal('${c.id}')">🔔 Reveal / Ping Creator</button>
+      </div>
+    `;
   }
 
   function renderRoleHeaderAndGuards() {
@@ -2257,9 +2597,19 @@
       <span class="badge ${currentUser.role === 'super_admin' ? 'badge-purple' : (currentUser.role === 'contributor' ? 'badge-blue' : 'badge-amber')}">${roleLabel}</span>
     `;
 
+    const unreadNotifs = (state.notifications || []).filter(n => !n.isRead).length;
+    const topNotifBadge = document.getElementById("topNotifBadge");
+    if (topNotifBadge) {
+      topNotifBadge.textContent = unreadNotifs;
+      topNotifBadge.style.display = unreadNotifs > 0 ? "inline-block" : "none";
+    }
+    const notifTabBadge = document.getElementById("notifCountBadge");
+    if (notifTabBadge) notifTabBadge.textContent = unreadNotifs > 0 ? unreadNotifs : (state.notifications || []).length;
+
     document.getElementById("topAddCouponBtn").style.display = canCurrentUserAdd() ? "inline-flex" : "none";
     document.getElementById("topBackupBtn").style.display = isCurrentUserSuperAdmin() ? "inline-flex" : "none";
     document.getElementById("topAdminBtn").style.display = isCurrentUserSuperAdmin() ? "inline-flex" : "none";
+    document.getElementById("tab-notifications").style.display = "inline-flex";
     document.getElementById("tab-logger").style.display = isCurrentUserSuperAdmin() ? "inline-flex" : "none";
     document.getElementById("tab-admin").style.display = isCurrentUserSuperAdmin() ? "inline-flex" : "none";
     document.getElementById("loggerAddBtn").style.display = canCurrentUserAdd() ? "inline-flex" : "none";
@@ -2270,6 +2620,7 @@
     if ((currentView === "admin" || currentView === "logger") && !isCurrentUserSuperAdmin()) {
       currentView = "grouped";
       document.getElementById("vaultContentArea").style.display = "block";
+      document.getElementById("notificationsPanel").classList.remove("show");
       document.getElementById("loggerPanel").classList.remove("show");
       document.getElementById("adminPanel").classList.remove("show");
       const groupedTab = document.getElementById("tab-grouped");
@@ -2284,6 +2635,7 @@
     renderStoreChips();
     renderQuickSearchResult();
     renderVaultContent();
+    renderNotificationsPanel();
     renderAdminPanel();
     renderLogger();
     document.getElementById("logCountBadge").textContent = state.logs.length;
@@ -2297,6 +2649,7 @@
     const expiringValue = expiringSoon.reduce((acc, c) => acc + (Number(c.amount) || 0), 0);
     const uniqueStores = new Set(activeList.map(c => c.store.trim().toLowerCase())).size;
     const uniqueAccounts = new Set(activeList.map(c => (c.store + "::" + c.account).toLowerCase())).size;
+    const unreadNotifs = (state.notifications || []).filter(n => !n.isRead).length;
 
     document.getElementById("statsGrid").innerHTML = `
       <div class="stat-card">
@@ -2317,7 +2670,7 @@
       <div class="stat-card">
         <span class="stat-label">Signed-In Account</span>
         <span class="stat-value" style="color:#c4b5fd; font-size:18px;">${escapeHtml(currentUser.name)}</span>
-        <span class="stat-sub">${escapeHtml(currentUser.email)} • Codes: ${currentUser.role === 'super_admin' || currentUser.canReadCodes ? '🔑 Allowed' : '🔒 Hidden'}</span>
+        <span class="stat-sub">${escapeHtml(currentUser.email)} • 🔔 ${unreadNotifs} unread notification${unreadNotifs === 1 ? "" : "s"}</span>
       </div>
     `;
   }
@@ -2441,16 +2794,19 @@
       return;
     }
     currentView = view;
-    ["grouped", "expiring", "all", "history", "logger", "admin"].forEach(v => {
+    ["grouped", "expiring", "all", "history", "notifications", "logger", "admin"].forEach(v => {
       const btn = document.getElementById("tab-" + v);
       if (btn) btn.classList.toggle("active", v === view);
     });
 
-    document.getElementById("vaultContentArea").style.display = (view === "logger" || view === "admin") ? "none" : "block";
+    const isSpecialPanel = view === "logger" || view === "admin" || view === "notifications";
+    document.getElementById("vaultContentArea").style.display = isSpecialPanel ? "none" : "block";
+    document.getElementById("notificationsPanel").classList.toggle("show", view === "notifications");
     document.getElementById("loggerPanel").classList.toggle("show", view === "logger");
     document.getElementById("adminPanel").classList.toggle("show", view === "admin");
 
-    if (view === "logger") renderLogger();
+    if (view === "notifications") renderNotificationsPanel();
+    else if (view === "logger") renderLogger();
     else if (view === "admin") renderAdminPanel();
     else renderVaultContent();
   }
@@ -2459,6 +2815,25 @@
     const days = daysUntil(c.expiry);
     const expiringClass = (isCouponActive(c) && days <= 7) ? "expiring-soon" : "";
     const usedClass = (!isCouponActive(c)) ? "expired-or-used" : "";
+    const isOwnerOrAdmin = isCouponOwnerOrAdmin(c);
+    const pendingReqs = isOwnerOrAdmin ? getPendingRequestsForCoupon(c.id) : [];
+
+    const pendingRequestsHtml = pendingReqs.length > 0 ? `
+      <div style="margin-top:10px; padding:10px; border-radius:10px; background:var(--amber-soft); border:1px solid rgba(245, 158, 11, 0.45);">
+        <div style="font-size:12px; font-weight:800; color:#fde68a; margin-bottom:6px;">
+          🔔 ${pendingReqs.length} Access Request${pendingReqs.length === 1 ? "" : "s"} Pending
+        </div>
+        ${pendingReqs.map(req => `
+          <div style="display:flex; align-items:center; justify-content:space-between; gap:8px; flex-wrap:wrap; margin-top:4px; font-size:12px;">
+            <span><strong>${escapeHtml(getMemberDisplayById(req.requesterId))}</strong>${req.requestNote ? ` — "${escapeHtml(req.requestNote)}"` : ""}</span>
+            <div style="display:flex; gap:4px;">
+              <button class="btn btn-sm btn-primary" onclick="respondToAccessRequest('${req.id}', 'approved')">✅ Allow</button>
+              <button class="btn btn-sm btn-danger" onclick="respondToAccessRequest('${req.id}', 'rejected')">❌</button>
+            </div>
+          </div>
+        `).join("")}
+      </div>
+    ` : "";
 
     return `
       <div class="coupon-card ${expiringClass} ${usedClass}">
@@ -2474,6 +2849,7 @@
             </div>
           </div>
           ${renderCodeStripHtml(c)}
+          ${pendingRequestsHtml}
           ${c.notes ? `<p style="font-size:12.5px; color:var(--text-muted); margin-top:10px;">📝 ${escapeHtml(c.notes)}</p>` : ""}
         </div>
 
@@ -2561,6 +2937,116 @@
     container.innerHTML = `<div class="cards-grid">${list.map(renderCouponCardHtml).join("")}</div>`;
   }
 
+  function formatDateTimeReadable(ts) {
+    const dt = new Date(ts);
+    return isNaN(dt.getTime()) ? String(ts || "") : dt.toLocaleString("en-IN", {
+      day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit"
+    });
+  }
+
+  function renderNotificationsPanel() {
+    const listEl = document.getElementById("notificationsListContainer");
+    const reqEl = document.getElementById("creatorRequestsContainer");
+    if (!listEl) return;
+
+    const notifs = state.notifications || [];
+    if (notifs.length === 0) {
+      listEl.innerHTML = `<div class="empty-state" style="padding:24px;"><p>No notifications yet. When a user pings you for a Private code or a creator approves your request, alerts will appear here.</p></div>`;
+    } else {
+      listEl.innerHTML = notifs.map(n => {
+        const req = n.requestId ? state.accessRequests.find(r => r.id === n.requestId) : null;
+        const coupon = n.couponId ? state.coupons.find(c => c.id === n.couponId) : null;
+
+        let actionsHtml = "";
+        if (n.type === "code_request" && req) {
+          if (req.status === "pending") {
+            actionsHtml = `
+              <button class="btn btn-sm btn-primary" onclick="respondToAccessRequest('${req.id}', 'approved')">✅ Allow User</button>
+              <button class="btn btn-sm btn-danger" onclick="respondToAccessRequest('${req.id}', 'rejected')">❌ Decline</button>
+            `;
+          } else if (req.status === "approved") {
+            actionsHtml = `
+              <span class="badge badge-green">✅ Approved</span>
+              <button class="btn btn-sm btn-danger" onclick="respondToAccessRequest('${req.id}', 'rejected')">🔒 Revoke</button>
+            `;
+          } else {
+            actionsHtml = `
+              <span class="badge badge-red">❌ Declined</span>
+              <button class="btn btn-sm btn-primary" onclick="respondToAccessRequest('${req.id}', 'approved')">✅ Allow</button>
+            `;
+          }
+        } else if (n.type === "code_approved" && coupon) {
+          actionsHtml = `
+            <button class="btn btn-sm btn-primary" onclick="jumpAndRevealCoupon('${coupon.id}', '${n.id}')">👁️ Open &amp; Reveal Code</button>
+          `;
+        }
+
+        if (!n.isRead) {
+          actionsHtml += `<button class="btn btn-sm" onclick="markNotificationRead('${n.id}')">✓ Mark Read</button>`;
+        }
+
+        const borderCol = !n.isRead ? "rgba(245, 158, 11, 0.55)" : "var(--border)";
+        const bgCol = !n.isRead ? "rgba(245, 158, 11, 0.08)" : "var(--bg-card)";
+
+        return `
+          <div class="log-item" style="border-color:${borderCol}; background:${bgCol};">
+            <div style="flex:1; min-width:220px;">
+              <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+                ${!n.isRead ? '<span class="badge badge-amber">NEW</span>' : ''}
+                <strong style="font-size:14px;">${escapeHtml(n.title)}</strong>
+              </div>
+              <p style="font-size:12.5px; color:#cbd5e1; margin-top:4px;">${escapeHtml(n.message)}</p>
+              <div style="font-size:11.5px; color:var(--text-muted); margin-top:4px;">${formatDateTimeReadable(n.createdAt)}</div>
+            </div>
+            <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
+              ${actionsHtml}
+            </div>
+          </div>
+        `;
+      }).join("");
+    }
+
+    if (reqEl) {
+      const myManagedReqs = (state.accessRequests || []).filter(r => {
+        if (isCurrentUserSuperAdmin()) return true;
+        const c = state.coupons.find(x => x.id === r.couponId);
+        return (c && c.createdBy === currentUser.id) || r.ownerId === currentUser.id;
+      });
+
+      if (myManagedReqs.length === 0) {
+        reqEl.innerHTML = "";
+      } else {
+        reqEl.innerHTML = `
+          <div style="padding-top:16px; border-top:1px solid var(--border);">
+            <h3 style="font-size:16px; font-weight:800; margin-bottom:10px;">🔐 Private Coupon Access Permissions (${myManagedReqs.length})</h3>
+            ${myManagedReqs.map(r => {
+              const c = state.coupons.find(x => x.id === r.couponId);
+              const label = c ? `${c.store} (${c.account})` : "Coupon";
+              const statusBadge = r.status === "approved"
+                ? '<span class="badge badge-green">✅ Allowed</span>'
+                : (r.status === "rejected" ? '<span class="badge badge-red">❌ Declined</span>' : '<span class="badge badge-amber">⏳ Pending</span>');
+              return `
+                <div class="log-item">
+                  <div>
+                    <div style="font-size:13.5px; font-weight:700;">
+                      ${escapeHtml(getMemberDisplayById(r.requesterId))} → <span style="color:#c4b5fd;">${escapeHtml(label)}</span>
+                      ${statusBadge}
+                    </div>
+                    ${r.requestNote ? `<div style="font-size:12px; color:var(--text-muted); margin-top:2px;">Note: "${escapeHtml(r.requestNote)}"</div>` : ''}
+                  </div>
+                  <div style="display:flex; gap:6px; flex-wrap:wrap;">
+                    ${r.status !== "approved" ? `<button class="btn btn-sm btn-primary" onclick="respondToAccessRequest('${r.id}', 'approved')">✅ Allow</button>` : ''}
+                    ${r.status !== "rejected" ? `<button class="btn btn-sm btn-danger" onclick="respondToAccessRequest('${r.id}', 'rejected')">${r.status === "approved" ? "🔒 Revoke" : "❌ Decline"}</button>` : ''}
+                  </div>
+                </div>
+              `;
+            }).join("")}
+          </div>
+        `;
+      }
+    }
+  }
+
   function renderAdminPanel() {
     const container = document.getElementById("membersListContainer");
     if (!container) return;
@@ -2578,7 +3064,7 @@
               </span>
             </div>
             <div style="font-size:12.5px; color:var(--text-muted); margin-top:5px;">
-              Role: <strong>${m.role}</strong> • Coupon Codes: <strong>${m.role === 'super_admin' || m.canReadCodes ? '🔑 Allowed to Read' : '🔒 Hidden'}</strong>
+              Role: <strong>${m.role}</strong> • Codes: <strong>${m.role === 'super_admin' ? '👑 Can Reveal All' : '👁️ Public coupons + Creator-approved Private coupons'}</strong>
             </div>
           </div>
 
@@ -2589,9 +3075,6 @@
                 <option value="contributor" ${m.role === 'contributor' ? 'selected' : ''}>✍️ Contributor (View + Add)</option>
                 <option value="super_admin" ${m.role === 'super_admin' ? 'selected' : ''}>👑 Co-Admin</option>
               </select>
-              <button class="btn btn-sm ${m.canReadCodes ? 'btn-amber' : 'btn-primary'}" onclick="changeMemberPermission('${m.id}', '${m.role}', ${!m.canReadCodes})">
-                ${m.canReadCodes ? '🔒 Hide Codes' : '🔑 Allow Reading Codes'}
-              </button>
               ${m.inviteToken ? `<button class="btn btn-sm btn-blue" onclick="openInviteLinkConfirmation('${escapeHtml(m.name)}', '${escapeHtml(m.email)}', '${m.role}', '${m.inviteToken}')">📧 Resend Invite Link</button>` : ''}
               ${!m.isPendingInvite ? `<button class="btn btn-sm btn-amber" onclick="openEmergencyResetModal('${m.id}')">🔑 Password Reset</button>` : ''}
               <button class="btn btn-sm btn-danger" onclick="deleteMemberAccount('${m.id}')">🗑️</button>
@@ -2648,6 +3131,20 @@
     document.getElementById(fieldId).value = val;
   }
 
+  function resetCouponCodeInputUi() {
+    const codeInput = document.getElementById("fCode");
+    const eyeBtn = document.getElementById("fCodeEyeBtn");
+    if (codeInput) {
+      codeInput.type = "password";
+      codeInput.disabled = false;
+      codeInput.placeholder = "e.g., AMZN-2000-XYZ";
+    }
+    if (eyeBtn) {
+      eyeBtn.textContent = "👁️";
+      eyeBtn.style.display = "inline-flex";
+    }
+  }
+
   function openCouponModal(prefillStore) {
     if (!canCurrentUserAdd()) {
       alert("🔒 Protected Action: Your account is set to 'Viewer Only'.");
@@ -2660,17 +3157,24 @@
     document.getElementById("fType").value = "Gift Card / Wallet";
     document.getElementById("fAmount").value = "";
     document.getElementById("fExpiry").value = getFutureDateStr(30);
+    resetCouponCodeInputUi();
     document.getElementById("fCode").value = "";
     document.getElementById("fNotes").value = "";
-    document.getElementById("fAdminOnlyCode").checked = false;
+    const visSelect = document.getElementById("fCodeVisibility");
+    visSelect.value = "public";
+    visSelect.disabled = false;
+    document.getElementById("fCodeVisibilityHint").textContent =
+      "Codes are always hidden by default for everyone. Choose whether any member can reveal it immediately or must request your permission first.";
     document.getElementById("fAutoCalendar").checked = false;
     document.getElementById("couponModalBackdrop").classList.add("show");
   }
 
-  function openEditCouponModal(id) {
+  async function openEditCouponModal(id) {
     if (!canCurrentUserAdd()) return;
     const c = state.coupons.find(x => x.id === id);
     if (!c) return;
+    const isOwnerOrAdmin = isCouponOwnerOrAdmin(c);
+
     document.getElementById("editCouponId").value = c.id;
     document.getElementById("couponModalTitle").textContent = "✏️ Edit Coupon / Gift Card";
     document.getElementById("fStore").value = c.store;
@@ -2678,9 +3182,39 @@
     document.getElementById("fType").value = c.type;
     document.getElementById("fAmount").value = c.amount;
     document.getElementById("fExpiry").value = c.expiry;
-    document.getElementById("fCode").value = (c.code !== "__HIDDEN__" && canCurrentUserSeeCode(c)) ? (c.code || "") : "";
     document.getElementById("fNotes").value = c.notes || "";
-    document.getElementById("fAdminOnlyCode").checked = Boolean(c.adminOnlyCode);
+
+    resetCouponCodeInputUi();
+    const codeInput = document.getElementById("fCode");
+    const eyeBtn = document.getElementById("fCodeEyeBtn");
+    codeInput.value = "";
+
+    const visSelect = document.getElementById("fCodeVisibility");
+    visSelect.value = c.codeVisibility === "private" ? "private" : "public";
+    visSelect.disabled = !isOwnerOrAdmin;
+    document.getElementById("fCodeVisibilityHint").textContent = isOwnerOrAdmin
+      ? "Codes are always hidden by default. Switching to Private requires users to ping you for access."
+      : "🔒 Only the coupon creator or Super Admin can change Public/Private code settings.";
+
+    if (!isOwnerOrAdmin) {
+      codeInput.disabled = true;
+      codeInput.placeholder = c.hasSecretCode ? "Locked (Only Creator / Admin can edit secret code)" : "No secret code";
+      if (eyeBtn) eyeBtn.style.display = "none";
+    } else if (c.hasSecretCode && supabaseClient) {
+      if (revealedSecrets[c.id] !== undefined) {
+        codeInput.value = revealedSecrets[c.id];
+      } else {
+        const { data } = await supabaseClient
+          .from("coupon_secrets")
+          .select("secret_code")
+          .eq("coupon_id", c.id)
+          .maybeSingle();
+        if (data && data.secret_code) {
+          codeInput.value = data.secret_code;
+        }
+      }
+    }
+
     document.getElementById("fAutoCalendar").checked = false;
     document.getElementById("couponModalBackdrop").classList.add("show");
   }
@@ -2701,7 +3235,8 @@
     const expiry = document.getElementById("fExpiry").value;
     const code = document.getElementById("fCode").value.trim();
     const notes = document.getElementById("fNotes").value.trim();
-    const adminOnlyCode = document.getElementById("fAdminOnlyCode").checked;
+    const codeVisibility = document.getElementById("fCodeVisibility").value === "private" ? "private" : "public";
+    const adminOnlyCode = codeVisibility === "private";
     const autoCal = document.getElementById("fAutoCalendar").checked;
     const reminderDays = parseInt(document.getElementById("fReminderDays").value, 10) || 3;
 
@@ -2710,23 +3245,28 @@
     if (editId) {
       const existing = state.coupons.find(x => x.id === editId);
       if (!existing) return;
-      const canModifySecret = !existing.hasSecretCode || canCurrentUserSeeCode(existing) || isCurrentUserSuperAdmin();
+      const canModifySecret = isCouponOwnerOrAdmin(existing);
       const nextHasSecret = canModifySecret ? Boolean(code) : existing.hasSecretCode;
+
+      const updatePayload = {
+        store,
+        account,
+        benefit_type: benefitType,
+        amount,
+        expiry,
+        notes,
+        has_secret_code: nextHasSecret,
+        status: amount > 0 ? "active" : "used",
+        updated_at: new Date().toISOString()
+      };
+      if (canModifySecret) {
+        updatePayload.code_visibility = codeVisibility;
+        updatePayload.admin_only_code = adminOnlyCode;
+      }
 
       const { error: updErr } = await supabaseClient
         .from("coupons")
-        .update({
-          store,
-          account,
-          benefit_type: benefitType,
-          amount,
-          expiry,
-          notes,
-          admin_only_code: adminOnlyCode,
-          has_secret_code: nextHasSecret,
-          status: amount > 0 ? "active" : "used",
-          updated_at: new Date().toISOString()
-        })
+        .update(updatePayload)
         .eq("id", editId);
 
       if (updErr) {
@@ -2744,10 +3284,11 @@
         } else {
           await supabaseClient.from("coupon_secrets").delete().eq("coupon_id", editId);
         }
+        delete revealedSecrets[editId];
       }
 
       await writeActivityLog("EDITED", `Updated ${store} (${account}) — ${formatINR(amount)}`, `Expires ${expiry}`);
-      savedCouponForCal = { store, account, type: benefitType, amount, expiry, code: canModifySecret ? code : "", notes };
+      savedCouponForCal = { id: editId, store, account, type: benefitType, amount, expiry, notes };
     } else {
       const { data: inserted, error: insErr } = await supabaseClient
         .from("coupons")
@@ -2760,6 +3301,7 @@
           expiry,
           notes,
           admin_only_code: adminOnlyCode,
+          code_visibility: codeVisibility,
           has_secret_code: Boolean(code),
           status: amount > 0 ? "active" : "used",
           created_by: currentUser.id
@@ -2779,8 +3321,8 @@
         });
       }
 
-      await writeActivityLog("ADDED", `Added ${formatINR(amount)} for ${store} (${account})`, `${benefitType} • Expires ${expiry}`);
-      savedCouponForCal = { store, account, type: benefitType, amount, expiry, code, notes };
+      await writeActivityLog("ADDED", `Added ${formatINR(amount)} for ${store} (${account})`, `${benefitType} • ${codeVisibility === "private" ? "Private code" : "Public code"} • Expires ${expiry}`);
+      savedCouponForCal = { id: inserted.id, store, account, type: benefitType, amount, expiry, notes };
     }
 
     closeCouponModal();
@@ -2897,7 +3439,8 @@
 
   function launchGoogleCalendarForCoupon(c, daysBefore) {
     const title = `🎁 Use ${formatINR(c.amount)} ${c.store} (${c.account}) before it expires!`;
-    const codeDisplay = canCurrentUserSeeCode(c) ? (c.code || "In Account Wallet") : "Protected by Super Admin";
+    const revealed = c.id ? revealedSecrets[c.id] : "";
+    const codeDisplay = revealed || "Hidden in Coupon Vault (Use Reveal Code in app)";
     const desc = [
       `Store / Website: ${c.store}`,
       `Account: ${c.account}`,
@@ -2930,8 +3473,9 @@
 
   function copyCodeById(id) {
     const c = state.coupons.find(x => x.id === id);
-    if (!c || !canCurrentUserSeeCode(c)) return;
-    copyTextUniversal(c.store, c.code, "Copied: " + c.code);
+    const revealed = revealedSecrets[id];
+    if (!c || !revealed) return;
+    copyTextUniversal(c.store, revealed, "Copied: " + revealed);
   }
 
   async function promptManualLogNote() {
@@ -2978,6 +3522,7 @@
       let importedCount = 0;
       for (const item of list) {
         const hasCode = Boolean(item.code && item.code !== "__HIDDEN__");
+        const isPrivate = item.codeVisibility === "private" || Boolean(item.adminOnlyCode);
         const { data: inserted, error } = await supabaseClient
           .from("coupons")
           .insert({
@@ -2989,7 +3534,8 @@
             expiry: item.expiry || getFutureDateStr(30),
             notes: String(item.notes || ""),
             status: item.status === "used" ? "used" : "active",
-            admin_only_code: Boolean(item.adminOnlyCode),
+            admin_only_code: isPrivate,
+            code_visibility: isPrivate ? "private" : "public",
             has_secret_code: hasCode,
             created_by: currentUser.id
           })
@@ -3015,8 +3561,21 @@
     }
   }
 
-  function exportBackupJson() {
-    const json = JSON.stringify(state, null, 2);
+  async function exportBackupJson() {
+    if (!isCurrentUserSuperAdmin()) return;
+    let exportState = JSON.parse(JSON.stringify(state));
+    if (supabaseClient) {
+      const { data: secData } = await supabaseClient.from("coupon_secrets").select("coupon_id, secret_code");
+      if (Array.isArray(secData)) {
+        const secMap = {};
+        secData.forEach(s => { secMap[s.coupon_id] = s.secret_code; });
+        exportState.coupons = (exportState.coupons || []).map(c => ({
+          ...c,
+          code: secMap[c.id] !== undefined ? secMap[c.id] : c.code
+        }));
+      }
+    }
+    const json = JSON.stringify(exportState, null, 2);
     const blob = new Blob([json], { type: "application/json" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
