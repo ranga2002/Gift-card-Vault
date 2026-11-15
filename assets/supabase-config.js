@@ -6,3 +6,11 @@ window.COUPON_VAULT_SUPABASE_CONFIG = {
   anonKey: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJiZHN4dHBxbnJxbGlzY2Fvem9nIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTQ3NjMyNzAsImV4cCI6MjExMDMzOTI3MH0.0hPXfdBy_h3SUIlRve3GWhJ2EQZaKvVc8vFLXdPAnRI"
 };
 
+// Optional EmailJS config for automatically sending invite emails from Super Admin.
+// Get these 3 public IDs from https://dashboard.emailjs.com (connect your Gmail there).
+window.COUPON_VAULT_EMAILJS_CONFIG = {
+  publicKey: "",
+  serviceId: "",
+  templateId: ""
+};
+

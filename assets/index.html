@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
 <title>Coupon &amp; Gift Vault</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 <script src="supabase-config.js"></script>
 <style>
   :root {
@@ -976,6 +977,7 @@
           </p>
         </div>
         <div style="display:flex; gap:8px; flex-wrap:wrap;">
+          <button class="btn" onclick="openEmailJsSettingsModal()">⚙️ Auto-Email (EmailJS)</button>
           <button class="btn btn-primary" onclick="openInviteUserModal()">➕ Create &amp; Invite New Email Account</button>
         </div>
       </div>
@@ -1060,6 +1062,7 @@
       <button class="btn btn-sm" onclick="closeInviteCreatedModal()">✕</button>
     </div>
     <p id="inviteCreatedSummary" style="font-size:13.5px; color:var(--text-muted); margin-bottom:12px;"></p>
+    <div id="inviteAutoEmailStatus" style="margin-bottom:12px; padding:10px 12px; border-radius:10px; font-size:13px; border:1px solid var(--border); background:var(--bg-card); display:none;"></div>
     <div class="form-group" style="margin-bottom:14px;">
       <label>Personal Password-Setup Link for this Email:</label>
       <input type="text" id="inviteLinkBox" class="form-control" readonly onclick="this.select()" />
@@ -1069,6 +1072,40 @@
       <a id="mailtoSendBtn" href="#" class="btn btn-blue" style="text-decoration:none;">✉️ Open Default Email App</a>
       <button class="btn" onclick="copyInviteLinkText()">📋 Copy Invite Link</button>
     </div>
+  </div>
+</div>
+
+<!-- AUTO-EMAIL (EMAILJS) SETTINGS MODAL (SUPER ADMIN ONLY) -->
+<div class="modal-backdrop" id="emailjsSettingsModalBackdrop">
+  <div class="modal" style="max-width:520px;">
+    <div class="modal-header">
+      <h2 style="font-size:18px; font-weight:800;">⚙️ Auto-Email Settings (EmailJS)</h2>
+      <button class="btn btn-sm" onclick="closeEmailJsSettingsModal()">✕</button>
+    </div>
+    <p style="font-size:13px; color:var(--text-muted); margin-bottom:14px;">
+      Connect your Gmail via <a href="https://dashboard.emailjs.com" target="_blank" style="color:#60a5fa;">EmailJS</a> so new invited users automatically receive their registration link email as soon as you create them.
+      <br/><span style="font-size:11.5px;">Template variables sent: <code>{{to_email}}</code>, <code>{{to_name}}</code>, <code>{{invite_link}}</code>, <code>{{role}}</code>, <code>{{invited_by}}</code>, <code>{{message}}</code>.</span>
+    </p>
+    <form onsubmit="saveEmailJsSettings(event)">
+      <div class="form-grid">
+        <div class="form-group full">
+          <label>EmailJS Public Key *</label>
+          <input type="text" id="ejsPublicKey" class="form-control" placeholder="e.g., AbCdEf1234567890" required />
+        </div>
+        <div class="form-group full">
+          <label>EmailJS Service ID *</label>
+          <input type="text" id="ejsServiceId" class="form-control" placeholder="e.g., service_xxxxxxx" required />
+        </div>
+        <div class="form-group full">
+          <label>EmailJS Template ID *</label>
+          <input type="text" id="ejsTemplateId" class="form-control" placeholder="e.g., template_xxxxxxx" required />
+        </div>
+      </div>
+      <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:18px;">
+        <button type="button" class="btn" onclick="closeEmailJsSettingsModal()">Cancel</button>
+        <button type="submit" class="btn btn-primary">💾 Save Auto-Email Config</button>
+      </div>
+    </form>
   </div>
 </div>
 
@@ -1906,6 +1943,102 @@
     }
   }
 
+  const LOCAL_EMAILJS_KEY = "COUPON_VAULT_EMAILJS_CONFIG";
+
+  function getEmailJsConfig() {
+    const fileCfg = window.COUPON_VAULT_EMAILJS_CONFIG || {};
+    let savedCfg = {};
+    try {
+      savedCfg = JSON.parse(localStorage.getItem(LOCAL_EMAILJS_KEY) || "{}") || {};
+    } catch (e) {}
+    return {
+      publicKey: (fileCfg.publicKey || savedCfg.publicKey || "").trim(),
+      serviceId: (fileCfg.serviceId || savedCfg.serviceId || "").trim(),
+      templateId: (fileCfg.templateId || savedCfg.templateId || "").trim()
+    };
+  }
+
+  function openEmailJsSettingsModal() {
+    if (!isCurrentUserSuperAdmin()) return;
+    const cfg = getEmailJsConfig();
+    document.getElementById("ejsPublicKey").value = cfg.publicKey;
+    document.getElementById("ejsServiceId").value = cfg.serviceId;
+    document.getElementById("ejsTemplateId").value = cfg.templateId;
+    document.getElementById("emailjsSettingsModalBackdrop").classList.add("show");
+  }
+
+  function closeEmailJsSettingsModal() {
+    document.getElementById("emailjsSettingsModalBackdrop").classList.remove("show");
+  }
+
+  function saveEmailJsSettings(e) {
+    e.preventDefault();
+    if (!isCurrentUserSuperAdmin()) return;
+    const cfg = {
+      publicKey: document.getElementById("ejsPublicKey").value.trim(),
+      serviceId: document.getElementById("ejsServiceId").value.trim(),
+      templateId: document.getElementById("ejsTemplateId").value.trim()
+    };
+    localStorage.setItem(LOCAL_EMAILJS_KEY, JSON.stringify(cfg));
+    closeEmailJsSettingsModal();
+    alert("✅ Auto-Email (EmailJS) settings saved! New invites will automatically send an email.");
+  }
+
+  async function sendInviteEmailViaEmailJS(name, email, role, inviteUrl, messageBody) {
+    const statusEl = document.getElementById("inviteAutoEmailStatus");
+    if (!statusEl) return;
+
+    const cfg = getEmailJsConfig();
+    if (!cfg.publicKey || !cfg.serviceId || !cfg.templateId) {
+      statusEl.style.display = "block";
+      statusEl.style.borderColor = "rgba(245, 158, 11, 0.45)";
+      statusEl.style.background = "var(--amber-soft)";
+      statusEl.style.color = "#fde68a";
+      statusEl.innerHTML = `ℹ️ <strong>Auto-email is not configured yet.</strong> Click <strong>⚙️ Auto-Email (EmailJS)</strong> in the Super Admin bar to connect your Gmail, or use the Gmail / Copy Link buttons below.`;
+      return;
+    }
+
+    if (!window.emailjs || typeof window.emailjs.send !== "function") {
+      statusEl.style.display = "block";
+      statusEl.style.borderColor = "rgba(239, 68, 68, 0.45)";
+      statusEl.style.background = "var(--danger-soft)";
+      statusEl.style.color = "#fca5a5";
+      statusEl.textContent = "⚠️ EmailJS SDK failed to load. Use the Gmail or Copy Link button below.";
+      return;
+    }
+
+    statusEl.style.display = "block";
+    statusEl.style.borderColor = "rgba(59, 130, 246, 0.45)";
+    statusEl.style.background = "var(--blue-soft)";
+    statusEl.style.color = "#93c5fd";
+    statusEl.textContent = `⏳ Sending registration email automatically to ${email}...`;
+
+    try {
+      window.emailjs.init({ publicKey: cfg.publicKey });
+      await window.emailjs.send(cfg.serviceId, cfg.templateId, {
+        to_email: email,
+        email: email,
+        to_name: name,
+        name: name,
+        role: role,
+        invite_link: inviteUrl,
+        invited_by: currentUser ? currentUser.name : "Super Admin",
+        app_name: "Coupon & Gift Vault",
+        message: messageBody
+      });
+      statusEl.style.borderColor = "rgba(16, 185, 129, 0.45)";
+      statusEl.style.background = "var(--accent-soft)";
+      statusEl.style.color = "#6ee7b7";
+      statusEl.innerHTML = `✅ <strong>Registration email automatically sent</strong> to <strong>${escapeHtml(email)}</strong>!`;
+    } catch (err) {
+      const errMsg = (err && (err.text || err.message)) || "Unknown error";
+      statusEl.style.borderColor = "rgba(239, 68, 68, 0.45)";
+      statusEl.style.background = "var(--danger-soft)";
+      statusEl.style.color = "#fca5a5";
+      statusEl.textContent = `⚠️ Auto-email failed (${errMsg}). You can still send it manually below.`;
+    }
+  }
+
   function openInviteLinkConfirmation(name, email, role, token) {
     const inviteUrl =
       getAppBaseUrl() +
@@ -1914,7 +2047,7 @@
       "&name=" + encodeURIComponent(name);
 
     document.getElementById("inviteCreatedSummary").innerHTML =
-      `Account authorized for <strong>${escapeHtml(name)} (${escapeHtml(email)})</strong> with role <strong>${escapeHtml(role)}</strong>.<br/>Send them this activation link so they can set their own private password:`;
+      `Account authorized for <strong>${escapeHtml(name)} (${escapeHtml(email)})</strong> with role <strong>${escapeHtml(role)}</strong>.`;
     document.getElementById("inviteLinkBox").value = inviteUrl;
 
     const subject = "You're invited to Coupon & Gift Vault — Set your password";
@@ -1935,6 +2068,7 @@
     document.getElementById("gmailSendBtn").href = gmailUrl;
     document.getElementById("mailtoSendBtn").href = mailtoUrl;
     document.getElementById("inviteCreatedModalBackdrop").classList.add("show");
+    sendInviteEmailViaEmailJS(name, email, role, inviteUrl, body);
   }
 
   function closeInviteCreatedModal() {
