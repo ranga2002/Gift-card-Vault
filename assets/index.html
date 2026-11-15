@@ -653,6 +653,39 @@
     border-color: var(--accent);
   }
 
+  .password-wrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+    width: 100%;
+  }
+
+  .password-wrap .form-control {
+    width: 100%;
+    padding-right: 44px;
+  }
+
+  .password-toggle-btn {
+    position: absolute;
+    right: 8px;
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    font-size: 16px;
+    padding: 4px 6px;
+    border-radius: 6px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+  }
+
+  .password-toggle-btn:hover {
+    color: var(--text);
+    background: rgba(255, 255, 255, 0.06);
+  }
+
   .preset-tags {
     display: flex;
     flex-wrap: wrap;
@@ -727,7 +760,10 @@
       </div>
       <div class="form-group">
         <label>Password *</label>
-        <input type="password" id="loginPassword" class="form-control" placeholder="Enter your password" required />
+        <div class="password-wrap">
+          <input type="password" id="loginPassword" class="form-control" placeholder="Enter your password" required />
+          <button type="button" class="password-toggle-btn" onclick="togglePasswordVisibility('loginPassword', this)" aria-label="Show password" title="Show / Hide password">👁️</button>
+        </div>
       </div>
       <button type="submit" class="btn btn-primary" id="loginSubmitBtn" style="width:100%; padding:13px; margin-top:6px;">
         🔐 Sign In
@@ -757,11 +793,17 @@
       </div>
       <div class="form-group">
         <label>Password * (min 6 chars)</label>
-        <input type="password" id="firstAdminPassword" class="form-control" placeholder="Create strong password" minlength="6" required />
+        <div class="password-wrap">
+          <input type="password" id="firstAdminPassword" class="form-control" placeholder="Create strong password" minlength="6" required />
+          <button type="button" class="password-toggle-btn" onclick="togglePasswordVisibility('firstAdminPassword', this)" aria-label="Show password" title="Show / Hide password">👁️</button>
+        </div>
       </div>
       <div class="form-group">
         <label>Confirm Password *</label>
-        <input type="password" id="firstAdminConfirm" class="form-control" placeholder="Re-enter password" minlength="6" required />
+        <div class="password-wrap">
+          <input type="password" id="firstAdminConfirm" class="form-control" placeholder="Re-enter password" minlength="6" required />
+          <button type="button" class="password-toggle-btn" onclick="togglePasswordVisibility('firstAdminConfirm', this)" aria-label="Show password" title="Show / Hide password">👁️</button>
+        </div>
       </div>
       <button type="submit" class="btn btn-primary" style="width:100%; padding:13px; margin-top:4px;">
         👑 Create Super Admin
@@ -787,11 +829,17 @@
       </div>
       <div class="form-group">
         <label>Set Your Private Password * (min 6 chars, hidden from everyone)</label>
-        <input type="password" id="inviteNewPassword" class="form-control" placeholder="Create password (min 6 chars)" minlength="6" required />
+        <div class="password-wrap">
+          <input type="password" id="inviteNewPassword" class="form-control" placeholder="Create password (min 6 chars)" minlength="6" required />
+          <button type="button" class="password-toggle-btn" onclick="togglePasswordVisibility('inviteNewPassword', this)" aria-label="Show password" title="Show / Hide password">👁️</button>
+        </div>
       </div>
       <div class="form-group">
         <label>Confirm Password *</label>
-        <input type="password" id="inviteConfirmPassword" class="form-control" placeholder="Re-enter password" minlength="6" required />
+        <div class="password-wrap">
+          <input type="password" id="inviteConfirmPassword" class="form-control" placeholder="Re-enter password" minlength="6" required />
+          <button type="button" class="password-toggle-btn" onclick="togglePasswordVisibility('inviteConfirmPassword', this)" aria-label="Show password" title="Show / Hide password">👁️</button>
+        </div>
       </div>
       <button type="submit" class="btn btn-primary" style="width:100%; padding:13px; margin-top:6px;">
         ✅ Create Account &amp; Access Vault
@@ -835,11 +883,17 @@
     <form onsubmit="handleRecoveryPasswordSubmit(event)" style="display:flex; flex-direction:column; gap:14px;">
       <div class="form-group">
         <label>New Password * (min 6 chars)</label>
-        <input type="password" id="recoveryNewPassword" class="form-control" placeholder="New password" minlength="6" required />
+        <div class="password-wrap">
+          <input type="password" id="recoveryNewPassword" class="form-control" placeholder="New password" minlength="6" required />
+          <button type="button" class="password-toggle-btn" onclick="togglePasswordVisibility('recoveryNewPassword', this)" aria-label="Show password" title="Show / Hide password">👁️</button>
+        </div>
       </div>
       <div class="form-group">
         <label>Confirm New Password *</label>
-        <input type="password" id="recoveryConfirmPassword" class="form-control" placeholder="Confirm password" minlength="6" required />
+        <div class="password-wrap">
+          <input type="password" id="recoveryConfirmPassword" class="form-control" placeholder="Confirm password" minlength="6" required />
+          <button type="button" class="password-toggle-btn" onclick="togglePasswordVisibility('recoveryConfirmPassword', this)" aria-label="Show password" title="Show / Hide password">👁️</button>
+        </div>
       </div>
       <button type="submit" class="btn btn-primary" style="width:100%; padding:13px;">
         ✅ Update Password
@@ -1033,7 +1087,10 @@
         Updates your Supabase Auth password immediately for your currently signed-in account:
       </p>
       <div style="display:flex; gap:8px;">
-        <input type="password" id="emergencyNewPassInput" class="form-control" style="flex:1;" placeholder="Enter new password (min 6 chars)" minlength="6" />
+        <div class="password-wrap" style="flex:1;">
+          <input type="password" id="emergencyNewPassInput" class="form-control" placeholder="Enter new password (min 6 chars)" minlength="6" />
+          <button type="button" class="password-toggle-btn" onclick="togglePasswordVisibility('emergencyNewPassInput', this)" aria-label="Show password" title="Show / Hide password">👁️</button>
+        </div>
         <button class="btn btn-amber" onclick="submitEmergencyDirectPassword()">⚡ Update Password</button>
       </div>
     </div>
@@ -1229,6 +1286,17 @@
   function setStatusSubtext(msg) {
     const el = document.getElementById("syncStatusSub");
     if (el) el.textContent = msg;
+  }
+
+  function togglePasswordVisibility(inputId, btn) {
+    const input = document.getElementById(inputId);
+    if (!input) return;
+    const show = input.type === "password";
+    input.type = show ? "text" : "password";
+    if (btn) {
+      btn.textContent = show ? "🙈" : "👁️";
+      btn.setAttribute("aria-label", show ? "Hide password" : "Show password");
+    }
   }
 
   function hideAllAuthCards() {
