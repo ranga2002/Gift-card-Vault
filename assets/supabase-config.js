@@ -10,7 +10,7 @@ window.COUPON_VAULT_SUPABASE_CONFIG = {
 // Get these 3 public IDs from https://dashboard.emailjs.com (connect your Gmail there).
 window.COUPON_VAULT_EMAILJS_CONFIG = {
   publicKey: "ZUWxhrS0Tr-cDnCZL",
-  serviceId: "service_hw2jdjn",
+  serviceId: "service_tkhnapb",
   templateId: "template_b90orbr"
 };
 
