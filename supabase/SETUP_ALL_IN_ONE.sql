@@ -157,12 +157,14 @@ grant select, insert, update, delete on public.coupon_secrets to authenticated;
 grant select, insert, delete on public.activity_logs to authenticated;
 
 -- 1. Policies for `public.profiles`
+drop policy if exists "profiles_select_authenticated" on public.profiles;
 create policy "profiles_select_authenticated"
   on public.profiles for select
   to authenticated
   using ( (select auth.uid()) is not null );
 
 -- Only Super Admin can update roles and `can_read_codes` permissions
+drop policy if exists "profiles_update_super_admin_only" on public.profiles;
 create policy "profiles_update_super_admin_only"
   on public.profiles for update
   to authenticated
@@ -171,18 +173,21 @@ create policy "profiles_update_super_admin_only"
 
 -- 2. Policies for `public.coupons`
 -- All signed-in friends (viewer, contributor, super_admin) can view store balances & accounts
+drop policy if exists "coupons_select_all_members" on public.coupons;
 create policy "coupons_select_all_members"
   on public.coupons for select
   to authenticated
   using ( (select private.get_my_role()) in ('super_admin', 'contributor', 'viewer') );
 
 -- Only Super Admin and Contributors can add coupons
+drop policy if exists "coupons_insert_contributors_and_admin" on public.coupons;
 create policy "coupons_insert_contributors_and_admin"
   on public.coupons for insert
   to authenticated
   with check ( (select private.get_my_role()) in ('super_admin', 'contributor') );
 
 -- Only Super Admin and Contributors can update balances
+drop policy if exists "coupons_update_contributors_and_admin" on public.coupons;
 create policy "coupons_update_contributors_and_admin"
   on public.coupons for update
   to authenticated
@@ -190,6 +195,7 @@ create policy "coupons_update_contributors_and_admin"
   with check ( (select private.get_my_role()) in ('super_admin', 'contributor') );
 
 -- Only Super Admin can delete coupons
+drop policy if exists "coupons_delete_super_admin_only" on public.coupons;
 create policy "coupons_delete_super_admin_only"
   on public.coupons for delete
   to authenticated
@@ -199,6 +205,7 @@ create policy "coupons_delete_super_admin_only"
 -- Secret coupon codes are ONLY readable if:
 --   a) The user is `super_admin`, OR
 --   b) The user has `can_read_codes = true` AND the coupon is not flagged `admin_only_code`
+drop policy if exists "coupon_secrets_select_authorized_only" on public.coupon_secrets;
 create policy "coupon_secrets_select_authorized_only"
   on public.coupon_secrets for select
   to authenticated
@@ -214,33 +221,39 @@ create policy "coupon_secrets_select_authorized_only"
     )
   );
 
+drop policy if exists "coupon_secrets_insert_contributors_and_admin" on public.coupon_secrets;
 create policy "coupon_secrets_insert_contributors_and_admin"
   on public.coupon_secrets for insert
   to authenticated
   with check ( (select private.get_my_role()) in ('super_admin', 'contributor') );
 
+drop policy if exists "coupon_secrets_update_contributors_and_admin" on public.coupon_secrets;
 create policy "coupon_secrets_update_contributors_and_admin"
   on public.coupon_secrets for update
   to authenticated
   using ( (select private.get_my_role()) in ('super_admin', 'contributor') )
   with check ( (select private.get_my_role()) in ('super_admin', 'contributor') );
 
+drop policy if exists "coupon_secrets_delete_super_admin_only" on public.coupon_secrets;
 create policy "coupon_secrets_delete_super_admin_only"
   on public.coupon_secrets for delete
   to authenticated
   using ( (select private.get_my_role()) = 'super_admin' );
 
 -- 4. Policies for `public.activity_logs`
+drop policy if exists "activity_logs_select_all_members" on public.activity_logs;
 create policy "activity_logs_select_all_members"
   on public.activity_logs for select
   to authenticated
   using ( (select private.get_my_role()) in ('super_admin', 'contributor', 'viewer') );
 
+drop policy if exists "activity_logs_insert_contributors_and_admin" on public.activity_logs;
 create policy "activity_logs_insert_contributors_and_admin"
   on public.activity_logs for insert
   to authenticated
   with check ( (select private.get_my_role()) in ('super_admin', 'contributor') );
 
+drop policy if exists "activity_logs_delete_super_admin_only" on public.activity_logs;
 create policy "activity_logs_delete_super_admin_only"
   on public.activity_logs for delete
   to authenticated
@@ -275,22 +288,26 @@ alter table public.invited_accounts enable row level security;
 
 grant select, insert, update, delete on public.invited_accounts to authenticated;
 
+drop policy if exists "invited_accounts_select_super_admin" on public.invited_accounts;
 create policy "invited_accounts_select_super_admin"
   on public.invited_accounts for select
   to authenticated
   using ( (select private.get_my_role()) = 'super_admin' );
 
+drop policy if exists "invited_accounts_insert_super_admin" on public.invited_accounts;
 create policy "invited_accounts_insert_super_admin"
   on public.invited_accounts for insert
   to authenticated
   with check ( (select private.get_my_role()) = 'super_admin' );
 
+drop policy if exists "invited_accounts_update_super_admin" on public.invited_accounts;
 create policy "invited_accounts_update_super_admin"
   on public.invited_accounts for update
   to authenticated
   using ( (select private.get_my_role()) = 'super_admin' )
   with check ( (select private.get_my_role()) = 'super_admin' );
 
+drop policy if exists "invited_accounts_delete_super_admin" on public.invited_accounts;
 create policy "invited_accounts_delete_super_admin"
   on public.invited_accounts for delete
   to authenticated
@@ -298,6 +315,7 @@ create policy "invited_accounts_delete_super_admin"
 
 -- 2. Tighten `public.profiles` policies (only active members read profiles; Super Admin can remove members)
 drop policy if exists "profiles_select_authenticated" on public.profiles;
+drop policy if exists "profiles_select_active_members" on public.profiles;
 create policy "profiles_select_active_members"
   on public.profiles for select
   to authenticated

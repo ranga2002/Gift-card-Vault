@@ -26,22 +26,26 @@ alter table public.invited_accounts enable row level security;
 
 grant select, insert, update, delete on public.invited_accounts to authenticated;
 
+drop policy if exists "invited_accounts_select_super_admin" on public.invited_accounts;
 create policy "invited_accounts_select_super_admin"
   on public.invited_accounts for select
   to authenticated
   using ( (select private.get_my_role()) = 'super_admin' );
 
+drop policy if exists "invited_accounts_insert_super_admin" on public.invited_accounts;
 create policy "invited_accounts_insert_super_admin"
   on public.invited_accounts for insert
   to authenticated
   with check ( (select private.get_my_role()) = 'super_admin' );
 
+drop policy if exists "invited_accounts_update_super_admin" on public.invited_accounts;
 create policy "invited_accounts_update_super_admin"
   on public.invited_accounts for update
   to authenticated
   using ( (select private.get_my_role()) = 'super_admin' )
   with check ( (select private.get_my_role()) = 'super_admin' );
 
+drop policy if exists "invited_accounts_delete_super_admin" on public.invited_accounts;
 create policy "invited_accounts_delete_super_admin"
   on public.invited_accounts for delete
   to authenticated
@@ -49,6 +53,7 @@ create policy "invited_accounts_delete_super_admin"
 
 -- 2. Tighten `public.profiles` policies (only active members read profiles; Super Admin can remove members)
 drop policy if exists "profiles_select_authenticated" on public.profiles;
+drop policy if exists "profiles_select_active_members" on public.profiles;
 create policy "profiles_select_active_members"
   on public.profiles for select
   to authenticated
