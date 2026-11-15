@@ -6,7 +6,7 @@
 <title>Coupon &amp; Gift Vault</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
-<script src="supabase-config.js"></script>
+<script src="supabase-config.js?v=202611152212"></script>
 <style>
   :root {
     --bg: #0b1120;
@@ -1121,9 +1121,12 @@
           <input type="text" id="ejsTemplateId" class="form-control" placeholder="e.g., template_xxxxxxx" required />
         </div>
       </div>
-      <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:18px;">
-        <button type="button" class="btn" onclick="closeEmailJsSettingsModal()">Cancel</button>
-        <button type="submit" class="btn btn-primary">💾 Save Auto-Email Config</button>
+      <div style="display:flex; justify-content:space-between; flex-wrap:wrap; gap:8px; margin-top:18px;">
+        <button type="button" class="btn btn-amber" onclick="resetEmailJsSettings()">🔄 Use Built-in Defaults</button>
+        <div style="display:flex; gap:8px;">
+          <button type="button" class="btn" onclick="closeEmailJsSettingsModal()">Cancel</button>
+          <button type="submit" class="btn btn-primary">💾 Save Auto-Email Config</button>
+        </div>
       </div>
     </form>
   </div>
@@ -1219,7 +1222,7 @@
           <label>Secret Coupon Code / PIN (Optional)</label>
           <div class="password-wrap">
             <input type="password" id="fCode" class="form-control" placeholder="e.g., AMZN-2000-XYZ" autocomplete="off" />
-            <button type="button" class="password-toggle" id="fCodeEyeBtn" onclick="togglePasswordVisibility('fCode', this)" aria-label="Show secret code">👁️</button>
+            <button type="button" class="password-toggle-btn" id="fCodeEyeBtn" onclick="togglePasswordVisibility('fCode', this)" aria-label="Show secret code" title="Show / Hide secret code">👁️</button>
           </div>
         </div>
 
@@ -2260,12 +2263,25 @@
     let savedCfg = {};
     try {
       savedCfg = JSON.parse(localStorage.getItem(LOCAL_EMAILJS_KEY) || "{}") || {};
+      if (savedCfg.serviceId === "service_hw2jdjn" && fileCfg.serviceId && fileCfg.serviceId !== "service_hw2jdjn") {
+        localStorage.removeItem(LOCAL_EMAILJS_KEY);
+        savedCfg = {};
+      }
     } catch (e) {}
     return {
       publicKey: (savedCfg.publicKey || fileCfg.publicKey || "").trim(),
       serviceId: (savedCfg.serviceId || fileCfg.serviceId || "").trim(),
       templateId: (savedCfg.templateId || fileCfg.templateId || "").trim()
     };
+  }
+
+  function resetEmailJsSettings() {
+    localStorage.removeItem(LOCAL_EMAILJS_KEY);
+    const cfg = getEmailJsConfig();
+    document.getElementById("ejsPublicKey").value = cfg.publicKey;
+    document.getElementById("ejsServiceId").value = cfg.serviceId;
+    document.getElementById("ejsTemplateId").value = cfg.templateId;
+    alert("🔄 Reset to built-in config file values!");
   }
 
   function openEmailJsSettingsModal() {
@@ -2313,7 +2329,6 @@
     }
 
     try {
-      window.emailjs.init({ publicKey: cfg.publicKey });
       await window.emailjs.send(cfg.serviceId, cfg.templateId, {
         to_email: email,
         email: email,
@@ -2335,7 +2350,7 @@
       return {
         sent: false,
         kind: "error",
-        message: `⚠️ Auto-email failed (${escapeHtml(errMsg)}). You can still send it manually below.`
+        message: `⚠️ Auto-email failed (${escapeHtml(errMsg)}) [Service: ${escapeHtml(cfg.serviceId)}]. You can still send it manually below.`
       };
     }
   }
