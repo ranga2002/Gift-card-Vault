@@ -1,0 +1,21 @@
+# Local vault state, backups, and sensitive data (stored in Supabase instead)
+cloud_vault_state.json
+backups/
+*.backup.json
+.env
+.env.*
+
+# Android SDK / build artifacts / binaries
+tools/
+build/
+*.apk
+*.idsig
+*.keystore
+*.jks
+*.class
+*.dex
+
+# OS / editor artifacts
+.DS_Store
+Thumbs.db
+

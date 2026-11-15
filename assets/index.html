@@ -1,0 +1,2838 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<title>Coupon &amp; Gift Vault</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase-config.js"></script>
+<style>
+  :root {
+    --bg: #0b1120;
+    --bg-panel: #131c31;
+    --bg-card: #1a2540;
+    --bg-input: #0f172a;
+    --border: #2a3a5e;
+    --text: #f8fafc;
+    --text-muted: #94a3b8;
+    --accent: #10b981;
+    --accent-soft: rgba(16, 185, 129, 0.14);
+    --blue: #3b82f6;
+    --blue-soft: rgba(59, 130, 246, 0.15);
+    --amber: #f59e0b;
+    --amber-soft: rgba(245, 158, 11, 0.16);
+    --danger: #ef4444;
+    --danger-soft: rgba(239, 68, 68, 0.16);
+    --purple: #8b5cf6;
+    --purple-soft: rgba(139, 92, 246, 0.16);
+    --radius: 16px;
+  }
+
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    -webkit-tap-highlight-color: transparent;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* AUTH / LOGIN FULLSCREEN VIEW */
+  .auth-wrapper {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    background: radial-gradient(circle at top, #172554 0%, #0b1120 65%);
+  }
+
+  .auth-card {
+    background: var(--bg-panel);
+    border: 1px solid var(--border);
+    border-radius: 22px;
+    width: 100%;
+    max-width: 450px;
+    padding: 32px 28px;
+    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.55);
+  }
+
+  .auth-logo {
+    width: 56px;
+    height: 56px;
+    border-radius: 16px;
+    background: linear-gradient(135deg, #10b981, #059669);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    margin: 0 auto 16px auto;
+    box-shadow: 0 8px 22px rgba(16, 185, 129, 0.35);
+  }
+
+  .auth-error {
+    background: var(--danger-soft);
+    border: 1px solid rgba(239, 68, 68, 0.4);
+    color: #fca5a5;
+    padding: 11px 14px;
+    border-radius: 11px;
+    font-size: 13px;
+    margin-bottom: 16px;
+    display: none;
+  }
+
+  /* Top Header */
+  .topbar {
+    position: sticky;
+    top: 0;
+    z-index: 40;
+    background: rgba(11, 17, 32, 0.93);
+    backdrop-filter: blur(14px);
+    border-bottom: 1px solid var(--border);
+    padding: 14px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    flex-wrap: wrap;
+  }
+
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 13px;
+  }
+
+  .brand-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #10b981, #059669);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 23px;
+    box-shadow: 0 6px 18px rgba(16, 185, 129, 0.3);
+  }
+
+  .brand-title h1 {
+    font-size: 20px;
+    font-weight: 800;
+    letter-spacing: -0.3px;
+  }
+
+  .brand-title p {
+    font-size: 12.5px;
+    color: var(--text-muted);
+  }
+
+  .topbar-actions {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    flex-wrap: wrap;
+  }
+
+  .btn {
+    border: none;
+    outline: none;
+    cursor: pointer;
+    padding: 10px 16px;
+    border-radius: 11px;
+    font-size: 13.5px;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    transition: transform 0.12s ease, opacity 0.15s ease;
+    color: var(--text);
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+  }
+
+  .btn:active {
+    transform: scale(0.97);
+  }
+
+  .btn-primary {
+    background: linear-gradient(135deg, #10b981, #059669);
+    border: none;
+    color: #fff;
+    box-shadow: 0 4px 14px rgba(16, 185, 129, 0.3);
+  }
+
+  .btn-purple {
+    background: linear-gradient(135deg, #8b5cf6, #6d28d9);
+    border: none;
+    color: #fff;
+    box-shadow: 0 4px 14px rgba(139, 92, 246, 0.3);
+  }
+
+  .btn-blue {
+    background: var(--blue-soft);
+    color: #60a5fa;
+    border: 1px solid rgba(59, 130, 246, 0.35);
+  }
+
+  .btn-amber {
+    background: var(--amber-soft);
+    color: #fbbf24;
+    border: 1px solid rgba(245, 158, 11, 0.35);
+  }
+
+  .btn-danger {
+    background: var(--danger-soft);
+    color: #f87171;
+    border: 1px solid rgba(239, 68, 68, 0.35);
+  }
+
+  .btn-sm {
+    padding: 6px 11px;
+    font-size: 12px;
+    border-radius: 8px;
+  }
+
+  .user-pill {
+    background: var(--bg-panel);
+    border: 1px solid var(--border);
+    padding: 7px 13px;
+    border-radius: 999px;
+    font-size: 12.5px;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+  }
+
+  .container {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 20px 24px 90px 24px;
+  }
+
+  /* KPI Summary Strip */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+    gap: 14px;
+    margin-bottom: 22px;
+  }
+
+  .stat-card {
+    background: var(--bg-panel);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+
+  .stat-label {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .stat-value {
+    font-size: 26px;
+    font-weight: 800;
+  }
+
+  .stat-sub {
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+
+  /* SHOPPING QUICK-CHECK HERO */
+  .quick-check-box {
+    background: linear-gradient(145deg, #15223d, #111a2e);
+    border: 2px solid #2563eb;
+    border-radius: 20px;
+    padding: 20px 22px;
+    margin-bottom: 22px;
+    box-shadow: 0 12px 32px rgba(37, 99, 235, 0.16);
+  }
+
+  .qc-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .qc-title {
+    font-size: 17px;
+    font-weight: 800;
+    color: #93c5fd;
+  }
+
+  .qc-input-wrap {
+    position: relative;
+    width: 100%;
+  }
+
+  .qc-input {
+    width: 100%;
+    background: var(--bg-input);
+    border: 1.5px solid #3b82f6;
+    border-radius: 14px;
+    padding: 14px 44px 14px 18px;
+    color: var(--text);
+    font-size: 15.5px;
+    font-weight: 600;
+    outline: none;
+  }
+
+  .qc-clear {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: var(--bg-card);
+    border: none;
+    color: var(--text-muted);
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 15px;
+    display: none;
+  }
+
+  .store-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 12px;
+  }
+
+  .store-chip {
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 6px 13px;
+    border-radius: 999px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .store-chip.active {
+    background: var(--blue);
+    border-color: var(--blue);
+    color: #fff;
+  }
+
+  .qc-result {
+    margin-top: 16px;
+    background: rgba(15, 23, 42, 0.85);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 16px;
+    display: none;
+  }
+
+  .qc-result.show {
+    display: block;
+  }
+
+  .qc-account-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(310px, 1fr));
+    gap: 12px;
+    margin-top: 12px;
+  }
+
+  .qc-account-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--accent);
+    border-radius: 12px;
+    padding: 13px 15px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  /* Navigation Tabs */
+  .nav-tabs {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 18px;
+    flex-wrap: wrap;
+  }
+
+  .tab-group {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .tab-btn {
+    background: var(--bg-panel);
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    padding: 10px 15px;
+    border-radius: 12px;
+    font-size: 13.5px;
+    font-weight: 700;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+  }
+
+  .tab-btn.active {
+    background: var(--accent-soft);
+    color: #34d399;
+    border-color: var(--accent);
+  }
+
+  /* Store Groups & Cards */
+  .store-group {
+    background: var(--bg-panel);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    padding: 18px 20px;
+    margin-bottom: 18px;
+  }
+
+  .store-group-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-bottom: 14px;
+    margin-bottom: 14px;
+    border-bottom: 1px solid var(--border);
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .store-badge {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .store-avatar {
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 19px;
+    font-weight: 800;
+    color: #fff;
+  }
+
+  .store-total-pill {
+    background: var(--accent-soft);
+    border: 1px solid rgba(16, 185, 129, 0.35);
+    color: #34d399;
+    padding: 7px 14px;
+    border-radius: 12px;
+    font-size: 15px;
+    font-weight: 800;
+  }
+
+  .cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    gap: 14px;
+  }
+
+  .coupon-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 15px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  .coupon-card.expiring-soon {
+    border-color: var(--amber);
+  }
+
+  .coupon-card.expired-or-used {
+    opacity: 0.62;
+  }
+
+  .account-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--purple-soft);
+    color: #c4b5fd;
+    border: 1px solid rgba(139, 92, 246, 0.35);
+    padding: 4px 10px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 700;
+    margin-top: 5px;
+  }
+
+  .code-strip {
+    background: var(--bg-input);
+    border: 1px dashed var(--border);
+    border-radius: 10px;
+    padding: 9px 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+  }
+
+  .code-strip.locked {
+    border-color: rgba(239, 68, 68, 0.4);
+    background: rgba(239, 68, 68, 0.07);
+  }
+
+  .code-text {
+    font-family: "Consolas", "Courier New", monospace;
+    font-size: 13.5px;
+    font-weight: 700;
+    color: #e2e8f0;
+    word-break: break-all;
+  }
+
+  .badge {
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 11.5px;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+  }
+
+  .badge-green { background: var(--accent-soft); color: #34d399; }
+  .badge-amber { background: var(--amber-soft); color: #fbbf24; }
+  .badge-red { background: var(--danger-soft); color: #f87171; }
+  .badge-purple { background: var(--purple-soft); color: #c4b5fd; }
+  .badge-blue { background: var(--blue-soft); color: #60a5fa; }
+
+  .card-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 7px;
+    padding-top: 10px;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+  }
+
+  /* Panels (Admin & Logger) */
+  .panel-box {
+    background: var(--bg-panel);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    padding: 20px;
+    display: none;
+    margin-bottom: 20px;
+  }
+
+  .panel-box.show {
+    display: block;
+  }
+
+  .member-row {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 15px 18px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    flex-wrap: wrap;
+    margin-top: 12px;
+  }
+
+  .log-item {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-top: 10px;
+  }
+
+  /* Modals */
+  .modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(5, 10, 20, 0.8);
+    backdrop-filter: blur(6px);
+    z-index: 100;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 18px;
+  }
+
+  .modal-backdrop.show {
+    display: flex;
+  }
+
+  .modal {
+    background: var(--bg-panel);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    width: 100%;
+    max-width: 620px;
+    max-height: 90vh;
+    overflow-y: auto;
+    padding: 22px;
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.6);
+  }
+
+  .modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+  }
+
+  .form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 13px;
+  }
+
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .form-group.full {
+    grid-column: 1 / -1;
+  }
+
+  .form-group label {
+    font-size: 12.5px;
+    font-weight: 700;
+    color: #cbd5e1;
+  }
+
+  .form-control {
+    background: var(--bg-input);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 11px 13px;
+    color: var(--text);
+    font-size: 14px;
+    outline: none;
+  }
+
+  .form-control:focus {
+    border-color: var(--accent);
+  }
+
+  .preset-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 4px;
+  }
+
+  .preset-tag {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    padding: 4px 10px;
+    border-radius: 8px;
+    font-size: 12px;
+    cursor: pointer;
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--text-muted);
+  }
+
+  @media (max-width: 640px) {
+    .form-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ====================================================================== -->
+<!-- 1. AUTHENTICATION, SUPABASE SETUP & INVITE PASSWORD SETUP SCREEN       -->
+<!-- ====================================================================== -->
+<div class="auth-wrapper" id="authScreen">
+
+  <!-- 0) SUPABASE CONNECTION SETUP CARD (shown if supabase-config.js is blank) -->
+  <div class="auth-card" id="supabaseSetupCard" style="display:none;">
+    <div class="auth-logo">🗄️</div>
+    <h2 style="text-align:center; font-size:21px; font-weight:800; margin-bottom:6px;">Connect Your Supabase Backend</h2>
+    <p style="text-align:center; font-size:13px; color:var(--text-muted); margin-bottom:18px;">
+      Paste your Supabase <strong>Project URL</strong> and <strong>Publishable / anon key</strong> below to connect (saved in this browser, or commit them in <code>assets/supabase-config.js</code> for everyone).
+    </p>
+    <div class="auth-error" id="setupConfigError"></div>
+    <form onsubmit="handleSaveSupabaseConfig(event)" style="display:flex; flex-direction:column; gap:13px;">
+      <div class="form-group">
+        <label>Supabase Project URL *</label>
+        <input type="url" id="cfgSupabaseUrl" class="form-control" placeholder="https://xxxxxxxxxxxx.supabase.co" required />
+      </div>
+      <div class="form-group">
+        <label>Supabase Publishable / Anon Key *</label>
+        <input type="text" id="cfgSupabaseKey" class="form-control" placeholder="sb_publishable_... or eyJ..." required />
+      </div>
+      <button type="submit" class="btn btn-primary" style="width:100%; padding:13px; margin-top:4px;">
+        🔗 Save &amp; Connect
+      </button>
+    </form>
+  </div>
+
+  <!-- A) STANDARD EMAIL + PASSWORD LOGIN PAGE -->
+  <div class="auth-card" id="loginCard" style="display:block;">
+    <div class="auth-logo">🎟️</div>
+    <h2 style="text-align:center; font-size:22px; font-weight:800; margin-bottom:6px;">Sign In to Coupon Vault</h2>
+    <p style="text-align:center; font-size:13px; color:var(--text-muted); margin-bottom:20px;">
+      Enter your registered Email ID and Password. <br/>
+      <span style="font-size:11.5px;">(Invite-only: Protected by Supabase Auth &amp; Postgres Row-Level Security.)</span>
+    </p>
+    <div class="auth-error" id="loginError"></div>
+    <form onsubmit="handleLoginSubmit(event)" style="display:flex; flex-direction:column; gap:14px;">
+      <div class="form-group">
+        <label>Email ID *</label>
+        <input type="email" id="loginEmail" class="form-control" placeholder="name@example.com" required />
+      </div>
+      <div class="form-group">
+        <label>Password *</label>
+        <input type="password" id="loginPassword" class="form-control" placeholder="Enter your password" required />
+      </div>
+      <button type="submit" class="btn btn-primary" id="loginSubmitBtn" style="width:100%; padding:13px; margin-top:6px;">
+        🔐 Sign In
+      </button>
+    </form>
+    <div style="display:flex; justify-content:space-between; flex-wrap:wrap; gap:8px; margin-top:16px; font-size:12.5px;">
+      <a href="#" onclick="showForgotPasswordCard(event)" style="color:#60a5fa; text-decoration:none;">Forgot password?</a>
+      <a href="#" onclick="showFirstAdminSetupCard(event)" style="color:#34d399; text-decoration:none;">First-time Super Admin setup</a>
+    </div>
+    <div style="text-align:center; margin-top:12px;">
+      <a href="#" onclick="showSupabaseConfigCard(event)" style="font-size:11.5px; color:var(--text-muted); text-decoration:none;">⚙️ Supabase connection settings</a>
+    </div>
+  </div>
+
+  <!-- B) FIRST-TIME SUPER ADMIN SETUP CARD (only works when profiles table is empty) -->
+  <div class="auth-card" id="firstAdminCard" style="display:none;">
+    <div class="auth-logo">👑</div>
+    <h2 style="text-align:center; font-size:21px; font-weight:800; margin-bottom:6px;">Create Super Admin Account</h2>
+    <p style="text-align:center; font-size:13px; color:var(--text-muted); margin-bottom:18px;">
+      Only allowed when the vault has <strong>zero</strong> users yet. Once created, all new accounts require a Super Admin invite.
+    </p>
+    <div class="auth-error" id="firstAdminError"></div>
+    <form onsubmit="handleFirstAdminSignup(event)" style="display:flex; flex-direction:column; gap:13px;">
+      <div class="form-group">
+        <label>Your Name *</label>
+        <input type="text" id="firstAdminName" class="form-control" placeholder="e.g., Sai" required />
+      </div>
+      <div class="form-group">
+        <label>Super Admin Email *</label>
+        <input type="email" id="firstAdminEmail" class="form-control" placeholder="you@gmail.com" required />
+      </div>
+      <div class="form-group">
+        <label>Password * (min 6 chars)</label>
+        <input type="password" id="firstAdminPassword" class="form-control" placeholder="Create strong password" minlength="6" required />
+      </div>
+      <div class="form-group">
+        <label>Confirm Password *</label>
+        <input type="password" id="firstAdminConfirm" class="form-control" placeholder="Re-enter password" minlength="6" required />
+      </div>
+      <button type="submit" class="btn btn-primary" style="width:100%; padding:13px; margin-top:4px;">
+        👑 Create Super Admin
+      </button>
+    </form>
+    <div style="text-align:center; margin-top:14px; font-size:12.5px;">
+      <a href="#" onclick="showAuthScreen(event)" style="color:#60a5fa; text-decoration:none;">← Back to Sign In</a>
+    </div>
+  </div>
+
+  <!-- C) INVITED USER / PASSWORD SETUP SCREEN (?invite=TOKEN) -->
+  <div class="auth-card" id="acceptInviteCard" style="display:none;">
+    <div class="auth-logo">✉️</div>
+    <h2 style="text-align:center; font-size:21px; font-weight:800; margin-bottom:6px;">Set Your Account Password</h2>
+    <p style="text-align:center; font-size:13px; color:var(--text-muted); margin-bottom:18px;" id="inviteWelcomeText">
+      You have been invited by the Super Admin! Set a private password below to activate your account.
+    </p>
+    <div class="auth-error" id="inviteError"></div>
+    <form onsubmit="handleAcceptInviteSubmit(event)" style="display:flex; flex-direction:column; gap:14px;">
+      <div class="form-group">
+        <label>Invited Email ID *</label>
+        <input type="email" id="inviteEmailDisplay" class="form-control" placeholder="Enter your invited email" required />
+      </div>
+      <div class="form-group">
+        <label>Set Your Private Password * (min 6 chars, hidden from everyone)</label>
+        <input type="password" id="inviteNewPassword" class="form-control" placeholder="Create password (min 6 chars)" minlength="6" required />
+      </div>
+      <div class="form-group">
+        <label>Confirm Password *</label>
+        <input type="password" id="inviteConfirmPassword" class="form-control" placeholder="Re-enter password" minlength="6" required />
+      </div>
+      <button type="submit" class="btn btn-primary" style="width:100%; padding:13px; margin-top:6px;">
+        ✅ Create Account &amp; Access Vault
+      </button>
+    </form>
+    <div style="text-align:center; margin-top:14px; font-size:12.5px;">
+      <a href="#" onclick="showAuthScreen(event)" style="color:#60a5fa; text-decoration:none;">Already activated? Sign In →</a>
+    </div>
+  </div>
+
+  <!-- D) FORGOT PASSWORD EMAIL REQUEST -->
+  <div class="auth-card" id="forgotPasswordCard" style="display:none;">
+    <div class="auth-logo">🔑</div>
+    <h2 style="text-align:center; font-size:21px; font-weight:800; margin-bottom:6px;">Reset Your Password</h2>
+    <p style="text-align:center; font-size:13px; color:var(--text-muted); margin-bottom:18px;">
+      Enter your registered email address and Supabase will send you a password reset link.
+    </p>
+    <div class="auth-error" id="forgotError"></div>
+    <form onsubmit="handleForgotPasswordSubmit(event)" style="display:flex; flex-direction:column; gap:14px;">
+      <div class="form-group">
+        <label>Email ID *</label>
+        <input type="email" id="forgotEmail" class="form-control" placeholder="name@example.com" required />
+      </div>
+      <button type="submit" class="btn btn-blue" style="width:100%; padding:13px;">
+        📧 Send Password Reset Email
+      </button>
+    </form>
+    <div style="text-align:center; margin-top:14px; font-size:12.5px;">
+      <a href="#" onclick="showAuthScreen(event)" style="color:#60a5fa; text-decoration:none;">← Back to Sign In</a>
+    </div>
+  </div>
+
+  <!-- E) PASSWORD RECOVERY UPDATE CARD (after clicking Supabase reset link) -->
+  <div class="auth-card" id="recoveryCard" style="display:none;">
+    <div class="auth-logo">🔐</div>
+    <h2 style="text-align:center; font-size:21px; font-weight:800; margin-bottom:6px;">Choose a New Password</h2>
+    <p style="text-align:center; font-size:13px; color:var(--text-muted); margin-bottom:18px;">
+      Enter your new private password below to complete recovery.
+    </p>
+    <div class="auth-error" id="recoveryError"></div>
+    <form onsubmit="handleRecoveryPasswordSubmit(event)" style="display:flex; flex-direction:column; gap:14px;">
+      <div class="form-group">
+        <label>New Password * (min 6 chars)</label>
+        <input type="password" id="recoveryNewPassword" class="form-control" placeholder="New password" minlength="6" required />
+      </div>
+      <div class="form-group">
+        <label>Confirm New Password *</label>
+        <input type="password" id="recoveryConfirmPassword" class="form-control" placeholder="Confirm password" minlength="6" required />
+      </div>
+      <button type="submit" class="btn btn-primary" style="width:100%; padding:13px;">
+        ✅ Update Password
+      </button>
+    </form>
+  </div>
+
+</div>
+
+<!-- ====================================================================== -->
+<!-- 2. MAIN AUTHENTICATED APPLICATION                                      -->
+<!-- ====================================================================== -->
+<div id="appScreen" style="display:none;">
+
+  <!-- Top Bar -->
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand-icon">🎟️</div>
+      <div class="brand-title">
+        <h1>Coupon &amp; Gift Vault</h1>
+        <p id="syncStatusSub">● Cloud Sync Connected • Encrypted Email Auth</p>
+      </div>
+    </div>
+    <div class="topbar-actions">
+      <div class="user-pill" id="activeUserPill"></div>
+      <button class="btn" onclick="exportBackupJson()">💾 Save Backup to PC</button>
+      <button class="btn btn-purple" id="topAdminBtn" onclick="switchMainView('admin')">👑 Super Admin</button>
+      <button class="btn btn-primary" id="topAddCouponBtn" onclick="openCouponModal()">➕ Add Coupon</button>
+      <button class="btn btn-danger" onclick="logoutCurrentUser()">🚪 Logout</button>
+    </div>
+  </header>
+
+  <main class="container">
+
+    <!-- KPI Stats Strip -->
+    <section class="stats-grid" id="statsGrid"></section>
+
+    <!-- SHOPPING QUICK-CHECK BAR -->
+    <section class="quick-check-box">
+      <div class="qc-header">
+        <div class="qc-title">🛍️ Shopping Quick-Check (Search Website / E-Commerce Store)</div>
+        <span style="font-size: 12.5px; color: var(--text-muted);">Type a store while shopping to see all balances &amp; which account they are in</span>
+      </div>
+      <div class="qc-input-wrap">
+        <input
+          type="text"
+          id="quickSearchInput"
+          class="qc-input"
+          placeholder="Type website, store, or account (e.g., Amazon, Flipkart, Myntra, Swiggy)..."
+          oninput="handleQuickSearch(this.value)"
+        />
+        <button class="qc-clear" id="qcClearBtn" onclick="clearQuickSearch()">✕</button>
+      </div>
+      <div class="store-chips" id="storeChipsContainer"></div>
+      <div class="qc-result" id="qcResultPanel"></div>
+    </section>
+
+    <!-- Navigation Tabs -->
+    <div class="nav-tabs">
+      <div class="tab-group">
+        <button class="tab-btn active" id="tab-grouped" onclick="switchMainView('grouped')">🏢 By Website &amp; Account</button>
+        <button class="tab-btn" id="tab-expiring" onclick="switchMainView('expiring')">⏰ Expiring Soon</button>
+        <button class="tab-btn" id="tab-all" onclick="switchMainView('all')">🗂️ All Active</button>
+        <button class="tab-btn" id="tab-history" onclick="switchMainView('history')">✔️ Used / Expired</button>
+        <button class="tab-btn" id="tab-logger" onclick="switchMainView('logger')">📜 Logger (<span id="logCountBadge">0</span>)</button>
+        <button class="tab-btn" id="tab-admin" onclick="switchMainView('admin')">👑 Accounts &amp; Access (<span id="friendsCountBadge">0</span>)</button>
+      </div>
+    </div>
+
+    <!-- Vault Content Area -->
+    <section id="vaultContentArea"></section>
+
+    <!-- PROTECTED ROUTE: SUPER ADMIN & ACCOUNTS ACCESS CONTROL PANEL -->
+    <section class="panel-box" id="adminPanel">
+      <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px; padding-bottom:14px; border-bottom:1px solid var(--border);">
+        <div>
+          <h2 style="font-size:19px; font-weight:800;">👑 Super Admin — Invite Accounts, Access Rights &amp; Emergency Reset</h2>
+          <p style="font-size:13px; color:var(--text-muted); margin-top:3px;">
+            Only you can authorize new Email accounts. Passwords are <strong>encrypted &amp; hidden from everyone (including Admin)</strong>, with Emergency Reset available below.
+          </p>
+        </div>
+        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+          <button class="btn btn-primary" onclick="openInviteUserModal()">➕ Create &amp; Invite New Email Account</button>
+        </div>
+      </div>
+
+      <div id="membersListContainer"></div>
+    </section>
+
+    <!-- Activity Logger Panel -->
+    <section class="panel-box" id="loggerPanel">
+      <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px;">
+        <div>
+          <h2 style="font-size:19px; font-weight:800;">📜 Data &amp; Transaction Logger</h2>
+          <p style="font-size:13px; color:var(--text-muted);">Complete history of added coupons, partial balance spends, edits, invitations, and deletions.</p>
+        </div>
+        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+          <button class="btn btn-sm btn-primary" onclick="openCouponModal()" id="loggerAddBtn">➕ Add Entry</button>
+          <button class="btn btn-sm btn-blue" onclick="promptManualLogNote()" id="loggerNoteBtn">📝 Add Note</button>
+          <button class="btn btn-sm" onclick="triggerImportBackupJson()" id="importJsonBtn">⬆️ Import JSON</button>
+          <input type="file" id="importJsonFileInput" accept=".json,application/json" style="display:none;" onchange="handleImportBackupFile(event)" />
+          <button class="btn btn-sm" onclick="exportBackupJson()">⬇️ Export JSON</button>
+          <button class="btn btn-sm btn-danger" onclick="clearAllLogs()" id="clearLogsBtn">🗑️ Clear Logs</button>
+        </div>
+      </div>
+      <div id="logListContainer"></div>
+    </section>
+
+  </main>
+</div>
+
+<!-- ====================================================================== -->
+<!-- MODALS                                                                 -->
+<!-- ====================================================================== -->
+
+<!-- CREATE & INVITE NEW ACCOUNT MODAL (SUPER ADMIN ONLY) -->
+<div class="modal-backdrop" id="inviteModalBackdrop">
+  <div class="modal" style="max-width:520px;">
+    <div class="modal-header">
+      <h2 style="font-size:18px; font-weight:800;">✉️ Authorize &amp; Invite New Account</h2>
+      <button class="btn btn-sm" onclick="closeInviteUserModal()">✕</button>
+    </div>
+    <p style="font-size:13px; color:var(--text-muted); margin-bottom:14px;">
+      Select the user's Email ID and access rights below. When you click <strong>Create &amp; Send Email Invite</strong>, an invitation link will be generated and opened in your email so they can click it and set their own private password.
+    </p>
+    <form onsubmit="handleInviteUserSubmit(event)">
+      <div class="form-grid">
+        <div class="form-group full">
+          <label>Friend's Full Name *</label>
+          <input type="text" id="invName" class="form-control" placeholder="e.g., Rahul Sharma" required />
+        </div>
+        <div class="form-group full">
+          <label>Friend's Email ID (Username) *</label>
+          <input type="email" id="invEmail" class="form-control" placeholder="rahul@gmail.com" required />
+        </div>
+        <div class="form-group full">
+          <label>Access Rights / Role *</label>
+          <select id="invRole" class="form-control">
+            <option value="viewer">👀 Viewer Only (Can only search &amp; view balances)</option>
+            <option value="contributor">✍️ Contributor (Can view + add/update coupons)</option>
+            <option value="super_admin">👑 Co-Admin (Full control)</option>
+          </select>
+        </div>
+        <div class="form-group full" style="background:var(--bg-card); padding:12px 14px; border-radius:11px; border:1px solid var(--border);">
+          <label style="display:flex; align-items:center; gap:10px; cursor:pointer; font-size:13.5px;">
+            <input type="checkbox" id="invCanReadCodes" style="width:18px; height:18px;" />
+            <span>🔑 <strong>Allow Reading Secret Coupon Codes</strong> (If unchecked, codes are masked as 🔒 ••••-••••)</span>
+          </label>
+        </div>
+      </div>
+      <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:18px;">
+        <button type="button" class="btn" onclick="closeInviteUserModal()">Cancel</button>
+        <button type="submit" class="btn btn-primary">📧 Create &amp; Send Email Invite</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- INVITE LINK / EMAIL DISPATCH CONFIRMATION MODAL -->
+<div class="modal-backdrop" id="inviteCreatedModalBackdrop">
+  <div class="modal" style="max-width:540px;">
+    <div class="modal-header">
+      <h2 style="font-size:18px; font-weight:800;">✅ Account Created — Send Activation Email</h2>
+      <button class="btn btn-sm" onclick="closeInviteCreatedModal()">✕</button>
+    </div>
+    <p id="inviteCreatedSummary" style="font-size:13.5px; color:var(--text-muted); margin-bottom:12px;"></p>
+    <div class="form-group" style="margin-bottom:14px;">
+      <label>Personal Password-Setup Link for this Email:</label>
+      <input type="text" id="inviteLinkBox" class="form-control" readonly onclick="this.select()" />
+    </div>
+    <div style="display:flex; flex-wrap:wrap; gap:9px;">
+      <a id="gmailSendBtn" href="#" target="_blank" class="btn btn-primary" style="text-decoration:none;">📧 Send via Gmail (1-Click)</a>
+      <a id="mailtoSendBtn" href="#" class="btn btn-blue" style="text-decoration:none;">✉️ Open Default Email App</a>
+      <button class="btn" onclick="copyInviteLinkText()">📋 Copy Invite Link</button>
+    </div>
+  </div>
+</div>
+
+<!-- PASSWORD MANAGEMENT / RESET MODAL (SUPER ADMIN ONLY) -->
+<div class="modal-backdrop" id="emergencyResetModalBackdrop">
+  <div class="modal" style="max-width:480px;">
+    <div class="modal-header">
+      <h2 style="font-size:18px; font-weight:800;">🔑 Password Management &amp; Reset</h2>
+      <button class="btn btn-sm" onclick="closeEmergencyResetModal()">✕</button>
+    </div>
+    <p id="emergencyResetUserText" style="font-size:13px; color:var(--text-muted); margin-bottom:14px;"></p>
+
+    <div id="selfChangePasswordBox" style="background:var(--bg-card); border:1px solid var(--border); border-radius:12px; padding:14px; margin-bottom:14px; display:none;">
+      <div style="font-size:13.5px; font-weight:800; color:#fbbf24; margin-bottom:6px;">Change Your Own Password</div>
+      <p style="font-size:12px; color:var(--text-muted); margin-bottom:10px;">
+        Updates your Supabase Auth password immediately for your currently signed-in account:
+      </p>
+      <div style="display:flex; gap:8px;">
+        <input type="password" id="emergencyNewPassInput" class="form-control" style="flex:1;" placeholder="Enter new password (min 6 chars)" minlength="6" />
+        <button class="btn btn-amber" onclick="submitEmergencyDirectPassword()">⚡ Update Password</button>
+      </div>
+    </div>
+
+    <div style="background:var(--bg-card); border:1px solid var(--border); border-radius:12px; padding:14px;">
+      <div style="font-size:13.5px; font-weight:800; color:#60a5fa; margin-bottom:6px;">Send Supabase Password Reset Email</div>
+      <p style="font-size:12px; color:var(--text-muted); margin-bottom:10px;">
+        Sends an official Supabase password-reset email directly to this member so they can securely choose a new private password:
+      </p>
+      <button class="btn btn-blue" style="width:100%;" onclick="submitGenerateResetLink()">📧 Send Password Reset Email</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADD / EDIT COUPON MODAL -->
+<div class="modal-backdrop" id="couponModalBackdrop">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 id="couponModalTitle" style="font-size:19px; font-weight:800;">➕ Add Coupon or Gift Card</h2>
+      <button class="btn btn-sm" onclick="closeCouponModal()">✕ Close</button>
+    </div>
+    <form id="couponForm" onsubmit="saveCouponForm(event)">
+      <input type="hidden" id="editCouponId" />
+      <div class="form-grid">
+        <div class="form-group full">
+          <label>Website / E-Commerce Store Name *</label>
+          <input type="text" id="fStore" class="form-control" placeholder="e.g., Amazon, Flipkart, Myntra, Swiggy" required />
+          <div class="preset-tags">
+            <span class="preset-tag" onclick="fillPreset('fStore','Amazon')">Amazon</span>
+            <span class="preset-tag" onclick="fillPreset('fStore','Flipkart')">Flipkart</span>
+            <span class="preset-tag" onclick="fillPreset('fStore','Myntra')">Myntra</span>
+            <span class="preset-tag" onclick="fillPreset('fStore','AJIO')">AJIO</span>
+            <span class="preset-tag" onclick="fillPreset('fStore','Swiggy')">Swiggy</span>
+            <span class="preset-tag" onclick="fillPreset('fStore','Zomato')">Zomato</span>
+            <span class="preset-tag" onclick="fillPreset('fStore','Nykaa')">Nykaa</span>
+          </div>
+        </div>
+
+        <div class="form-group full">
+          <label>Account Name / Email / Phone (Separate balances per account) *</label>
+          <input type="text" id="fAccount" class="form-control" placeholder="e.g., Account 1 (Personal), Account 2 (Secondary)" required />
+          <div class="preset-tags">
+            <span class="preset-tag" onclick="fillPreset('fAccount','Account 1')">Account 1</span>
+            <span class="preset-tag" onclick="fillPreset('fAccount','Account 2')">Account 2</span>
+            <span class="preset-tag" onclick="fillPreset('fAccount','Family Account')">Family Account</span>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Benefit Type *</label>
+          <select id="fType" class="form-control">
+            <option value="Gift Card / Wallet">🎁 Gift Card / Wallet Balance</option>
+            <option value="Coupon Code">🏷️ Promo Coupon Code</option>
+            <option value="Cashback / Voucher">💸 Cashback Voucher</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Amount / Value (₹) *</label>
+          <input type="number" step="0.01" min="0" id="fAmount" class="form-control" placeholder="e.g., 2000" required />
+        </div>
+
+        <div class="form-group">
+          <label>Expiry Date *</label>
+          <input type="date" id="fExpiry" class="form-control" required />
+        </div>
+
+        <div class="form-group">
+          <label>Secret Coupon Code / PIN (Optional)</label>
+          <input type="text" id="fCode" class="form-control" placeholder="e.g., AMZN-2000-XYZ" />
+        </div>
+
+        <div class="form-group full">
+          <label>Notes / Minimum Order Condition (Optional)</label>
+          <input type="text" id="fNotes" class="form-control" placeholder="e.g., Added to Amazon Pay wallet / Min order ₹999" />
+        </div>
+
+        <div class="form-group full" style="background:var(--bg-card); padding:11px 14px; border-radius:11px; border:1px solid var(--border);">
+          <label style="display:flex; align-items:center; gap:10px; cursor:pointer; font-size:13px;">
+            <input type="checkbox" id="fAdminOnlyCode" style="width:17px; height:17px;" />
+            <span>🔒 <strong>Super Admin Only Code:</strong> Hide this specific coupon code from all friends (even friends with code-read access)</span>
+          </label>
+        </div>
+
+        <div class="form-group full" style="background:var(--bg-card); padding:11px 14px; border-radius:11px; border:1px solid var(--border);">
+          <label style="display:flex; align-items:center; gap:10px; cursor:pointer; font-size:13px;">
+            <input type="checkbox" id="fAutoCalendar" style="width:17px; height:17px;" />
+            <span>📅 Also open <strong>Google Calendar</strong> right after saving to set an expiry alert</span>
+          </label>
+          <div style="margin-top:8px; display:flex; align-items:center; gap:8px; font-size:12px; color:var(--text-muted);">
+            <span>Remind me:</span>
+            <select id="fReminderDays" class="form-control" style="padding:5px 10px; font-size:12px; width:auto;">
+              <option value="3" selected>3 days before expiry (10:00 AM)</option>
+              <option value="1">1 day before expiry (10:00 AM)</option>
+              <option value="7">7 days before expiry (10:00 AM)</option>
+              <option value="0">On expiry morning (9:00 AM)</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:18px;">
+        <button type="button" class="btn" onclick="closeCouponModal()">Cancel</button>
+        <button type="submit" class="btn btn-primary">💾 Save to Vault</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- SPEND / UPDATE BALANCE MODAL -->
+<div class="modal-backdrop" id="spendModalBackdrop">
+  <div class="modal" style="max-width:440px;">
+    <div class="modal-header">
+      <h2 style="font-size:18px; font-weight:800;">💸 Use / Update Balance</h2>
+      <button class="btn btn-sm" onclick="closeSpendModal()">✕</button>
+    </div>
+    <div id="spendModalInfo" style="margin-bottom:14px; font-size:14px; color:var(--text-muted);"></div>
+    <div class="form-group" style="margin-bottom:14px;">
+      <label>How much did you spend from this balance? (₹)</label>
+      <input type="number" step="0.01" min="0" id="spendAmountInput" class="form-control" placeholder="Enter amount spent..." />
+    </div>
+    <div style="display:flex; justify-content:space-between; gap:8px; flex-wrap:wrap;">
+      <button class="btn btn-amber" onclick="confirmFullUse()">✅ Mark 100% Used</button>
+      <div style="display:flex; gap:8px;">
+        <button class="btn" onclick="closeSpendModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="confirmPartialSpend()">Deduct &amp; Log</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CALENDAR REMINDER PICKER MODAL -->
+<div class="modal-backdrop" id="calModalBackdrop">
+  <div class="modal" style="max-width:460px;">
+    <div class="modal-header">
+      <h2 style="font-size:18px; font-weight:800;">📅 Add Expiry Alert to Google Calendar</h2>
+      <button class="btn btn-sm" onclick="closeCalModal()">✕</button>
+    </div>
+    <p id="calModalDesc" style="font-size:13.5px; color:var(--text-muted); margin-bottom:14px;"></p>
+    <div style="display:flex; flex-direction:column; gap:10px;">
+      <button class="btn btn-primary" style="justify-content:flex-start;" onclick="triggerCalendarRemind(3)">🔔 Remind 3 Days Before Expiry (10:00 AM)</button>
+      <button class="btn btn-blue" style="justify-content:flex-start;" onclick="triggerCalendarRemind(1)">⏰ Remind 1 Day Before Expiry (10:00 AM)</button>
+      <button class="btn" style="justify-content:flex-start;" onclick="triggerCalendarRemind(7)">🗓️ Remind 1 Week Before Expiry (10:00 AM)</button>
+      <button class="btn btn-amber" style="justify-content:flex-start;" onclick="triggerCalendarRemind(0)">🚨 Remind On Expiry Day (9:00 AM)</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  let supabaseClient = null;
+  let currentView = "grouped";
+  let activeQuickSearch = "";
+  let selectedSpendId = null;
+  let selectedCalId = null;
+  let selectedEmergencyMemberId = null;
+  let pendingInviteToken = null;
+  let authSubscription = null;
+
+  let currentUser = null; // { id, name, email, role, canReadCodes }
+  let state = {
+    updatedAt: 0,
+    members: [],
+    coupons: [],
+    logs: []
+  };
+
+  const LOCAL_CFG_KEY = "COUPON_VAULT_SUPABASE_CONFIG";
+
+  function getAppBaseUrl() {
+    if (window.location.protocol.startsWith("http")) {
+      return window.location.origin + window.location.pathname;
+    }
+    return window.location.href.split("?")[0].split("#")[0];
+  }
+
+  function getSupabaseConfig() {
+    const fileCfg = window.COUPON_VAULT_SUPABASE_CONFIG || {};
+    let savedCfg = {};
+    try {
+      savedCfg = JSON.parse(localStorage.getItem(LOCAL_CFG_KEY) || "{}") || {};
+    } catch (e) {}
+    const url = (fileCfg.url || savedCfg.url || "").trim().replace(/\/+$/, "");
+    const anonKey = (fileCfg.anonKey || savedCfg.anonKey || "").trim();
+    return { url, anonKey };
+  }
+
+  function getFutureDateStr(daysFromNow) {
+    const d = new Date();
+    d.setDate(d.getDate() + daysFromNow);
+    return d.toISOString().split("T")[0];
+  }
+
+  function setStatusSubtext(msg) {
+    const el = document.getElementById("syncStatusSub");
+    if (el) el.textContent = msg;
+  }
+
+  function hideAllAuthCards() {
+    ["supabaseSetupCard", "loginCard", "firstAdminCard", "acceptInviteCard", "forgotPasswordCard", "recoveryCard"].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.style.display = "none";
+    });
+  }
+
+  function showAuthCard(cardId) {
+    document.getElementById("appScreen").style.display = "none";
+    document.getElementById("authScreen").style.display = "flex";
+    hideAllAuthCards();
+    const card = document.getElementById(cardId);
+    if (card) card.style.display = "block";
+  }
+
+  function showAuthScreen(e) {
+    if (e) e.preventDefault();
+    const errEl = document.getElementById("loginError");
+    if (errEl) errEl.style.display = "none";
+    showAuthCard("loginCard");
+  }
+
+  function showSupabaseConfigCard(e) {
+    if (e) e.preventDefault();
+    const cfg = getSupabaseConfig();
+    document.getElementById("cfgSupabaseUrl").value = cfg.url || "";
+    document.getElementById("cfgSupabaseKey").value = cfg.anonKey || "";
+    document.getElementById("setupConfigError").style.display = "none";
+    showAuthCard("supabaseSetupCard");
+  }
+
+  function showFirstAdminSetupCard(e) {
+    if (e) e.preventDefault();
+    document.getElementById("firstAdminError").style.display = "none";
+    showAuthCard("firstAdminCard");
+  }
+
+  function showForgotPasswordCard(e) {
+    if (e) e.preventDefault();
+    document.getElementById("forgotError").style.display = "none";
+    showAuthCard("forgotPasswordCard");
+  }
+
+  function showRecoveryCard() {
+    document.getElementById("recoveryError").style.display = "none";
+    showAuthCard("recoveryCard");
+  }
+
+  function showAuthError(elId, msg, isSuccess = false) {
+    const el = document.getElementById(elId);
+    if (!el) return;
+    el.textContent = msg;
+    el.style.display = "block";
+    if (isSuccess) {
+      el.style.background = "var(--accent-soft)";
+      el.style.borderColor = "rgba(16, 185, 129, 0.45)";
+      el.style.color = "#6ee7b7";
+    } else {
+      el.style.background = "var(--danger-soft)";
+      el.style.borderColor = "rgba(239, 68, 68, 0.4)";
+      el.style.color = "#fca5a5";
+    }
+  }
+
+  // =========================================================================
+  // SUPABASE INITIALIZATION & AUTHENTICATION GUARD (PROTECTED ROUTES)
+  // =========================================================================
+  async function initApp() {
+    const cfg = getSupabaseConfig();
+    if (!cfg.url || !cfg.anonKey) {
+      showSupabaseConfigCard();
+      return;
+    }
+
+    if (!window.supabase || !window.supabase.createClient) {
+      showAuthCard("loginCard");
+      showAuthError("loginError", "Could not load Supabase SDK. Check your internet connection and reload.");
+      return;
+    }
+
+    supabaseClient = window.supabase.createClient(cfg.url, cfg.anonKey);
+
+    if (authSubscription) {
+      authSubscription.unsubscribe();
+      authSubscription = null;
+    }
+
+    const { data: listener } = supabaseClient.auth.onAuthStateChange(async (event, session) => {
+      if (event === "PASSWORD_RECOVERY") {
+        showRecoveryCard();
+        return;
+      }
+      if (event === "SIGNED_OUT") {
+        currentUser = null;
+        state = { updatedAt: 0, members: [], coupons: [], logs: [] };
+        if (!pendingInviteToken) {
+          showAuthScreen();
+        }
+        return;
+      }
+      if ((event === "SIGNED_IN" || event === "TOKEN_REFRESHED") && session) {
+        await syncCurrentUserFromSession(session);
+      }
+    });
+    authSubscription = listener.subscription;
+
+    const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ""));
+    if (hashParams.get("type") === "recovery") {
+      showRecoveryCard();
+      return;
+    }
+
+    const params = new URLSearchParams(window.location.search);
+    const inviteToken = params.get("invite");
+    if (inviteToken) {
+      pendingInviteToken = inviteToken;
+      showInvitePasswordSetupScreen(params.get("email") || "", params.get("name") || "");
+      return;
+    }
+
+    const { data, error } = await supabaseClient.auth.getSession();
+    if (error || !data || !data.session) {
+      showAuthScreen();
+      return;
+    }
+
+    await syncCurrentUserFromSession(data.session);
+  }
+
+  async function handleSaveSupabaseConfig(e) {
+    e.preventDefault();
+    const url = document.getElementById("cfgSupabaseUrl").value.trim().replace(/\/+$/, "");
+    const anonKey = document.getElementById("cfgSupabaseKey").value.trim();
+    if (!url.startsWith("https://") || !anonKey) {
+      showAuthError("setupConfigError", "Please enter a valid https:// Supabase Project URL and Publishable / anon key.");
+      return;
+    }
+    localStorage.setItem(LOCAL_CFG_KEY, JSON.stringify({ url, anonKey }));
+    await initApp();
+  }
+
+  function showInvitePasswordSetupScreen(prefillEmail, prefillName) {
+    showAuthCard("acceptInviteCard");
+    document.getElementById("inviteError").style.display = "none";
+    const emailInput = document.getElementById("inviteEmailDisplay");
+    emailInput.value = prefillEmail || "";
+    if (prefillEmail) {
+      emailInput.readOnly = true;
+      emailInput.style.opacity = "0.8";
+    } else {
+      emailInput.readOnly = false;
+      emailInput.style.opacity = "1";
+    }
+    const displayName = prefillName || "Friend";
+    document.getElementById("inviteWelcomeText").innerHTML =
+      `Welcome <strong>${escapeHtml(displayName)}</strong>! Set your private password below to activate your invite.`;
+  }
+
+  async function syncCurrentUserFromSession(session) {
+    if (!supabaseClient || !session || !session.user) {
+      currentUser = null;
+      showAuthScreen();
+      return;
+    }
+
+    const { data: profile, error } = await supabaseClient
+      .from("profiles")
+      .select("id, email, display_name, role, can_read_codes")
+      .eq("id", session.user.id)
+      .maybeSingle();
+
+    if (error || !profile) {
+      await supabaseClient.auth.signOut();
+      currentUser = null;
+      showAuthScreen();
+      showAuthError("loginError", "Access revoked or profile not initialized. Contact the Super Admin.");
+      return;
+    }
+
+    currentUser = {
+      id: profile.id,
+      name: profile.display_name,
+      email: profile.email,
+      role: profile.role,
+      canReadCodes: Boolean(profile.can_read_codes || profile.role === "super_admin")
+    };
+
+    pendingInviteToken = null;
+    await fetchVaultStatus();
+    showMainAppScreen();
+  }
+
+  async function handleLoginSubmit(e) {
+    e.preventDefault();
+    document.getElementById("loginError").style.display = "none";
+    if (!supabaseClient) {
+      showSupabaseConfigCard();
+      return;
+    }
+
+    const email = document.getElementById("loginEmail").value.trim().toLowerCase();
+    const password = document.getElementById("loginPassword").value;
+    const btn = document.getElementById("loginSubmitBtn");
+    btn.disabled = true;
+    btn.textContent = "Signing in...";
+
+    try {
+      const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
+      if (error || !data.session) {
+        showAuthError("loginError", error ? error.message : "Invalid email or password.");
+        return;
+      }
+      document.getElementById("loginPassword").value = "";
+      await syncCurrentUserFromSession(data.session);
+    } catch (err) {
+      showAuthError("loginError", "Network error while signing in.");
+    } finally {
+      btn.disabled = false;
+      btn.textContent = "🔐 Sign In";
+    }
+  }
+
+  async function handleFirstAdminSignup(e) {
+    e.preventDefault();
+    document.getElementById("firstAdminError").style.display = "none";
+    if (!supabaseClient) return;
+
+    const displayName = document.getElementById("firstAdminName").value.trim();
+    const email = document.getElementById("firstAdminEmail").value.trim().toLowerCase();
+    const pass1 = document.getElementById("firstAdminPassword").value;
+    const pass2 = document.getElementById("firstAdminConfirm").value;
+
+    if (pass1 !== pass2) {
+      showAuthError("firstAdminError", "Passwords do not match.");
+      return;
+    }
+
+    const { data, error } = await supabaseClient.auth.signUp({
+      email,
+      password: pass1,
+      options: {
+        data: { display_name: displayName },
+        emailRedirectTo: getAppBaseUrl()
+      }
+    });
+
+    if (error) {
+      showAuthError("firstAdminError", error.message);
+      return;
+    }
+
+    if (data && data.session) {
+      await syncCurrentUserFromSession(data.session);
+    } else {
+      showAuthError("firstAdminError", "Super Admin created! Check your email to confirm your address, then sign in.", true);
+    }
+  }
+
+  async function handleAcceptInviteSubmit(e) {
+    e.preventDefault();
+    document.getElementById("inviteError").style.display = "none";
+    if (!supabaseClient) return;
+
+    const email = document.getElementById("inviteEmailDisplay").value.trim().toLowerCase();
+    const pass1 = document.getElementById("inviteNewPassword").value;
+    const pass2 = document.getElementById("inviteConfirmPassword").value;
+
+    if (pass1 !== pass2) {
+      showAuthError("inviteError", "Passwords do not match.");
+      return;
+    }
+
+    const { data, error } = await supabaseClient.auth.signUp({
+      email,
+      password: pass1,
+      options: {
+        data: { invite_token: pendingInviteToken || "" },
+        emailRedirectTo: getAppBaseUrl()
+      }
+    });
+
+    if (error) {
+      showAuthError("inviteError", error.message);
+      return;
+    }
+
+    window.history.replaceState({}, document.title, window.location.pathname);
+
+    if (data && data.session) {
+      pendingInviteToken = null;
+      await syncCurrentUserFromSession(data.session);
+    } else {
+      pendingInviteToken = null;
+      showAuthError("inviteError", "Account activated! Please check your email to confirm, then Sign In.", true);
+    }
+  }
+
+  async function handleForgotPasswordSubmit(e) {
+    e.preventDefault();
+    document.getElementById("forgotError").style.display = "none";
+    if (!supabaseClient) return;
+
+    const email = document.getElementById("forgotEmail").value.trim().toLowerCase();
+    const { error } = await supabaseClient.auth.resetPasswordForEmail(email, {
+      redirectTo: getAppBaseUrl()
+    });
+    if (error) {
+      showAuthError("forgotError", error.message);
+      return;
+    }
+    showAuthError("forgotError", "Password reset email sent! Check your inbox and open the link.", true);
+  }
+
+  async function handleRecoveryPasswordSubmit(e) {
+    e.preventDefault();
+    document.getElementById("recoveryError").style.display = "none";
+    if (!supabaseClient) return;
+
+    const p1 = document.getElementById("recoveryNewPassword").value;
+    const p2 = document.getElementById("recoveryConfirmPassword").value;
+    if (p1 !== p2) {
+      showAuthError("recoveryError", "Passwords do not match.");
+      return;
+    }
+
+    const { error } = await supabaseClient.auth.updateUser({ password: p1 });
+    if (error) {
+      showAuthError("recoveryError", error.message);
+      return;
+    }
+
+    window.history.replaceState({}, document.title, window.location.pathname);
+    const { data } = await supabaseClient.auth.getSession();
+    if (data && data.session) {
+      await syncCurrentUserFromSession(data.session);
+    } else {
+      showAuthScreen();
+    }
+  }
+
+  async function logoutCurrentUser() {
+    currentUser = null;
+    if (supabaseClient) {
+      await supabaseClient.auth.signOut();
+    }
+    showAuthScreen();
+  }
+
+  function showMainAppScreen() {
+    document.getElementById("authScreen").style.display = "none";
+    document.getElementById("appScreen").style.display = "block";
+    renderAll();
+  }
+
+  // =========================================================================
+  // FETCH CLOUD VAULT STATE FROM SUPABASE (RLS ENFORCED)
+  // =========================================================================
+  async function fetchVaultStatus() {
+    if (!supabaseClient || !currentUser) return;
+
+    try {
+      const profilePromise = supabaseClient
+        .from("profiles")
+        .select("id, email, display_name, role, can_read_codes, created_at")
+        .order("created_at", { ascending: true });
+
+      const invitesPromise = isCurrentUserSuperAdmin()
+        ? supabaseClient
+            .from("invited_accounts")
+            .select("id, email, display_name, role, can_read_codes, invite_token, accepted_at, created_at")
+            .is("accepted_at", null)
+            .order("created_at", { ascending: false })
+        : Promise.resolve({ data: [], error: null });
+
+      const couponsPromise = supabaseClient
+        .from("coupons")
+        .select("id, store, account, benefit_type, amount, initial_amount, expiry, notes, status, admin_only_code, has_secret_code, created_at")
+        .order("created_at", { ascending: false });
+
+      const secretsPromise = supabaseClient
+        .from("coupon_secrets")
+        .select("coupon_id, secret_code");
+
+      const logsPromise = supabaseClient
+        .from("activity_logs")
+        .select("id, action, title, detail, actor_name, created_at")
+        .order("created_at", { ascending: false })
+        .limit(300);
+
+      const [profRes, invRes, cpnRes, secRes, logRes] = await Promise.all([
+        profilePromise,
+        invitesPromise,
+        couponsPromise,
+        secretsPromise,
+        logsPromise
+      ]);
+
+      if (profRes.error) throw profRes.error;
+      if (cpnRes.error) throw cpnRes.error;
+      if (logRes.error) throw logRes.error;
+
+      const profiles = profRes.data || [];
+      const me = profiles.find(p => p.id === currentUser.id);
+      if (!me) {
+        await logoutCurrentUser();
+        return;
+      }
+
+      currentUser.role = me.role;
+      currentUser.canReadCodes = Boolean(me.can_read_codes || me.role === "super_admin");
+      currentUser.name = me.display_name;
+      currentUser.email = me.email;
+
+      const activeEmails = new Set(profiles.map(p => p.email.toLowerCase()));
+      const activeMembers = profiles.map(p => ({
+        id: p.id,
+        name: p.display_name,
+        email: p.email,
+        role: p.role,
+        canReadCodes: Boolean(p.can_read_codes),
+        hasPassword: true,
+        status: "active",
+        inviteToken: null,
+        isPendingInvite: false,
+        createdAt: p.created_at
+      }));
+
+      const pendingMembers = ((invRes && invRes.data) || [])
+        .filter(inv => !activeEmails.has(inv.email.toLowerCase()))
+        .map(inv => ({
+          id: inv.id,
+          name: inv.display_name,
+          email: inv.email,
+          role: inv.role,
+          canReadCodes: Boolean(inv.can_read_codes),
+          hasPassword: false,
+          status: "invited",
+          inviteToken: inv.invite_token,
+          isPendingInvite: true,
+          createdAt: inv.created_at
+        }));
+
+      const secretMap = {};
+      if (secRes && Array.isArray(secRes.data)) {
+        secRes.data.forEach(s => {
+          secretMap[s.coupon_id] = s.secret_code;
+        });
+      }
+
+      const coupons = (cpnRes.data || []).map(c => {
+        const visibleSecret = secretMap[c.id];
+        return {
+          id: c.id,
+          store: c.store,
+          account: c.account,
+          type: c.benefit_type,
+          amount: Number(c.amount) || 0,
+          initialAmount: Number(c.initial_amount) || 0,
+          expiry: c.expiry,
+          notes: c.notes || "",
+          status: c.status,
+          adminOnlyCode: Boolean(c.admin_only_code),
+          hasSecretCode: Boolean(c.has_secret_code),
+          code: visibleSecret !== undefined ? visibleSecret : (c.has_secret_code ? "__HIDDEN__" : ""),
+          createdAt: c.created_at
+        };
+      });
+
+      const logs = (logRes.data || []).map(l => ({
+        id: l.id,
+        action: l.action,
+        title: l.title,
+        detail: l.detail || "",
+        timestamp: l.created_at
+      }));
+
+      state = {
+        updatedAt: Date.now(),
+        members: [...activeMembers, ...pendingMembers],
+        coupons,
+        logs
+      };
+
+      setStatusSubtext("● Supabase Cloud Sync • RLS Protected");
+      renderAll();
+    } catch (e) {
+      console.error("Failed syncing with Supabase:", e);
+      setStatusSubtext("⚠️ Sync error — retrying...");
+    }
+  }
+
+  // =========================================================================
+  // PERMISSION HELPERS
+  // =========================================================================
+  function canCurrentUserAdd() {
+    if (!currentUser) return false;
+    return currentUser.role === "super_admin" || currentUser.role === "contributor";
+  }
+
+  function isCurrentUserSuperAdmin() {
+    if (!currentUser) return false;
+    return currentUser.role === "super_admin";
+  }
+
+  function canCurrentUserSeeCode(coupon) {
+    if (!currentUser) return false;
+    if (!coupon || !coupon.code || coupon.code === "__HIDDEN__") return false;
+    if (currentUser.role === "super_admin") return true;
+    if (coupon.adminOnlyCode) return false;
+    return Boolean(currentUser.canReadCodes);
+  }
+
+  async function writeActivityLog(action, title, detail) {
+    if (!supabaseClient || !currentUser) return;
+    await supabaseClient.from("activity_logs").insert({
+      action,
+      title,
+      detail: (detail ? detail + " • " : "") + "By " + currentUser.name + " (" + currentUser.email + ")",
+      actor_id: currentUser.id,
+      actor_name: currentUser.name
+    });
+  }
+
+  // =========================================================================
+  // SUPER ADMIN: INVITE ACCOUNTS & PASSWORD MANAGEMENT
+  // =========================================================================
+  function generateRandomHexToken(byteLen = 20) {
+    const arr = new Uint8Array(byteLen);
+    crypto.getRandomValues(arr);
+    return Array.from(arr, b => b.toString(16).padStart(2, "0")).join("");
+  }
+
+  function openInviteUserModal() {
+    if (!isCurrentUserSuperAdmin()) return;
+    document.getElementById("invName").value = "";
+    document.getElementById("invEmail").value = "";
+    document.getElementById("invRole").value = "viewer";
+    document.getElementById("invCanReadCodes").checked = false;
+    document.getElementById("inviteModalBackdrop").classList.add("show");
+  }
+
+  function closeInviteUserModal() {
+    document.getElementById("inviteModalBackdrop").classList.remove("show");
+  }
+
+  async function handleInviteUserSubmit(e) {
+    e.preventDefault();
+    if (!isCurrentUserSuperAdmin() || !supabaseClient) return;
+
+    const name = document.getElementById("invName").value.trim();
+    const email = document.getElementById("invEmail").value.trim().toLowerCase();
+    const role = document.getElementById("invRole").value;
+    const canReadCodes = document.getElementById("invCanReadCodes").checked;
+
+    if (!name || !email || !email.includes("@")) {
+      alert("Please enter a valid name and email address.");
+      return;
+    }
+
+    if (state.members.some(m => !m.isPendingInvite && m.email.toLowerCase() === email)) {
+      alert("An active account with this email already exists.");
+      return;
+    }
+
+    const inviteToken = generateRandomHexToken(20);
+
+    try {
+      await supabaseClient
+        .from("invited_accounts")
+        .delete()
+        .ilike("email", email)
+        .is("accepted_at", null);
+
+      const { error } = await supabaseClient.from("invited_accounts").insert({
+        email,
+        display_name: name,
+        role,
+        can_read_codes: canReadCodes,
+        invite_token: inviteToken,
+        invited_by: currentUser.id
+      });
+
+      if (error) {
+        alert(error.message || "Could not create invite.");
+        return;
+      }
+
+      await writeActivityLog(
+        "INVITED",
+        `Invited ${name} (${email}) as ${role}`,
+        `Code access: ${canReadCodes ? "Allowed" : "Hidden"}`
+      );
+
+      closeInviteUserModal();
+      await fetchVaultStatus();
+      openInviteLinkConfirmation(name, email, role, inviteToken);
+    } catch (err) {
+      alert("Error creating invite.");
+    }
+  }
+
+  function openInviteLinkConfirmation(name, email, role, token) {
+    const inviteUrl =
+      getAppBaseUrl() +
+      "?invite=" + encodeURIComponent(token) +
+      "&email=" + encodeURIComponent(email) +
+      "&name=" + encodeURIComponent(name);
+
+    document.getElementById("inviteCreatedSummary").innerHTML =
+      `Account authorized for <strong>${escapeHtml(name)} (${escapeHtml(email)})</strong> with role <strong>${escapeHtml(role)}</strong>.<br/>Send them this activation link so they can set their own private password:`;
+    document.getElementById("inviteLinkBox").value = inviteUrl;
+
+    const subject = "You're invited to Coupon & Gift Vault — Set your password";
+    const body = [
+      `Hi ${name},`,
+      ``,
+      `You have been invited to join the Coupon & Gift Card Vault with your email (${email}).`,
+      ``,
+      `Click the link below to set your private password and access your account:`,
+      inviteUrl,
+      ``,
+      `(Your password will be encrypted in Supabase Auth and hidden from everyone.)`
+    ].join("\n");
+
+    const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(email)}&su=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    const mailtoUrl = `mailto:${encodeURIComponent(email)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+
+    document.getElementById("gmailSendBtn").href = gmailUrl;
+    document.getElementById("mailtoSendBtn").href = mailtoUrl;
+    document.getElementById("inviteCreatedModalBackdrop").classList.add("show");
+  }
+
+  function closeInviteCreatedModal() {
+    document.getElementById("inviteCreatedModalBackdrop").classList.remove("show");
+  }
+
+  function copyInviteLinkText() {
+    const val = document.getElementById("inviteLinkBox").value;
+    copyTextUniversal("Invite Link", val, "Copied activation link to clipboard!");
+  }
+
+  async function changeMemberPermission(memberId, role, canReadCodes) {
+    if (!isCurrentUserSuperAdmin() || !supabaseClient) return;
+    const member = state.members.find(m => m.id === memberId);
+    if (!member) return;
+
+    const table = member.isPendingInvite ? "invited_accounts" : "profiles";
+    const { error } = await supabaseClient
+      .from(table)
+      .update({ role, can_read_codes: canReadCodes, updated_at: new Date().toISOString() })
+      .eq("id", memberId);
+
+    if (error) {
+      alert(error.message);
+      return;
+    }
+
+    await writeActivityLog(
+      "PERMISSION",
+      `Updated permissions for ${member.email}`,
+      `Role: ${role} • Read Codes: ${canReadCodes ? "Yes" : "No"}`
+    );
+    await fetchVaultStatus();
+  }
+
+  function openEmergencyResetModal(memberId) {
+    if (!isCurrentUserSuperAdmin()) return;
+    const m = state.members.find(x => x.id === memberId);
+    if (!m) return;
+    selectedEmergencyMemberId = memberId;
+    const isSelf = currentUser && m.id === currentUser.id;
+    document.getElementById("emergencyNewPassInput").value = "";
+    document.getElementById("selfChangePasswordBox").style.display = isSelf ? "block" : "none";
+    document.getElementById("emergencyResetUserText").innerHTML =
+      `Target Account: <strong>${escapeHtml(m.name)} (${escapeHtml(m.email)})</strong><br/>Current Password: <span class="badge badge-purple">🔒 Managed by Supabase Auth</span>`;
+    document.getElementById("emergencyResetModalBackdrop").classList.add("show");
+  }
+
+  function closeEmergencyResetModal() {
+    selectedEmergencyMemberId = null;
+    document.getElementById("emergencyResetModalBackdrop").classList.remove("show");
+  }
+
+  async function submitEmergencyDirectPassword() {
+    if (!selectedEmergencyMemberId || !supabaseClient) return;
+    if (selectedEmergencyMemberId !== currentUser.id) {
+      alert("For security, Supabase only allows updating your own password from the browser. Use 'Send Password Reset Email' for other members.");
+      return;
+    }
+    const newPassword = document.getElementById("emergencyNewPassInput").value;
+    if (newPassword.length < 6) {
+      alert("Password must be at least 6 characters.");
+      return;
+    }
+    const { error } = await supabaseClient.auth.updateUser({ password: newPassword });
+    if (error) {
+      alert(error.message || "Failed updating password.");
+      return;
+    }
+    closeEmergencyResetModal();
+    alert("✅ Your password has been updated!");
+  }
+
+  async function submitGenerateResetLink() {
+    if (!selectedEmergencyMemberId || !supabaseClient) return;
+    const m = state.members.find(x => x.id === selectedEmergencyMemberId);
+    if (!m) return;
+    const { error } = await supabaseClient.auth.resetPasswordForEmail(m.email, {
+      redirectTo: getAppBaseUrl()
+    });
+    if (error) {
+      alert(error.message || "Could not send reset email.");
+      return;
+    }
+    await writeActivityLog("RESET_LINK", `Sent password reset email to ${m.email}`, "");
+    closeEmergencyResetModal();
+    await fetchVaultStatus();
+    alert(`📧 Password reset email sent to ${m.email}!`);
+  }
+
+  async function deleteMemberAccount(memberId) {
+    if (!isCurrentUserSuperAdmin() || !supabaseClient) return;
+    const m = state.members.find(x => x.id === memberId);
+    if (!m) return;
+    if (m.id === currentUser.id) {
+      alert("You cannot remove your own Super Admin account.");
+      return;
+    }
+    if (!confirm(`Remove access for ${m.name} (${m.email})?`)) return;
+
+    const table = m.isPendingInvite ? "invited_accounts" : "profiles";
+    const { error } = await supabaseClient.from(table).delete().eq("id", memberId);
+    if (error) {
+      alert(error.message || "Could not delete account.");
+      return;
+    }
+
+    await writeActivityLog("DELETED", `Removed user access for ${m.email}`, "");
+    await fetchVaultStatus();
+  }
+
+  // =========================================================================
+  // RENDERING UI
+  // =========================================================================
+  function daysUntil(dateStr) {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const target = new Date(dateStr + "T00:00:00");
+    return Math.ceil((target - today) / (1000 * 60 * 60 * 24));
+  }
+
+  function formatINR(num) {
+    const n = Number(num) || 0;
+    return "₹" + n.toLocaleString("en-IN", { maximumFractionDigits: 2 });
+  }
+
+  function formatDateReadable(dateStr) {
+    if (!dateStr) return "No Expiry";
+    const d = new Date(dateStr + "T00:00:00");
+    if (isNaN(d.getTime())) return dateStr;
+    return d.toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
+  }
+
+  function getExpiryBadgeHtml(coupon) {
+    if (coupon.status === "used") return `<span class="badge badge-red">✔️ Marked Used</span>`;
+    const days = daysUntil(coupon.expiry);
+    if (days < 0) return `<span class="badge badge-red">⚠️ Expired ${Math.abs(days)}d ago</span>`;
+    if (days === 0) return `<span class="badge badge-red">🚨 Expires TODAY!</span>`;
+    if (days <= 7) return `<span class="badge badge-amber">⏰ Expires in ${days}d</span>`;
+    return `<span class="badge badge-green">✅ ${days} days left</span>`;
+  }
+
+  function isCouponActive(c) {
+    return c.status === "active" && c.amount > 0 && daysUntil(c.expiry) >= 0;
+  }
+
+  function renderCodeStripHtml(c) {
+    if (!c.code && !c.hasSecretCode) return "";
+    if (c.code && c.code !== "__HIDDEN__" && canCurrentUserSeeCode(c)) {
+      return `
+        <div class="code-strip" style="margin-top:10px;">
+          <span class="code-text">🔑 ${escapeHtml(c.code)} ${c.adminOnlyCode ? '<span class="badge badge-purple" style="margin-left:6px;">Admin-Only</span>' : ''}</span>
+          <button class="btn btn-sm btn-blue" onclick="copyCodeById('${c.id}')">📋 Copy</button>
+        </div>
+      `;
+    } else {
+      return `
+        <div class="code-strip locked" style="margin-top:10px;">
+          <span class="code-text" style="color:#f87171;">🔒 ••••-••••-•••• (Code hidden by Super Admin)</span>
+          <span class="badge badge-red">Restricted</span>
+        </div>
+      `;
+    }
+  }
+
+  function renderRoleHeaderAndGuards() {
+    if (!currentUser) return;
+    const roleIcon = currentUser.role === "super_admin" ? "👑" : (currentUser.role === "contributor" ? "✍️" : "👀");
+    const roleLabel = currentUser.role === "super_admin" ? "Super Admin" : (currentUser.role === "contributor" ? "Contributor" : "Viewer Only");
+
+    document.getElementById("activeUserPill").innerHTML = `
+      <span>${roleIcon} ${escapeHtml(currentUser.email)}</span>
+      <span class="badge ${currentUser.role === 'super_admin' ? 'badge-purple' : (currentUser.role === 'contributor' ? 'badge-blue' : 'badge-amber')}">${roleLabel}</span>
+    `;
+
+    document.getElementById("topAddCouponBtn").style.display = canCurrentUserAdd() ? "inline-flex" : "none";
+    document.getElementById("topAdminBtn").style.display = isCurrentUserSuperAdmin() ? "inline-flex" : "none";
+    document.getElementById("tab-admin").style.display = isCurrentUserSuperAdmin() ? "inline-flex" : "none";
+    document.getElementById("loggerAddBtn").style.display = canCurrentUserAdd() ? "inline-flex" : "none";
+    document.getElementById("loggerNoteBtn").style.display = canCurrentUserAdd() ? "inline-flex" : "none";
+    document.getElementById("importJsonBtn").style.display = isCurrentUserSuperAdmin() ? "inline-flex" : "none";
+    document.getElementById("clearLogsBtn").style.display = isCurrentUserSuperAdmin() ? "inline-flex" : "none";
+
+    if (currentView === "admin" && !isCurrentUserSuperAdmin()) {
+      currentView = "grouped";
+    }
+  }
+
+  function renderAll() {
+    if (!currentUser) return;
+    renderRoleHeaderAndGuards();
+    renderStats();
+    renderStoreChips();
+    renderQuickSearchResult();
+    renderVaultContent();
+    renderAdminPanel();
+    renderLogger();
+    document.getElementById("logCountBadge").textContent = state.logs.length;
+    document.getElementById("friendsCountBadge").textContent = state.members.length;
+  }
+
+  function renderStats() {
+    const activeList = state.coupons.filter(isCouponActive);
+    const totalValue = activeList.reduce((acc, c) => acc + (Number(c.amount) || 0), 0);
+    const expiringSoon = activeList.filter(c => daysUntil(c.expiry) <= 7);
+    const expiringValue = expiringSoon.reduce((acc, c) => acc + (Number(c.amount) || 0), 0);
+    const uniqueStores = new Set(activeList.map(c => c.store.trim().toLowerCase())).size;
+    const uniqueAccounts = new Set(activeList.map(c => (c.store + "::" + c.account).toLowerCase())).size;
+
+    document.getElementById("statsGrid").innerHTML = `
+      <div class="stat-card">
+        <span class="stat-label">Total Active Balance</span>
+        <span class="stat-value" style="color:#34d399;">${formatINR(totalValue)}</span>
+        <span class="stat-sub">Across ${activeList.length} active coupon${activeList.length === 1 ? "" : "s"} / gift cards</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-label">Expiring Within 7 Days</span>
+        <span class="stat-value" style="color:${expiringSoon.length > 0 ? "#fbbf24" : "#94a3b8"};">${expiringSoon.length} (${formatINR(expiringValue)})</span>
+        <span class="stat-sub">${expiringSoon.length > 0 ? "Use these balances first!" : "No urgent expirations this week"}</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-label">Websites &amp; Accounts</span>
+        <span class="stat-value" style="color:#60a5fa;">${uniqueStores} Stores</span>
+        <span class="stat-sub">${uniqueAccounts} separate accounts tracked</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-label">Signed-In Account</span>
+        <span class="stat-value" style="color:#c4b5fd; font-size:18px;">${escapeHtml(currentUser.name)}</span>
+        <span class="stat-sub">${escapeHtml(currentUser.email)} • Codes: ${currentUser.role === 'super_admin' || currentUser.canReadCodes ? '🔑 Allowed' : '🔒 Hidden'}</span>
+      </div>
+    `;
+  }
+
+  function renderStoreChips() {
+    const storeMap = {};
+    state.coupons.filter(isCouponActive).forEach(c => {
+      const key = c.store.trim();
+      if (!storeMap[key]) storeMap[key] = { count: 0, total: 0 };
+      storeMap[key].count++;
+      storeMap[key].total += Number(c.amount) || 0;
+    });
+
+    const stores = Object.keys(storeMap).sort();
+    document.getElementById("storeChipsContainer").innerHTML = stores.map(st => {
+      const isSelected = activeQuickSearch.toLowerCase() === st.toLowerCase();
+      return `<button class="store-chip ${isSelected ? "active" : ""}" onclick="selectStoreChip('${escapeHtml(st)}')">
+        <span>🛒 ${escapeHtml(st)}</span>
+        <span style="color:#34d399; font-weight:800;">${formatINR(storeMap[st].total)}</span>
+      </button>`;
+    }).join("");
+  }
+
+  function selectStoreChip(storeName) {
+    const input = document.getElementById("quickSearchInput");
+    if (activeQuickSearch.toLowerCase() === storeName.toLowerCase()) {
+      clearQuickSearch();
+    } else {
+      input.value = storeName;
+      handleQuickSearch(storeName);
+    }
+  }
+
+  function handleQuickSearch(val) {
+    activeQuickSearch = (val || "").trim();
+    document.getElementById("qcClearBtn").style.display = activeQuickSearch ? "block" : "none";
+    renderStoreChips();
+    renderQuickSearchResult();
+    renderVaultContent();
+  }
+
+  function clearQuickSearch() {
+    document.getElementById("quickSearchInput").value = "";
+    handleQuickSearch("");
+  }
+
+  function renderQuickSearchResult() {
+    const panel = document.getElementById("qcResultPanel");
+    if (!activeQuickSearch) {
+      panel.classList.remove("show");
+      panel.innerHTML = "";
+      return;
+    }
+
+    const q = activeQuickSearch.toLowerCase();
+    const matches = state.coupons.filter(c => {
+      return isCouponActive(c) && (
+        c.store.toLowerCase().includes(q) ||
+        c.account.toLowerCase().includes(q) ||
+        (c.notes && c.notes.toLowerCase().includes(q))
+      );
+    }).sort((a, b) => daysUntil(a.expiry) - daysUntil(b.expiry));
+
+    panel.classList.add("show");
+
+    if (matches.length === 0) {
+      panel.innerHTML = `
+        <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px;">
+          <strong style="color:#f87171; font-size:15px;">❌ No active coupons or gift cards found for "${escapeHtml(activeQuickSearch)}"</strong>
+          ${canCurrentUserAdd() ? `<button class="btn btn-sm btn-primary" onclick="openCouponModal('${escapeHtml(activeQuickSearch)}')">➕ Add for ${escapeHtml(activeQuickSearch)}</button>` : ""}
+        </div>
+      `;
+      return;
+    }
+
+    const totalAvail = matches.reduce((sum, item) => sum + (Number(item.amount) || 0), 0);
+    const earliest = matches[0];
+
+    panel.innerHTML = `
+      <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px; padding-bottom:10px; border-bottom:1px solid var(--border);">
+        <div>
+          <div style="font-size:17px; font-weight:800; color:#34d399;">
+            ✅ Yes! ${matches.length} active balance${matches.length === 1 ? "" : "s"} totaling ${formatINR(totalAvail)}
+          </div>
+          <div style="font-size:12.5px; color:#cbd5e1; margin-top:3px;">
+            💡 <strong>Use First:</strong> Use <strong>${escapeHtml(earliest.account)}</strong> (${formatINR(earliest.amount)}) first — expires on <strong>${formatDateReadable(earliest.expiry)}</strong>.
+          </div>
+        </div>
+      </div>
+      <div class="qc-account-list">
+        ${matches.map(c => `
+          <div class="qc-account-card">
+            <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:8px;">
+              <div>
+                <div style="font-size:15px; font-weight:800;">🛒 ${escapeHtml(c.store)}</div>
+                <div class="account-pill">👤 Account: ${escapeHtml(c.account)}</div>
+              </div>
+              <div style="text-align:right;">
+                <div style="font-size:21px; font-weight:900; color:#34d399;">${formatINR(c.amount)}</div>
+                <div style="font-size:11.5px; color:var(--text-muted);">${escapeHtml(c.type)}</div>
+              </div>
+            </div>
+            <div style="display:flex; align-items:center; justify-content:space-between; font-size:12px; margin-top:4px;">
+              <span>Exp: <strong>${formatDateReadable(c.expiry)}</strong></span>
+              ${getExpiryBadgeHtml(c)}
+            </div>
+            ${renderCodeStripHtml(c)}
+            <div style="display:flex; gap:6px; flex-wrap:wrap; margin-top:6px;">
+              ${canCurrentUserAdd() ? `<button class="btn btn-sm btn-amber" onclick="openSpendModal('${c.id}')">💸 Spend / Deduct</button>` : ""}
+              <button class="btn btn-sm btn-blue" onclick="openCalModal('${c.id}')">📅 Google Calendar Alert</button>
+            </div>
+          </div>
+        `).join("")}
+      </div>
+    `;
+  }
+
+  function switchMainView(view) {
+    if (view === "admin" && !isCurrentUserSuperAdmin()) {
+      alert("🔒 Protected Route: Only the Super Admin can manage accounts.");
+      return;
+    }
+    currentView = view;
+    ["grouped", "expiring", "all", "history", "logger", "admin"].forEach(v => {
+      const btn = document.getElementById("tab-" + v);
+      if (btn) btn.classList.toggle("active", v === view);
+    });
+
+    document.getElementById("vaultContentArea").style.display = (view === "logger" || view === "admin") ? "none" : "block";
+    document.getElementById("loggerPanel").classList.toggle("show", view === "logger");
+    document.getElementById("adminPanel").classList.toggle("show", view === "admin");
+
+    if (view === "logger") renderLogger();
+    else if (view === "admin") renderAdminPanel();
+    else renderVaultContent();
+  }
+
+  function renderCouponCardHtml(c) {
+    const days = daysUntil(c.expiry);
+    const expiringClass = (isCouponActive(c) && days <= 7) ? "expiring-soon" : "";
+    const usedClass = (!isCouponActive(c)) ? "expired-or-used" : "";
+
+    return `
+      <div class="coupon-card ${expiringClass} ${usedClass}">
+        <div>
+          <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:10px;">
+            <div>
+              <div style="font-size:17px; font-weight:800;">${escapeHtml(c.store)}</div>
+              <div class="account-pill">👤 ${escapeHtml(c.account)}</div>
+            </div>
+            <div style="text-align:right;">
+              <div style="font-size:23px; font-weight:900; color:#34d399;">${formatINR(c.amount)}</div>
+              <div style="font-size:11.5px; color:var(--text-muted);">${escapeHtml(c.type)}</div>
+            </div>
+          </div>
+          ${renderCodeStripHtml(c)}
+          ${c.notes ? `<p style="font-size:12.5px; color:var(--text-muted); margin-top:10px;">📝 ${escapeHtml(c.notes)}</p>` : ""}
+        </div>
+
+        <div>
+          <div style="display:flex; align-items:center; justify-content:space-between; font-size:12.5px; margin-bottom:10px;">
+            <span style="color:var(--text-muted);">📅 Expires: <strong style="color:var(--text);">${formatDateReadable(c.expiry)}</strong></span>
+            ${getExpiryBadgeHtml(c)}
+          </div>
+          <div class="card-actions">
+            <button class="btn btn-sm btn-blue" onclick="openCalModal('${c.id}')">📅 Remind</button>
+            ${(isCouponActive(c) && canCurrentUserAdd()) ? `<button class="btn btn-sm btn-amber" onclick="openSpendModal('${c.id}')">💸 Spend / Deduct</button>` : ""}
+            ${canCurrentUserAdd() ? `<button class="btn btn-sm" onclick="openEditCouponModal('${c.id}')">✏️ Edit</button>` : ""}
+            ${isCurrentUserSuperAdmin() ? `<button class="btn btn-sm btn-danger" onclick="deleteCoupon('${c.id}')">🗑️ Delete</button>` : ""}
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  function renderVaultContent() {
+    const container = document.getElementById("vaultContentArea");
+    const q = activeQuickSearch.toLowerCase();
+
+    let filtered = state.coupons.filter(c => {
+      if (!q) return true;
+      return (
+        c.store.toLowerCase().includes(q) ||
+        c.account.toLowerCase().includes(q) ||
+        (c.notes && c.notes.toLowerCase().includes(q))
+      );
+    });
+
+    if (currentView === "grouped") {
+      const activeOnly = filtered.filter(isCouponActive);
+      if (activeOnly.length === 0) {
+        container.innerHTML = `<div class="empty-state"><h3>No active coupons or gift cards found</h3></div>`;
+        return;
+      }
+
+      const groups = {};
+      activeOnly.forEach(c => {
+        const key = c.store.trim();
+        if (!groups[key]) groups[key] = [];
+        groups[key].push(c);
+      });
+
+      container.innerHTML = Object.keys(groups).sort().map(storeName => {
+        const items = groups[storeName].sort((a, b) => daysUntil(a.expiry) - daysUntil(b.expiry));
+        const storeTotal = items.reduce((s, x) => s + (Number(x.amount) || 0), 0);
+
+        return `
+          <div class="store-group">
+            <div class="store-group-header">
+              <div class="store-badge">
+                <div class="store-avatar">${escapeHtml(storeName.charAt(0).toUpperCase())}</div>
+                <div>
+                  <h3 style="font-size:18px; font-weight:800;">${escapeHtml(storeName)}</h3>
+                  <span style="font-size:12.5px; color:var(--text-muted);">${items.length} Account${items.length === 1 ? "" : "s"} / Voucher${items.length === 1 ? "" : "s"}</span>
+                </div>
+              </div>
+              <div style="display:flex; align-items:center; gap:10px;">
+                <span class="store-total-pill">Total: ${formatINR(storeTotal)}</span>
+                ${canCurrentUserAdd() ? `<button class="btn btn-sm btn-primary" onclick="openCouponModal('${escapeHtml(storeName)}')">➕ Add Account</button>` : ""}
+              </div>
+            </div>
+            <div class="cards-grid">
+              ${items.map(renderCouponCardHtml).join("")}
+            </div>
+          </div>
+        `;
+      }).join("");
+      return;
+    }
+
+    let list = [];
+    if (currentView === "expiring") list = filtered.filter(c => isCouponActive(c) && daysUntil(c.expiry) <= 14);
+    else if (currentView === "all") list = filtered.filter(isCouponActive);
+    else if (currentView === "history") list = filtered.filter(c => !isCouponActive(c));
+
+    list.sort((a, b) => daysUntil(a.expiry) - daysUntil(b.expiry));
+    if (list.length === 0) {
+      container.innerHTML = `<div class="empty-state"><h3>No items in this view</h3></div>`;
+      return;
+    }
+    container.innerHTML = `<div class="cards-grid">${list.map(renderCouponCardHtml).join("")}</div>`;
+  }
+
+  function renderAdminPanel() {
+    const container = document.getElementById("membersListContainer");
+    if (!container) return;
+
+    container.innerHTML = state.members.map(m => {
+      const isSelf = currentUser && m.id === currentUser.id;
+      return `
+        <div class="member-row">
+          <div>
+            <div style="font-size:15.5px; font-weight:800; display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+              <span>${m.role === 'super_admin' ? '👑' : (m.role === 'contributor' ? '✍️' : '👀')} ${escapeHtml(m.name)}</span>
+              <span style="font-size:13px; color:#60a5fa; font-weight:600;">(${escapeHtml(m.email)})</span>
+              <span class="badge ${m.hasPassword ? 'badge-green' : 'badge-amber'}">
+                ${m.hasPassword ? '✅ Active (Supabase Auth)' : '⏳ Invited (Waiting for User to Set Password)'}
+              </span>
+            </div>
+            <div style="font-size:12.5px; color:var(--text-muted); margin-top:5px;">
+              Role: <strong>${m.role}</strong> • Coupon Codes: <strong>${m.role === 'super_admin' || m.canReadCodes ? '🔑 Allowed to Read' : '🔒 Hidden'}</strong>
+            </div>
+          </div>
+
+          <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+            ${!isSelf ? `
+              <select class="form-control" style="padding:6px 10px; font-size:12.5px; width:auto;" onchange="changeMemberPermission('${m.id}', this.value, ${Boolean(m.canReadCodes)})">
+                <option value="viewer" ${m.role === 'viewer' ? 'selected' : ''}>👀 Viewer Only</option>
+                <option value="contributor" ${m.role === 'contributor' ? 'selected' : ''}>✍️ Contributor (View + Add)</option>
+                <option value="super_admin" ${m.role === 'super_admin' ? 'selected' : ''}>👑 Co-Admin</option>
+              </select>
+              <button class="btn btn-sm ${m.canReadCodes ? 'btn-amber' : 'btn-primary'}" onclick="changeMemberPermission('${m.id}', '${m.role}', ${!m.canReadCodes})">
+                ${m.canReadCodes ? '🔒 Hide Codes' : '🔑 Allow Reading Codes'}
+              </button>
+              ${m.inviteToken ? `<button class="btn btn-sm btn-blue" onclick="openInviteLinkConfirmation('${escapeHtml(m.name)}', '${escapeHtml(m.email)}', '${m.role}', '${m.inviteToken}')">📧 Resend Invite Link</button>` : ''}
+              ${!m.isPendingInvite ? `<button class="btn btn-sm btn-amber" onclick="openEmergencyResetModal('${m.id}')">🔑 Password Reset</button>` : ''}
+              <button class="btn btn-sm btn-danger" onclick="deleteMemberAccount('${m.id}')">🗑️</button>
+            ` : `
+              <span class="badge badge-purple">Your Super Admin Account</span>
+              <button class="btn btn-sm btn-amber" onclick="openEmergencyResetModal('${m.id}')">🔑 Change My Password</button>
+            `}
+          </div>
+        </div>
+      `;
+    }).join("");
+  }
+
+  function renderLogger() {
+    const container = document.getElementById("logListContainer");
+    if (state.logs.length === 0) {
+      container.innerHTML = `<div class="empty-state"><p>No activity logs recorded yet.</p></div>`;
+      return;
+    }
+
+    container.innerHTML = state.logs.map(log => {
+      let badgeClass = "badge-green";
+      if (log.action === "DELETED" || log.action === "EMERGENCY_RESET") badgeClass = "badge-red";
+      else if (log.action === "SPENT" || log.action === "USED" || log.action === "RESET_LINK") badgeClass = "badge-amber";
+      else if (log.action === "PERMISSION" || log.action === "INVITED" || log.action === "ACTIVATED") badgeClass = "badge-purple";
+
+      const dt = new Date(log.timestamp);
+      const timeStr = isNaN(dt.getTime()) ? log.timestamp : dt.toLocaleString("en-IN", {
+        day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit"
+      });
+
+      return `
+        <div class="log-item">
+          <div style="display:flex; align-items:center; gap:12px;">
+            <span class="badge ${badgeClass}">${escapeHtml(log.action)}</span>
+            <div>
+              <div style="font-size:14px; font-weight:700;">${escapeHtml(log.title)}</div>
+              ${log.detail ? `<div style="font-size:12px; color:var(--text-muted);">${escapeHtml(log.detail)}</div>` : ""}
+            </div>
+          </div>
+          <div style="display:flex; align-items:center; gap:10px;">
+            <span style="font-size:12px; color:var(--text-muted);">${escapeHtml(timeStr)}</span>
+            ${isCurrentUserSuperAdmin() ? `<button class="btn btn-sm btn-danger" onclick="deleteLogItem('${log.id}')">✕</button>` : ""}
+          </div>
+        </div>
+      `;
+    }).join("");
+  }
+
+  // =========================================================================
+  // COUPON CRUD, BACKUP IMPORT/EXPORT & CALENDAR REMINDERS
+  // =========================================================================
+  function fillPreset(fieldId, val) {
+    document.getElementById(fieldId).value = val;
+  }
+
+  function openCouponModal(prefillStore) {
+    if (!canCurrentUserAdd()) {
+      alert("🔒 Protected Action: Your account is set to 'Viewer Only'.");
+      return;
+    }
+    document.getElementById("editCouponId").value = "";
+    document.getElementById("couponModalTitle").textContent = "➕ Add Coupon or Gift Card";
+    document.getElementById("fStore").value = prefillStore || "";
+    document.getElementById("fAccount").value = "";
+    document.getElementById("fType").value = "Gift Card / Wallet";
+    document.getElementById("fAmount").value = "";
+    document.getElementById("fExpiry").value = getFutureDateStr(30);
+    document.getElementById("fCode").value = "";
+    document.getElementById("fNotes").value = "";
+    document.getElementById("fAdminOnlyCode").checked = false;
+    document.getElementById("fAutoCalendar").checked = false;
+    document.getElementById("couponModalBackdrop").classList.add("show");
+  }
+
+  function openEditCouponModal(id) {
+    if (!canCurrentUserAdd()) return;
+    const c = state.coupons.find(x => x.id === id);
+    if (!c) return;
+    document.getElementById("editCouponId").value = c.id;
+    document.getElementById("couponModalTitle").textContent = "✏️ Edit Coupon / Gift Card";
+    document.getElementById("fStore").value = c.store;
+    document.getElementById("fAccount").value = c.account;
+    document.getElementById("fType").value = c.type;
+    document.getElementById("fAmount").value = c.amount;
+    document.getElementById("fExpiry").value = c.expiry;
+    document.getElementById("fCode").value = (c.code !== "__HIDDEN__" && canCurrentUserSeeCode(c)) ? (c.code || "") : "";
+    document.getElementById("fNotes").value = c.notes || "";
+    document.getElementById("fAdminOnlyCode").checked = Boolean(c.adminOnlyCode);
+    document.getElementById("fAutoCalendar").checked = false;
+    document.getElementById("couponModalBackdrop").classList.add("show");
+  }
+
+  function closeCouponModal() {
+    document.getElementById("couponModalBackdrop").classList.remove("show");
+  }
+
+  async function saveCouponForm(e) {
+    e.preventDefault();
+    if (!canCurrentUserAdd() || !supabaseClient) return;
+
+    const editId = document.getElementById("editCouponId").value;
+    const store = document.getElementById("fStore").value.trim();
+    const account = document.getElementById("fAccount").value.trim();
+    const benefitType = document.getElementById("fType").value;
+    const amount = parseFloat(document.getElementById("fAmount").value) || 0;
+    const expiry = document.getElementById("fExpiry").value;
+    const code = document.getElementById("fCode").value.trim();
+    const notes = document.getElementById("fNotes").value.trim();
+    const adminOnlyCode = document.getElementById("fAdminOnlyCode").checked;
+    const autoCal = document.getElementById("fAutoCalendar").checked;
+    const reminderDays = parseInt(document.getElementById("fReminderDays").value, 10) || 3;
+
+    let savedCouponForCal = null;
+
+    if (editId) {
+      const existing = state.coupons.find(x => x.id === editId);
+      if (!existing) return;
+      const canModifySecret = !existing.hasSecretCode || canCurrentUserSeeCode(existing) || isCurrentUserSuperAdmin();
+      const nextHasSecret = canModifySecret ? Boolean(code) : existing.hasSecretCode;
+
+      const { error: updErr } = await supabaseClient
+        .from("coupons")
+        .update({
+          store,
+          account,
+          benefit_type: benefitType,
+          amount,
+          expiry,
+          notes,
+          admin_only_code: adminOnlyCode,
+          has_secret_code: nextHasSecret,
+          status: amount > 0 ? "active" : "used",
+          updated_at: new Date().toISOString()
+        })
+        .eq("id", editId);
+
+      if (updErr) {
+        alert(updErr.message);
+        return;
+      }
+
+      if (canModifySecret) {
+        if (code) {
+          await supabaseClient.from("coupon_secrets").upsert({
+            coupon_id: editId,
+            secret_code: code,
+            updated_at: new Date().toISOString()
+          });
+        } else {
+          await supabaseClient.from("coupon_secrets").delete().eq("coupon_id", editId);
+        }
+      }
+
+      await writeActivityLog("EDITED", `Updated ${store} (${account}) — ${formatINR(amount)}`, `Expires ${expiry}`);
+      savedCouponForCal = { store, account, type: benefitType, amount, expiry, code: canModifySecret ? code : "", notes };
+    } else {
+      const { data: inserted, error: insErr } = await supabaseClient
+        .from("coupons")
+        .insert({
+          store,
+          account,
+          benefit_type: benefitType,
+          amount,
+          initial_amount: amount,
+          expiry,
+          notes,
+          admin_only_code: adminOnlyCode,
+          has_secret_code: Boolean(code),
+          status: amount > 0 ? "active" : "used",
+          created_by: currentUser.id
+        })
+        .select("id")
+        .single();
+
+      if (insErr || !inserted) {
+        alert((insErr && insErr.message) || "Failed saving coupon.");
+        return;
+      }
+
+      if (code) {
+        await supabaseClient.from("coupon_secrets").insert({
+          coupon_id: inserted.id,
+          secret_code: code
+        });
+      }
+
+      await writeActivityLog("ADDED", `Added ${formatINR(amount)} for ${store} (${account})`, `${benefitType} • Expires ${expiry}`);
+      savedCouponForCal = { store, account, type: benefitType, amount, expiry, code, notes };
+    }
+
+    closeCouponModal();
+    await fetchVaultStatus();
+
+    if (autoCal && savedCouponForCal) {
+      launchGoogleCalendarForCoupon(savedCouponForCal, reminderDays);
+    }
+  }
+
+  function openSpendModal(id) {
+    if (!canCurrentUserAdd()) return;
+    const c = state.coupons.find(x => x.id === id);
+    if (!c) return;
+    selectedSpendId = id;
+    document.getElementById("spendModalInfo").innerHTML = `
+      <strong>${escapeHtml(c.store)}</strong> — <span style="color:#c4b5fd;">${escapeHtml(c.account)}</span><br/>
+      Available Balance: <strong style="color:#34d399;">${formatINR(c.amount)}</strong>
+    `;
+    document.getElementById("spendAmountInput").value = "";
+    document.getElementById("spendModalBackdrop").classList.add("show");
+  }
+
+  function closeSpendModal() {
+    selectedSpendId = null;
+    document.getElementById("spendModalBackdrop").classList.remove("show");
+  }
+
+  async function confirmPartialSpend() {
+    if (!selectedSpendId || !canCurrentUserAdd() || !supabaseClient) return;
+    const c = state.coupons.find(x => x.id === selectedSpendId);
+    if (!c) return;
+    const spent = parseFloat(document.getElementById("spendAmountInput").value);
+    if (isNaN(spent) || spent <= 0) {
+      alert("Enter a valid amount spent.");
+      return;
+    }
+    const newAmt = Math.max(0, +((Number(c.amount) || 0) - spent).toFixed(2));
+    const newStatus = newAmt === 0 ? "used" : "active";
+
+    const { error } = await supabaseClient
+      .from("coupons")
+      .update({ amount: newAmt, status: newStatus, updated_at: new Date().toISOString() })
+      .eq("id", c.id);
+
+    if (error) {
+      alert(error.message);
+      return;
+    }
+
+    await writeActivityLog("SPENT", `Spent ${formatINR(spent)} on ${c.store} (${c.account})`, `Remaining: ${formatINR(newAmt)}`);
+    closeSpendModal();
+    await fetchVaultStatus();
+  }
+
+  async function confirmFullUse() {
+    if (!selectedSpendId || !canCurrentUserAdd() || !supabaseClient) return;
+    const c = state.coupons.find(x => x.id === selectedSpendId);
+    if (!c) return;
+    const oldAmt = c.amount;
+
+    const { error } = await supabaseClient
+      .from("coupons")
+      .update({ amount: 0, status: "used", updated_at: new Date().toISOString() })
+      .eq("id", c.id);
+
+    if (error) {
+      alert(error.message);
+      return;
+    }
+
+    await writeActivityLog("USED", `Marked ${c.store} (${c.account}) ${formatINR(oldAmt)} as 100% Used`, "");
+    closeSpendModal();
+    await fetchVaultStatus();
+  }
+
+  async function deleteCoupon(id) {
+    if (!isCurrentUserSuperAdmin() || !supabaseClient) return;
+    const c = state.coupons.find(x => x.id === id);
+    if (!c) return;
+    if (!confirm(`Delete ${formatINR(c.amount)} for ${c.store} (${c.account})?`)) return;
+
+    const { error } = await supabaseClient.from("coupons").delete().eq("id", id);
+    if (error) {
+      alert(error.message);
+      return;
+    }
+
+    await writeActivityLog("DELETED", `Deleted ${c.store} (${c.account}) — ${formatINR(c.amount)}`, "");
+    await fetchVaultStatus();
+  }
+
+  function openCalModal(id) {
+    const c = state.coupons.find(x => x.id === id);
+    if (!c) return;
+    selectedCalId = id;
+    document.getElementById("calModalDesc").innerHTML = `
+      Set a Google Calendar reminder for <strong>${escapeHtml(c.store)} (${escapeHtml(c.account)}) — ${formatINR(c.amount)}</strong> expiring on <strong>${formatDateReadable(c.expiry)}</strong>:
+    `;
+    document.getElementById("calModalBackdrop").classList.add("show");
+  }
+
+  function closeCalModal() {
+    selectedCalId = null;
+    document.getElementById("calModalBackdrop").classList.remove("show");
+  }
+
+  function triggerCalendarRemind(daysBefore) {
+    if (!selectedCalId) return;
+    const c = state.coupons.find(x => x.id === selectedCalId);
+    closeCalModal();
+    if (c) launchGoogleCalendarForCoupon(c, daysBefore);
+  }
+
+  function launchGoogleCalendarForCoupon(c, daysBefore) {
+    const title = `🎁 Use ${formatINR(c.amount)} ${c.store} (${c.account}) before it expires!`;
+    const codeDisplay = canCurrentUserSeeCode(c) ? (c.code || "In Account Wallet") : "Protected by Super Admin";
+    const desc = [
+      `Store / Website: ${c.store}`,
+      `Account: ${c.account}`,
+      `Balance / Value: ${formatINR(c.amount)} (${c.type})`,
+      `Code / PIN: ${codeDisplay}`,
+      `Expiry Date: ${formatDateReadable(c.expiry)}`,
+      c.notes ? `Notes: ${c.notes}` : ""
+    ].filter(Boolean).join("\n");
+
+    const gcalUrl = "https://calendar.google.com/calendar/render?action=TEMPLATE&text=" +
+      encodeURIComponent(title) + "&details=" + encodeURIComponent(desc);
+    window.open(gcalUrl, "_blank");
+  }
+
+  function copyTextUniversal(label, text, fallbackAlert) {
+    if (window.AndroidBridge && typeof window.AndroidBridge.copyToClipboard === "function") {
+      window.AndroidBridge.copyToClipboard(label, text);
+      return;
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(() => {
+        alert(fallbackAlert || ("Copied: " + text));
+      }).catch(() => {
+        prompt("Copy manually:", text);
+      });
+    } else {
+      prompt("Copy manually:", text);
+    }
+  }
+
+  function copyCodeById(id) {
+    const c = state.coupons.find(x => x.id === id);
+    if (!c || !canCurrentUserSeeCode(c)) return;
+    copyTextUniversal(c.store, c.code, "Copied: " + c.code);
+  }
+
+  async function promptManualLogNote() {
+    if (!canCurrentUserAdd()) return;
+    const note = prompt("Enter a note for the Activity Logger:");
+    if (note && note.trim()) {
+      await writeActivityLog("NOTE", note.trim(), "");
+      await fetchVaultStatus();
+    }
+  }
+
+  async function deleteLogItem(id) {
+    if (!isCurrentUserSuperAdmin() || !supabaseClient) return;
+    await supabaseClient.from("activity_logs").delete().eq("id", id);
+    await fetchVaultStatus();
+  }
+
+  async function clearAllLogs() {
+    if (!isCurrentUserSuperAdmin() || !supabaseClient) return;
+    if (!confirm("Clear all logger history?")) return;
+    await supabaseClient.from("activity_logs").delete().not("id", "is", null);
+    await fetchVaultStatus();
+  }
+
+  function triggerImportBackupJson() {
+    if (!isCurrentUserSuperAdmin()) return;
+    document.getElementById("importJsonFileInput").click();
+  }
+
+  async function handleImportBackupFile(e) {
+    if (!isCurrentUserSuperAdmin() || !supabaseClient) return;
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+    e.target.value = "";
+
+    try {
+      const parsed = JSON.parse(await file.text());
+      const list = Array.isArray(parsed.coupons) ? parsed.coupons : [];
+      if (list.length === 0) {
+        alert("No coupons array found in this JSON file.");
+        return;
+      }
+
+      let importedCount = 0;
+      for (const item of list) {
+        const hasCode = Boolean(item.code && item.code !== "__HIDDEN__");
+        const { data: inserted, error } = await supabaseClient
+          .from("coupons")
+          .insert({
+            store: String(item.store || "Store"),
+            account: String(item.account || "Default"),
+            benefit_type: String(item.type || "Gift Card / Wallet"),
+            amount: Number(item.amount) || 0,
+            initial_amount: Number(item.initialAmount || item.amount) || 0,
+            expiry: item.expiry || getFutureDateStr(30),
+            notes: String(item.notes || ""),
+            status: item.status === "used" ? "used" : "active",
+            admin_only_code: Boolean(item.adminOnlyCode),
+            has_secret_code: hasCode,
+            created_by: currentUser.id
+          })
+          .select("id")
+          .single();
+
+        if (!error && inserted) {
+          importedCount++;
+          if (hasCode) {
+            await supabaseClient.from("coupon_secrets").insert({
+              coupon_id: inserted.id,
+              secret_code: String(item.code)
+            });
+          }
+        }
+      }
+
+      await writeActivityLog("ADDED", `Imported ${importedCount} coupon(s) from JSON backup`, file.name);
+      await fetchVaultStatus();
+      alert(`✅ Imported ${importedCount} coupon(s) into Supabase!`);
+    } catch (err) {
+      alert("Invalid JSON backup file.");
+    }
+  }
+
+  function exportBackupJson() {
+    const json = JSON.stringify(state, null, 2);
+    const blob = new Blob([json], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    const today = new Date().toISOString().split("T")[0];
+    a.href = url;
+    a.download = "coupon-vault-backup-" + today + ".json";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
+  function escapeHtml(str) {
+    return String(str || "")
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#39;");
+  }
+
+  window.handleAndroidBack = function() {
+    const openModal = document.querySelector(".modal-backdrop.show");
+    if (openModal) {
+      openModal.classList.remove("show");
+      return true;
+    }
+    if (currentUser && currentView !== "grouped") {
+      switchMainView("grouped");
+      return true;
+    }
+    return false;
+  };
+
+  initApp();
+  setInterval(() => {
+    if (currentUser && !pendingInviteToken) {
+      fetchVaultStatus();
+    }
+  }, 15000);
+</script>
+</body>
+</html>
