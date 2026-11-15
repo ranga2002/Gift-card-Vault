@@ -956,9 +956,9 @@
     <!-- Navigation Tabs -->
     <div class="nav-tabs">
       <div class="tab-group">
-        <button class="tab-btn active" id="tab-grouped" onclick="switchMainView('grouped')">🏢 By Website &amp; Account</button>
+        <button class="tab-btn active" id="tab-all" onclick="switchMainView('all')">🗂️ All Active</button>
+        <button class="tab-btn" id="tab-grouped" onclick="switchMainView('grouped')">🏢 By Website &amp; Account</button>
         <button class="tab-btn" id="tab-expiring" onclick="switchMainView('expiring')">⏰ Expiring Soon</button>
-        <button class="tab-btn" id="tab-all" onclick="switchMainView('all')">🗂️ All Active</button>
         <button class="tab-btn" id="tab-history" onclick="switchMainView('history')">✔️ Used / Expired</button>
         <button class="tab-btn" id="tab-notifications" onclick="switchMainView('notifications')">🔔 Notifications (<span id="notifCountBadge">0</span>)</button>
         <button class="tab-btn" id="tab-logger" onclick="switchMainView('logger')">📜 Logger (<span id="logCountBadge">0</span>)</button>
@@ -1326,7 +1326,7 @@
 
 <script>
   let supabaseClient = null;
-  let currentView = "grouped";
+  let currentView = "all";
   let activeQuickSearch = "";
   let selectedSpendId = null;
   let selectedCalId = null;
@@ -2262,9 +2262,9 @@
       savedCfg = JSON.parse(localStorage.getItem(LOCAL_EMAILJS_KEY) || "{}") || {};
     } catch (e) {}
     return {
-      publicKey: (fileCfg.publicKey || savedCfg.publicKey || "").trim(),
-      serviceId: (fileCfg.serviceId || savedCfg.serviceId || "").trim(),
-      templateId: (fileCfg.templateId || savedCfg.templateId || "").trim()
+      publicKey: (savedCfg.publicKey || fileCfg.publicKey || "").trim(),
+      serviceId: (savedCfg.serviceId || fileCfg.serviceId || "").trim(),
+      templateId: (savedCfg.templateId || fileCfg.templateId || "").trim()
     };
   }
 
@@ -2324,7 +2324,7 @@
         invited_by: currentUser ? currentUser.name : "Super Admin",
         app_name: "Coupon & Gift Vault",
         message: messageBody
-      });
+      }, { publicKey: cfg.publicKey });
       return {
         sent: true,
         kind: "success",
@@ -2624,13 +2624,13 @@
     document.getElementById("clearLogsBtn").style.display = isCurrentUserSuperAdmin() ? "inline-flex" : "none";
 
     if ((currentView === "admin" || currentView === "logger") && !isCurrentUserSuperAdmin()) {
-      currentView = "grouped";
+      currentView = "all";
       document.getElementById("vaultContentArea").style.display = "block";
       document.getElementById("notificationsPanel").classList.remove("show");
       document.getElementById("loggerPanel").classList.remove("show");
       document.getElementById("adminPanel").classList.remove("show");
-      const groupedTab = document.getElementById("tab-grouped");
-      if (groupedTab) groupedTab.classList.add("active");
+      const allTab = document.getElementById("tab-all");
+      if (allTab) allTab.classList.add("active");
     }
   }
 
@@ -3616,8 +3616,8 @@
       openModal.classList.remove("show");
       return true;
     }
-    if (currentUser && currentView !== "grouped") {
-      switchMainView("grouped");
+    if (currentUser && currentView !== "all") {
+      switchMainView("all");
       return true;
     }
     return false;
