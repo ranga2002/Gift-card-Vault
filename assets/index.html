@@ -1986,6 +1986,12 @@
     return Boolean(coupon.createdBy && coupon.createdBy === currentUser.id);
   }
 
+  function canCurrentUserEditCoupon(coupon) {
+    if (!currentUser || !coupon) return false;
+    if (coupon.createdBy) return coupon.createdBy === currentUser.id;
+    return isCurrentUserSuperAdmin();
+  }
+
   function getMemberDisplayById(memberId) {
     if (!memberId) return "Super Admin";
     const m = state.members.find(x => x.id === memberId);
@@ -2861,7 +2867,7 @@
           <div class="card-actions">
             <button class="btn btn-sm btn-blue" onclick="openCalModal('${c.id}')">📅 Remind</button>
             ${(isCouponActive(c) && canCurrentUserAdd()) ? `<button class="btn btn-sm btn-amber" onclick="openSpendModal('${c.id}')">💸 Spend / Deduct</button>` : ""}
-            ${canCurrentUserAdd() ? `<button class="btn btn-sm" onclick="openEditCouponModal('${c.id}')">✏️ Edit</button>` : ""}
+            ${canCurrentUserEditCoupon(c) ? `<button class="btn btn-sm" onclick="openEditCouponModal('${c.id}')">✏️ Edit</button>` : ""}
             ${isCurrentUserSuperAdmin() ? `<button class="btn btn-sm btn-danger" onclick="deleteCoupon('${c.id}')">🗑️ Delete</button>` : ""}
           </div>
         </div>
@@ -3170,10 +3176,13 @@
   }
 
   async function openEditCouponModal(id) {
-    if (!canCurrentUserAdd()) return;
     const c = state.coupons.find(x => x.id === id);
     if (!c) return;
-    const isOwnerOrAdmin = isCouponOwnerOrAdmin(c);
+    if (!canCurrentUserEditCoupon(c)) {
+      alert("🔒 Protected Action: Only the creator of this coupon can edit it.");
+      return;
+    }
+    const isOwnerOrAdmin = canCurrentUserEditCoupon(c);
 
     document.getElementById("editCouponId").value = c.id;
     document.getElementById("couponModalTitle").textContent = "✏️ Edit Coupon / Gift Card";
@@ -3245,7 +3254,11 @@
     if (editId) {
       const existing = state.coupons.find(x => x.id === editId);
       if (!existing) return;
-      const canModifySecret = isCouponOwnerOrAdmin(existing);
+      if (!canCurrentUserEditCoupon(existing)) {
+        alert("🔒 Protected Action: Only the creator of this coupon can edit it.");
+        return;
+      }
+      const canModifySecret = canCurrentUserEditCoupon(existing);
       const nextHasSecret = canModifySecret ? Boolean(code) : existing.hasSecretCode;
 
       const updatePayload = {

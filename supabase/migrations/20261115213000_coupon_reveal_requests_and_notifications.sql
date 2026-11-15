@@ -13,7 +13,7 @@ set code_visibility = case when admin_only_code then 'private' else 'public' end
 where admin_only_code = true and code_visibility = 'public';
 
 -- Keep `admin_only_code` & `code_visibility` synchronized and restrict
--- visibility changes to the coupon's creator or a Super Admin.
+-- coupon detail/visibility edits strictly to the coupon's creator.
 create or replace function private.guard_coupon_visibility()
 returns trigger
 language plpgsql
@@ -22,6 +22,7 @@ set search_path = ''
 as $$
 begin
   if tg_op = 'INSERT' then
+    new.created_by := coalesce((select auth.uid()), new.created_by);
     if new.code_visibility is null then
       new.code_visibility := case when coalesce(new.admin_only_code, false) then 'private' else 'public' end;
     end if;
@@ -29,9 +30,23 @@ begin
     return new;
   end if;
 
-  if (new.code_visibility is distinct from old.code_visibility or new.admin_only_code is distinct from old.admin_only_code) then
-    if (select private.get_my_role()) <> 'super_admin' and old.created_by is distinct from (select auth.uid()) then
-      raise exception 'Only the coupon creator or Super Admin can change code visibility (Public/Private).';
+  if (
+    new.store is distinct from old.store
+    or new.account is distinct from old.account
+    or new.benefit_type is distinct from old.benefit_type
+    or new.initial_amount is distinct from old.initial_amount
+    or new.expiry is distinct from old.expiry
+    or new.notes is distinct from old.notes
+    or new.code_visibility is distinct from old.code_visibility
+    or new.admin_only_code is distinct from old.admin_only_code
+    or new.has_secret_code is distinct from old.has_secret_code
+    or new.created_by is distinct from old.created_by
+  ) then
+    if not (
+      old.created_by = (select auth.uid())
+      or (old.created_by is null and (select private.get_my_role()) = 'super_admin')
+    ) then
+      raise exception 'Only the creator of this coupon can edit its details or code settings.';
     end if;
 
     if new.code_visibility is distinct from old.code_visibility then
