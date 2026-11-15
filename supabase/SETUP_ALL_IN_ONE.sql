@@ -1,4 +1,4 @@
-﻿-- ============================================================================
+-- ============================================================================
 -- Coupon & Gift Card Vault â€” Supabase Auth, RBAC & Column/Row-Level Security
 -- Follows Supabase Postgres Best Practices:
 --   1. Dedicated `private` schema for SECURITY DEFINER role lookup functions
@@ -242,10 +242,11 @@ create policy "coupon_secrets_delete_super_admin_only"
 
 -- 4. Policies for `public.activity_logs`
 drop policy if exists "activity_logs_select_all_members" on public.activity_logs;
-create policy "activity_logs_select_all_members"
+drop policy if exists "activity_logs_select_super_admin_only" on public.activity_logs;
+create policy "activity_logs_select_super_admin_only"
   on public.activity_logs for select
   to authenticated
-  using ( (select private.get_my_role()) in ('super_admin', 'contributor', 'viewer') );
+  using ( (select private.get_my_role()) = 'super_admin' );
 
 drop policy if exists "activity_logs_insert_contributors_and_admin" on public.activity_logs;
 create policy "activity_logs_insert_contributors_and_admin"

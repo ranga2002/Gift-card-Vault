@@ -919,7 +919,7 @@
     </div>
     <div class="topbar-actions">
       <div class="user-pill" id="activeUserPill"></div>
-      <button class="btn" onclick="exportBackupJson()">💾 Save Backup to PC</button>
+      <button class="btn" id="topBackupBtn" onclick="exportBackupJson()">💾 Save Backup to PC</button>
       <button class="btn btn-purple" id="topAdminBtn" onclick="switchMainView('admin')">👑 Super Admin</button>
       <button class="btn btn-primary" id="topAddCouponBtn" onclick="openCouponModal()">➕ Add Coupon</button>
       <button class="btn btn-danger" onclick="logoutCurrentUser()">🚪 Logout</button>
@@ -1686,11 +1686,13 @@
         .from("coupon_secrets")
         .select("coupon_id, secret_code");
 
-      const logsPromise = supabaseClient
-        .from("activity_logs")
-        .select("id, action, title, detail, actor_name, created_at")
-        .order("created_at", { ascending: false })
-        .limit(300);
+      const logsPromise = isCurrentUserSuperAdmin()
+        ? supabaseClient
+            .from("activity_logs")
+            .select("id, action, title, detail, actor_name, created_at")
+            .order("created_at", { ascending: false })
+            .limit(300)
+        : Promise.resolve({ data: [], error: null });
 
       const [profRes, invRes, cpnRes, secRes, logRes] = await Promise.all([
         profilePromise,
@@ -2109,15 +2111,22 @@
     `;
 
     document.getElementById("topAddCouponBtn").style.display = canCurrentUserAdd() ? "inline-flex" : "none";
+    document.getElementById("topBackupBtn").style.display = isCurrentUserSuperAdmin() ? "inline-flex" : "none";
     document.getElementById("topAdminBtn").style.display = isCurrentUserSuperAdmin() ? "inline-flex" : "none";
+    document.getElementById("tab-logger").style.display = isCurrentUserSuperAdmin() ? "inline-flex" : "none";
     document.getElementById("tab-admin").style.display = isCurrentUserSuperAdmin() ? "inline-flex" : "none";
     document.getElementById("loggerAddBtn").style.display = canCurrentUserAdd() ? "inline-flex" : "none";
     document.getElementById("loggerNoteBtn").style.display = canCurrentUserAdd() ? "inline-flex" : "none";
     document.getElementById("importJsonBtn").style.display = isCurrentUserSuperAdmin() ? "inline-flex" : "none";
     document.getElementById("clearLogsBtn").style.display = isCurrentUserSuperAdmin() ? "inline-flex" : "none";
 
-    if (currentView === "admin" && !isCurrentUserSuperAdmin()) {
+    if ((currentView === "admin" || currentView === "logger") && !isCurrentUserSuperAdmin()) {
       currentView = "grouped";
+      document.getElementById("vaultContentArea").style.display = "block";
+      document.getElementById("loggerPanel").classList.remove("show");
+      document.getElementById("adminPanel").classList.remove("show");
+      const groupedTab = document.getElementById("tab-grouped");
+      if (groupedTab) groupedTab.classList.add("active");
     }
   }
 
@@ -2280,8 +2289,8 @@
   }
 
   function switchMainView(view) {
-    if (view === "admin" && !isCurrentUserSuperAdmin()) {
-      alert("🔒 Protected Route: Only the Super Admin can manage accounts.");
+    if ((view === "admin" || view === "logger") && !isCurrentUserSuperAdmin()) {
+      alert("🔒 Protected Route: Only the Super Admin can access this section.");
       return;
     }
     currentView = view;
