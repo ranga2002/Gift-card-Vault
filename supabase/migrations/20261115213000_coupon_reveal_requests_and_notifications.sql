@@ -489,3 +489,5 @@ begin
   execute 'alter publication supabase_realtime add table public.coupon_access_requests';
 exception when others then null;
 end $$;
+
+notify pgrst, 'reload schema';
