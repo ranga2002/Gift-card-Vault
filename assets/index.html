@@ -1937,7 +1937,7 @@
 
       closeInviteUserModal();
       await fetchVaultStatus();
-      openInviteLinkConfirmation(name, email, role, inviteToken);
+      await openInviteLinkConfirmation(name, email, role, inviteToken);
     } catch (err) {
       alert("Error creating invite.");
     }
@@ -1985,33 +1985,22 @@
   }
 
   async function sendInviteEmailViaEmailJS(name, email, role, inviteUrl, messageBody) {
-    const statusEl = document.getElementById("inviteAutoEmailStatus");
-    if (!statusEl) return;
-
     const cfg = getEmailJsConfig();
     if (!cfg.publicKey || !cfg.serviceId || !cfg.templateId) {
-      statusEl.style.display = "block";
-      statusEl.style.borderColor = "rgba(245, 158, 11, 0.45)";
-      statusEl.style.background = "var(--amber-soft)";
-      statusEl.style.color = "#fde68a";
-      statusEl.innerHTML = `ℹ️ <strong>Auto-email is not configured yet.</strong> Click <strong>⚙️ Auto-Email (EmailJS)</strong> in the Super Admin bar to connect your Gmail, or use the Gmail / Copy Link buttons below.`;
-      return;
+      return {
+        sent: false,
+        kind: "unconfigured",
+        message: `ℹ️ <strong>Auto-email is not configured yet.</strong> Click <strong>⚙️ Auto-Email (EmailJS)</strong> in the Super Admin bar to connect your Gmail, or use the Gmail / Copy Link buttons below.`
+      };
     }
 
     if (!window.emailjs || typeof window.emailjs.send !== "function") {
-      statusEl.style.display = "block";
-      statusEl.style.borderColor = "rgba(239, 68, 68, 0.45)";
-      statusEl.style.background = "var(--danger-soft)";
-      statusEl.style.color = "#fca5a5";
-      statusEl.textContent = "⚠️ EmailJS SDK failed to load. Use the Gmail or Copy Link button below.";
-      return;
+      return {
+        sent: false,
+        kind: "error",
+        message: "⚠️ EmailJS SDK failed to load. Use the Gmail or Copy Link button below."
+      };
     }
-
-    statusEl.style.display = "block";
-    statusEl.style.borderColor = "rgba(59, 130, 246, 0.45)";
-    statusEl.style.background = "var(--blue-soft)";
-    statusEl.style.color = "#93c5fd";
-    statusEl.textContent = `⏳ Sending registration email automatically to ${email}...`;
 
     try {
       window.emailjs.init({ publicKey: cfg.publicKey });
@@ -2026,29 +2015,27 @@
         app_name: "Coupon & Gift Vault",
         message: messageBody
       });
-      statusEl.style.borderColor = "rgba(16, 185, 129, 0.45)";
-      statusEl.style.background = "var(--accent-soft)";
-      statusEl.style.color = "#6ee7b7";
-      statusEl.innerHTML = `✅ <strong>Registration email automatically sent</strong> to <strong>${escapeHtml(email)}</strong>!`;
+      return {
+        sent: true,
+        kind: "success",
+        message: `✅ Registration email automatically sent to ${email}!`
+      };
     } catch (err) {
       const errMsg = (err && (err.text || err.message)) || "Unknown error";
-      statusEl.style.borderColor = "rgba(239, 68, 68, 0.45)";
-      statusEl.style.background = "var(--danger-soft)";
-      statusEl.style.color = "#fca5a5";
-      statusEl.textContent = `⚠️ Auto-email failed (${errMsg}). You can still send it manually below.`;
+      return {
+        sent: false,
+        kind: "error",
+        message: `⚠️ Auto-email failed (${escapeHtml(errMsg)}). You can still send it manually below.`
+      };
     }
   }
 
-  function openInviteLinkConfirmation(name, email, role, token) {
+  async function openInviteLinkConfirmation(name, email, role, token) {
     const inviteUrl =
       getAppBaseUrl() +
       "?invite=" + encodeURIComponent(token) +
       "&email=" + encodeURIComponent(email) +
       "&name=" + encodeURIComponent(name);
-
-    document.getElementById("inviteCreatedSummary").innerHTML =
-      `Account authorized for <strong>${escapeHtml(name)} (${escapeHtml(email)})</strong> with role <strong>${escapeHtml(role)}</strong>.`;
-    document.getElementById("inviteLinkBox").value = inviteUrl;
 
     const subject = "You're invited to Coupon & Gift Vault — Set your password";
     const body = [
@@ -2062,13 +2049,39 @@
       `(Your password will be encrypted in Supabase Auth and hidden from everyone.)`
     ].join("\n");
 
+    const autoResult = await sendInviteEmailViaEmailJS(name, email, role, inviteUrl, body);
+    if (autoResult.sent) {
+      document.getElementById("inviteCreatedModalBackdrop").classList.remove("show");
+      alert(autoResult.message);
+      return;
+    }
+
+    document.getElementById("inviteCreatedSummary").innerHTML =
+      `Account authorized for <strong>${escapeHtml(name)} (${escapeHtml(email)})</strong> with role <strong>${escapeHtml(role)}</strong>.`;
+    document.getElementById("inviteLinkBox").value = inviteUrl;
+
     const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(email)}&su=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
     const mailtoUrl = `mailto:${encodeURIComponent(email)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
 
     document.getElementById("gmailSendBtn").href = gmailUrl;
     document.getElementById("mailtoSendBtn").href = mailtoUrl;
+
+    const statusEl = document.getElementById("inviteAutoEmailStatus");
+    if (statusEl) {
+      statusEl.style.display = "block";
+      if (autoResult.kind === "unconfigured") {
+        statusEl.style.borderColor = "rgba(245, 158, 11, 0.45)";
+        statusEl.style.background = "var(--amber-soft)";
+        statusEl.style.color = "#fde68a";
+      } else {
+        statusEl.style.borderColor = "rgba(239, 68, 68, 0.45)";
+        statusEl.style.background = "var(--danger-soft)";
+        statusEl.style.color = "#fca5a5";
+      }
+      statusEl.innerHTML = autoResult.message;
+    }
+
     document.getElementById("inviteCreatedModalBackdrop").classList.add("show");
-    sendInviteEmailViaEmailJS(name, email, role, inviteUrl, body);
   }
 
   function closeInviteCreatedModal() {
