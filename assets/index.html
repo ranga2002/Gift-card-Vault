@@ -3,7 +3,9 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-<title>Coupon &amp; Gift Vault</title>
+<title>Gift Vault | Make every card count</title>
+<meta name="theme-color" content="#101b30" />
+<link rel="manifest" href="manifest.webmanifest" />
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 <script src="supabase-config.js?v=202611152212"></script>
@@ -714,6 +716,7 @@
     .form-grid { grid-template-columns: 1fr; }
   }
 </style>
+<link rel="stylesheet" href="vault-refresh.css" />
 </head>
 <body>
 
@@ -930,8 +933,11 @@
 
   <main class="container">
 
+    <section class="vault-hero" aria-label="Your wallet overview"><div><div class="vault-eyebrow">THE SMARTER WAY TO MANAGE VALUE</div><h2>More value. Less waste.</h2><p>All your gift cards and coupons in one secure place. Know what you have and use it before it expires.</p></div><div class="vault-hero-badge">✦ Your secure shared vault</div></section>
     <!-- KPI Stats Strip -->
     <section class="stats-grid" id="statsGrid"></section>
+    <div class="vault-section-title"><h2>✦ Smart insights</h2><span style="color:var(--text-muted);font-size:12px">Use the earliest-expiring card first</span></div>
+    <section class="vault-insights" id="vaultInsights" aria-live="polite"></section>
 
     <!-- SHOPPING QUICK-CHECK BAR -->
     <section class="quick-check-box">
@@ -966,6 +972,7 @@
       </div>
     </div>
 
+    <section class="vault-filters" id="advancedFilterPanel" aria-label="Filter gift cards"><div class="vault-filter"><label for="vaultFilterSearch">Search cards</label><input id="vaultFilterSearch" type="search" placeholder="Store, account, notes" autocomplete="off"></div><div class="vault-filter"><label for="vaultFilterStatus">Status</label><select id="vaultFilterStatus"><option value="any">Any</option><option value="active">Active</option><option value="expiring">Expiring in 7 days</option><option value="history">Used / expired</option></select></div><div class="vault-filter"><label for="vaultFilterSort">Sort cards</label><select id="vaultFilterSort"><option value="expiry">Expiry soonest</option><option value="store">Store name</option><option value="balance-high">Highest balance</option><option value="balance-low">Lowest balance</option></select></div><button class="btn vault-filter-reset" id="vaultFilterReset" type="button">Reset</button></section>
     <!-- Vault Content Area -->
     <section id="vaultContentArea"></section>
 
@@ -2822,6 +2829,7 @@
 
     const isSpecialPanel = view === "logger" || view === "admin" || view === "notifications";
     document.getElementById("vaultContentArea").style.display = isSpecialPanel ? "none" : "block";
+    document.getElementById("advancedFilterPanel").style.display = isSpecialPanel ? "none" : "flex";
     document.getElementById("notificationsPanel").classList.toggle("show", view === "notifications");
     document.getElementById("loggerPanel").classList.toggle("show", view === "logger");
     document.getElementById("adminPanel").classList.toggle("show", view === "admin");
@@ -2902,6 +2910,7 @@
         (c.notes && c.notes.toLowerCase().includes(q))
       );
     });
+    if (window.applyVaultFilters) filtered = window.applyVaultFilters(filtered);
 
     if (currentView === "grouped") {
       const activeOnly = filtered.filter(isCouponActive);
@@ -2918,7 +2927,7 @@
       });
 
       container.innerHTML = Object.keys(groups).sort().map(storeName => {
-        const items = groups[storeName].sort((a, b) => daysUntil(a.expiry) - daysUntil(b.expiry));
+        const items = window.sortVaultCards ? window.sortVaultCards(groups[storeName]) : groups[storeName].sort((a,b) => daysUntil(a.expiry)-daysUntil(b.expiry));
         const storeTotal = items.reduce((s, x) => s + (Number(x.amount) || 0), 0);
 
         return `
@@ -2950,7 +2959,7 @@
     else if (currentView === "all") list = filtered.filter(isCouponActive);
     else if (currentView === "history") list = filtered.filter(c => !isCouponActive(c));
 
-    list.sort((a, b) => daysUntil(a.expiry) - daysUntil(b.expiry));
+    list = window.sortVaultCards ? window.sortVaultCards(list) : list.sort((a,b) => daysUntil(a.expiry) - daysUntil(b.expiry));
     if (list.length === 0) {
       container.innerHTML = `<div class="empty-state"><h3>No items in this view</h3></div>`;
       return;
@@ -3467,8 +3476,7 @@
 
   function launchGoogleCalendarForCoupon(c, daysBefore) {
     const title = `🎁 Use ${formatINR(c.amount)} ${c.store} (${c.account}) before it expires!`;
-    const revealed = c.id ? revealedSecrets[c.id] : "";
-    const codeDisplay = revealed || "Hidden in Coupon Vault (Use Reveal Code in app)";
+    const codeDisplay = "Open Gift Vault to reveal this code securely";
     const desc = [
       `Store / Website: ${c.store}`,
       `Account: ${c.account}`,
@@ -3645,5 +3653,6 @@
     }
   }, 15000);
 </script>
+<script src="vault-enhancements.js" defer></script>
 </body>
 </html>

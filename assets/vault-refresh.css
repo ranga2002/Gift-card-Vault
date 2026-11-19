@@ -1,0 +1,36 @@
+/* Gift Vault 2026: progressive, mobile-first visual refresh */
+:root{--bg:#090f1e;--bg-panel:#101b30;--bg-card:#142239;--bg-input:#0c192c;--border:#29405c;--text:#f3f8ff;--text-muted:#a8bcd2;--accent:#40d6ad;--blue:#89b5ff;--purple:#b8a2ff;--radius:18px}
+html{color-scheme:dark;scroll-behavior:smooth}
+body{background:radial-gradient(ellipse 85% 38% at 7% -10%,rgba(47,128,155,.25),transparent 80%),radial-gradient(ellipse 65% 48% at 98% 7%,rgba(79,66,162,.16),transparent 75%),#090f1e;background-attachment:fixed}
+button,input,select{font:inherit}button{transition:background-color .2s,transform .2s,box-shadow .2s}button:active{transform:scale(.99)}
+:where(button,a,input,select):focus-visible{outline:3px solid #7be9d3;outline-offset:3px}
+.topbar{background:rgba(10,19,37,.92)!important;backdrop-filter:blur(16px);border-bottom:1px solid rgba(130,164,197,.20);box-shadow:0 12px 35px #0003}
+.container{max-width:1380px}
+.btn,.tab-btn,.store-chip{border-radius:12px!important}
+.btn-primary{background:#36c59e!important;color:#08241c!important;border-color:#36c59e!important}
+.btn-primary:hover{background:#67e2be!important}
+.coupon-card,.quick-check-box,.stat-card,.panel-box,.auth-card,.store-group{border:1px solid rgba(154,186,221,.17)!important;box-shadow:0 12px 35px #0003}
+.coupon-card{transition:transform .2s,border-color .2s,box-shadow .2s}
+.coupon-card:hover{transform:translateY(-2px);border-color:rgba(66,211,173,.48)!important;box-shadow:0 20px 40px #0004}
+.vault-hero{display:flex;justify-content:space-between;align-items:center;gap:22px;flex-wrap:wrap;border-radius:24px;padding:clamp(22px,4vw,40px);margin:8px 0 24px;border:1px solid #35666a;background:radial-gradient(circle at 90% 15%,#25566c55,transparent 45%),linear-gradient(125deg,#173b46,#202a4c)}
+.vault-eyebrow{text-transform:uppercase;letter-spacing:.17em;font-size:11px;font-weight:800;color:#77e9c8;margin-bottom:10px}
+.vault-hero h2{font-size:clamp(24px,4vw,40px);letter-spacing:-.04em;line-height:1.1;margin-bottom:10px}
+.vault-hero p{color:#bacee2;max-width:680px;line-height:1.6;font-size:14px}
+.vault-hero-badge{border:1px solid #45697c;background:#132538bd;padding:12px 16px;border-radius:14px;color:#b8f4df;font-weight:750}
+.vault-section-title{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin:23px 0 12px}
+.vault-section-title h2{font-size:19px}
+.vault-insights{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin-bottom:22px}
+.vault-insight{background:linear-gradient(145deg,#182b44,#121f35);border:1px solid #3a4d64;border-radius:17px;padding:19px;min-width:0}
+.vault-insight .label{font-size:12px;color:#acc3d8;text-transform:uppercase;letter-spacing:.06em}
+.vault-insight strong{display:block;font-size:clamp(17px,2vw,22px);letter-spacing:-.03em;margin:10px 0 6px;overflow-wrap:anywhere}
+.vault-insight p{color:#aabdd1;font-size:12px;line-height:1.5}
+.vault-insight.urgent{border-color:#a88444}
+.vault-filters{display:flex;align-items:end;gap:12px;flex-wrap:wrap;background:#15243adf;padding:15px;border:1px solid #364c64;border-radius:17px;margin:12px 0 21px}
+.vault-filter{display:flex;flex-direction:column;flex:1 1 165px;gap:7px;min-width:130px}
+.vault-filter label{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:#b9c9dc}
+.vault-filter input,.vault-filter select{width:100%;height:43px;border:1px solid #38526d;border-radius:10px;padding:0 12px;background:#0c192c;color:#f4f7ff}
+.vault-filter-reset{height:43px}
+.vault-offline{position:fixed;z-index:3000;right:16px;bottom:15px;background:#422e18;color:#ffe5af;padding:11px 16px;border-radius:12px;box-shadow:0 14px 35px #0008;font-weight:700;font-size:12px}
+@media(max-width:930px){.vault-insights{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:650px){.vault-insights{grid-template-columns:1fr}.vault-hero{padding:20px}.vault-filter{flex-basis:calc(50% - 10px)}.coupon-card:hover{transform:none}}
+@media(prefers-reduced-motion:reduce){*,*:before,*:after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
