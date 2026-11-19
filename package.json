@@ -1,0 +1,13 @@
+{
+  "name": "gift-vault-preview",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Sample-only GitHub branch preview; not production",
+  "scripts": {
+    "start": "node preview/server.cjs",
+    "test": "node --test tests/ui-smoke.test.cjs"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
