@@ -91,7 +91,7 @@
 .wl-dialog{width:min(460px,100%);max-height:90vh;overflow:auto;background:#192a3e;border:1px solid #4b6883;box-shadow:0 25px 75px #0008;border-radius:24px;padding:19px}
 .wl-dialog-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:15px}
 .wl-dialog-top h2{margin:0;font-size:20px;letter-spacing:-.04em}
-.wl-dialog-top button{border:0;background:#2b4259;color:white;width:36px;height:36px;border-radius:50%;display:grid;place-items:center}
+.wl-dialog-top button{border:0;background:#2b4259;color:white;min-width:36px;height:36px;padding:0 11px;border-radius:18px;display:flex;align-items:center;justify-content:center;gap:5px;font-size:12px;font-weight:700}
 .wl-detail-art{min-height:188px;border-radius:20px;padding:19px;color:white;display:flex;flex-direction:column;justify-content:space-between}
 .wl-detail-art small{font-size:11px}
 .wl-detail-art h3{font-size:27px;letter-spacing:-.04em;margin:5px 0}

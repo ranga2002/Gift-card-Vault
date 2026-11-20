@@ -72,3 +72,9 @@ test('wallet provides a return route and prevents overdrawn manual redemptions',
   assert.match(html,/Math\.round\(spent \* 100\) \/ 100 !== spent/);
   assert.match(html,/if \(!dateStr\) return Infinity;/);
 });
+
+test('wallet card details have a visible close button',()=>{
+  const js=read('assets/wallet-live.js'),preview=read('preview/functional-wallet.html');
+  assert.ok(js.includes('<span>Close</span></button>'));
+  assert.ok(preview.includes('<span>Close</span></button>'));
+});
