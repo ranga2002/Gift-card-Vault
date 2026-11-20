@@ -22,3 +22,18 @@ test('responsive layouts cover narrow phones and protect zoom accessibility',()=
   assert.match(preview, /max-width:355px/);
   assert.doesNotMatch(html, /user-scalable=no/);
 });
+
+
+test('wallet-facing preview has no design handoff panel and includes safe demo interactions',()=>{
+  const html=read('preview/wallet.html');
+  assert.match(html,/My cards/);
+  assert.match(html,/id="view-wallet"/);
+  assert.match(html,/id="view-expiring"/);
+  assert.match(html,/id="view-insights"/);
+  assert.match(html,/id="view-family"/);
+  assert.match(html,/id="view-settings"/);
+  assert.match(html,/id="addForm"/);
+  assert.doesNotMatch(html,/Implementation direction|Implementation note|Adopt this direction|Planned quick actions/);
+  assert.doesNotMatch(html,/https:\/\/[^"']+/);
+  assert.match(html,/Sample data only/);
+});
