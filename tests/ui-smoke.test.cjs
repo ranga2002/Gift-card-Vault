@@ -37,3 +37,29 @@ test('wallet-facing preview has no design handoff panel and includes safe demo i
   assert.doesNotMatch(html,/https:\/\/[^"']+/);
   assert.match(html,/Sample data only/);
 });
+
+test('authenticated wallet view hooks into existing guarded Supabase actions',()=>{
+  const app=read('assets/index.html'),wallet=read('assets/wallet-live.js'),css=read('assets/wallet-live.css');
+  new vm.Script(wallet);
+  assert.match(app,/wallet-live\.js/);
+  assert.match(app,/wallet-live\.css/);
+  assert.match(app,/window\.giftVaultLiveBridge/);
+  assert.match(app,/window\.walletLiveStart/);
+  assert.match(app,/window\.walletLiveRefresh/);
+  assert.match(app,/canCurrentUserRevealCode\(c\)/);
+  assert.match(app,/revealCouponCode\(id\)/);
+  assert.match(wallet,/data-act="add"/);
+  assert.match(wallet,/data-act="spend"/);
+  assert.match(wallet,/data-act="remind"/);
+  assert.match(wallet,/data-act="edit"/);
+  assert.match(wallet,/data-act="request"/);
+  assert.match(wallet,/wl-view-insights/);
+  assert.match(wallet,/wl-view-family/);
+  assert.match(css,/#appScreen\.wallet-mode/);
+  assert.doesNotMatch(wallet,/localStorage|sessionStorage|service_role|sb_secret_/);
+});
+test('wallet monetary totals use existing INR data until currency migration',()=>{
+  const wallet=read('assets/wallet-live.js');
+  assert.match(wallet,/currency:"INR"/);
+  assert.doesNotMatch(wallet,/C\$1,245\.00|Sample data only/);
+});

@@ -717,6 +717,7 @@
   }
 </style>
 <link rel="stylesheet" href="vault-refresh.css" />
+<link rel="stylesheet" href="wallet-live.css" />
 </head>
 <body>
 
@@ -1792,6 +1793,7 @@
     document.getElementById("appScreen").style.display = "block";
     startNotificationsSync();
     renderAll();
+    if (window.walletLiveStart) window.walletLiveStart();
   }
 
   // =========================================================================
@@ -2668,6 +2670,7 @@
     renderLogger();
     document.getElementById("logCountBadge").textContent = state.logs.length;
     document.getElementById("friendsCountBadge").textContent = state.members.length;
+    if (window.walletLiveRefresh) window.walletLiveRefresh();
   }
 
   function renderStats() {
@@ -3634,6 +3637,7 @@
   }
 
   window.handleAndroidBack = function() {
+    if (window.walletLiveHandleBack && window.walletLiveHandleBack()) return true;
     const openModal = document.querySelector(".modal-backdrop.show");
     if (openModal) {
       openModal.classList.remove("show");
@@ -3646,6 +3650,50 @@
     return false;
   };
 
+
+  // Authenticated wallet adapter: only metadata and RLS-authorized actions.
+  // Redemption codes are never included in snapshots or persisted to browser storage.
+  window.giftVaultLiveBridge = {
+    snapshot: () => currentUser ? ({
+      user: { name: currentUser.name, email: currentUser.email, role: currentUser.role },
+      canAdd: canCurrentUserAdd(),
+      cards: state.coupons.map(c => ({
+        id: c.id, store: c.store, account: c.account, type: c.type,
+        amount: c.amount, initialAmount: c.initialAmount, expiry: c.expiry,
+        status: c.status, notes: c.notes, hasSecretCode: c.hasSecretCode,
+        codeVisibility: c.codeVisibility, createdBy: c.createdBy
+      })),
+      members: state.members.map(m => ({
+        name: m.name, role: m.role, isPendingInvite: m.isPendingInvite
+      })),
+      unread: state.notifications.filter(n => !n.isRead).length
+    }) : null,
+    canEdit: id => {
+      const c = state.coupons.find(x => x.id === id);
+      return c ? canCurrentUserEditCoupon(c) : false;
+    },
+    canReveal: id => {
+      const c = state.coupons.find(x => x.id === id);
+      return c ? canCurrentUserRevealCode(c) : false;
+    },
+    reveal: async id => {
+      const c = state.coupons.find(x => x.id === id);
+      if (!c || !canCurrentUserRevealCode(c)) return null;
+      await revealCouponCode(id);
+      return canCurrentUserRevealCode(c) ? (revealedSecrets[id] || null) : null;
+    },
+    hideCode: id => { if (id) hideCouponCode(id); },
+    request: id => openRequestAccessModal(id),
+    add: () => openCouponModal(),
+    edit: id => openEditCouponModal(id),
+    spend: id => openSpendModal(id),
+    remind: id => openCalModal(id),
+    refresh: () => fetchVaultStatus(),
+    legacy: view => switchMainView(view),
+    backup: () => { if (isCurrentUserSuperAdmin()) exportBackupJson(); },
+    logout: () => logoutCurrentUser()
+  };
+
   initApp();
   setInterval(() => {
     if (currentUser && !pendingInviteToken) {
@@ -3655,5 +3703,6 @@
 </script>
 <script src="vault-enhancements.js" defer></script>
 <script src="vault-icons.js" defer></script>
+<script src="wallet-live.js" defer></script>
 </body>
 </html>
