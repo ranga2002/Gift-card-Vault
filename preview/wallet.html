@@ -321,7 +321,7 @@ function render(){
   else{stage.style.background=themes.navy;stage.innerHTML='<div class="stage-brand">No cards found</div>'}
   el("cardCounter").textContent=list.length?String(active+1)+" of "+list.length:"0 cards";
   el("tileGrid").innerHTML=list.map(function(c){return '<button class="tile" type="button" data-card="'+escapeHtml(c.id)+'" style="background:'+cardTheme(c)+'"><div><div class="tile-title">'+escapeHtml(c.name)+'</div><div class="tile-sub">'+escapeHtml(c.kind)+'</div></div><div><div class="tile-value">'+money(c.balance)+'</div><div class="tile-kind">'+escapeHtml(c.expiry?"Expires "+readable(c.expiry):"No expiry")+'</div></div></button>'}).join("")||'<div class="empty">No matching cards</div>';
-  var ordered=cards.filter(function(c){return days(c.expiry)>=0}).sort(function(a,b){return days(a.expiry)-days(b.expiry)});
+  var ordered=cards.filter(function(c){return Boolean(c.expiry)&&days(c.expiry)>=0}).sort(function(a,b){return days(a.expiry)-days(b.expiry)});
   var upcoming=ordered.filter(function(c){return days(c.expiry)<=30});
   el("upcomingList").innerHTML=upcoming.slice(0,4).map(listMarkup).join("")||'<div class="empty">No cards expiring soon</div>';
   el("expiryList").innerHTML=ordered.map(listMarkup).join("")||'<div class="empty">No upcoming expirations</div>';
