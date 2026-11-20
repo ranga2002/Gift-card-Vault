@@ -34,3 +34,13 @@ button,input,select{font:inherit}button{transition:background-color .2s,transfor
 @media(max-width:930px){.vault-insights{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:650px){.vault-insights{grid-template-columns:1fr}.vault-hero{padding:20px}.vault-filter{flex-basis:calc(50% - 10px)}.coupon-card:hover{transform:none}}
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+
+/* Consistent 18px outline iconography */
+.ui-icon{display:inline-block;flex-shrink:0;width:18px;height:18px;vertical-align:-.25em;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.brand-icon .ui-icon,.auth-logo .ui-icon{width:26px;height:26px}
+.brand-icon{display:grid;place-items:center}
+.btn .ui-icon,.tab-btn .ui-icon,.qc-title .ui-icon,.vault-hero-badge .ui-icon{margin-inline-end:6px}
+.vault-section-title .ui-icon{color:#58d9b5;vertical-align:-.22em}
+.stat-label .ui-icon{width:16px;height:16px;margin-inline-end:5px}
+.coupon-card .meta .ui-icon{width:15px;height:15px;margin-inline-end:4px}
+.btn:has(>.ui-icon:only-child) .ui-icon{margin-inline-end:0}
