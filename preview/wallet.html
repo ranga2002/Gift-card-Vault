@@ -1,0 +1,422 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Gift Vault — Wallet UI Preview</title>
+  <style>
+    :root{
+      --bg:#0d1018;
+      --bg-2:#151a27;
+      --panel:#171d2b;
+      --panel-2:#1d2537;
+      --line:rgba(255,255,255,.08);
+      --line-2:rgba(255,255,255,.14);
+      --text:#f6f8ff;
+      --muted:#aeb8cc;
+      --muted-2:#8793ab;
+      --green:#5ae0b0;
+      --blue:#77a8ff;
+      --amber:#ffcf73;
+      --pink:#ff5ea9;
+      --radius:24px;
+      --shadow:0 30px 60px rgba(0,0,0,.35);
+    }
+    *{box-sizing:border-box}
+    html,body{margin:0;background:radial-gradient(circle at top left, rgba(100,128,255,.12), transparent 28%),radial-gradient(circle at bottom right, rgba(255,83,172,.08), transparent 28%),var(--bg);color:var(--text);font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif}
+    body{min-height:100vh}
+    .page{max-width:1380px;margin:0 auto;padding:24px}
+    .preview-banner{background:rgba(90,224,176,.14);border:1px solid rgba(90,224,176,.26);color:#d8fff1;padding:10px 14px;border-radius:999px;font-size:12px;font-weight:700;display:inline-flex;gap:8px;align-items:center;margin-bottom:18px}
+    .layout{display:grid;grid-template-columns:minmax(320px,430px) minmax(320px,1fr);gap:26px;align-items:start}
+    .phone,.detail-panel{background:linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));border:1px solid var(--line);border-radius:34px;box-shadow:var(--shadow);overflow:hidden}
+    .phone{position:sticky;top:18px;min-height:860px}
+    .phone-shell{padding:18px 16px 22px}
+    .status-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;color:#c9d3e8;font-size:13px;font-weight:700}
+    .status-icons{display:flex;gap:8px;align-items:center;color:#e8ecf6}
+    .topbar{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:18px}
+    .app-brand{display:flex;align-items:center;gap:12px}
+    .brand-chip{width:42px;height:42px;border-radius:16px;background:linear-gradient(135deg,#49c7a2,#3c7dff);display:grid;place-items:center;box-shadow:0 8px 24px rgba(60,125,255,.24)}
+    .brand-chip svg{width:21px;height:21px}
+    .brand-copy strong{display:block;font-size:17px;letter-spacing:-.02em}
+    .brand-copy span{display:block;color:var(--muted);font-size:12px;margin-top:2px}
+    .toolbar{display:flex;gap:10px;align-items:center}
+    .icon-btn{width:42px;height:42px;border-radius:16px;border:1px solid var(--line);background:rgba(255,255,255,.03);display:grid;place-items:center;color:#dfe7ff}
+    .section-kicker{font-size:12px;text-transform:uppercase;letter-spacing:.18em;color:#86efd2;font-weight:800;margin-bottom:8px}
+    .hero h1{font-size:33px;line-height:1.02;letter-spacing:-.045em;margin:0 0 10px}
+    .hero p{margin:0;color:var(--muted);font-size:14px;line-height:1.55}
+    .summary-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:18px 0 16px}
+    .summary-chip{padding:14px 14px;border-radius:20px;background:rgba(255,255,255,.03);border:1px solid var(--line)}
+    .summary-chip .label{display:block;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px}
+    .summary-chip strong{font-size:20px;letter-spacing:-.03em}
+    .summary-chip p{margin:7px 0 0;color:var(--muted);font-size:12px}
+    .wallet-header{display:flex;justify-content:space-between;align-items:center;margin-top:14px;margin-bottom:12px}
+    .wallet-header h2{font-size:18px;margin:0}
+    .wallet-header a{color:#9ebcff;text-decoration:none;font-size:13px;font-weight:700}
+
+    .featured-stack{position:relative;height:250px;margin-bottom:22px}
+    .ghost-card,.featured-card{position:absolute;left:0;right:0;border-radius:30px;overflow:hidden}
+    .ghost-card{height:178px;background:linear-gradient(135deg,#111829,#232c42);border:1px solid rgba(255,255,255,.06)}
+    .ghost-card.one{top:0;transform:scale(.94);opacity:.44}
+    .ghost-card.two{top:22px;transform:scale(.97);opacity:.64}
+    .featured-card{top:40px;background:linear-gradient(145deg,#af1459,#ed326e 55%,#c11956);height:194px;padding:18px 18px 16px;box-shadow:0 25px 40px rgba(170,19,88,.32)}
+    .card-top,.card-bottom,.card-meta{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+    .brand-mini{font-size:13px;color:rgba(255,255,255,.78);font-weight:700;letter-spacing:.08em;text-transform:uppercase}
+    .featured-card .issuer{font-size:35px;font-weight:800;letter-spacing:-.04em;line-height:1}
+    .featured-card .sub{font-size:15px;color:rgba(255,255,255,.84);margin-top:4px}
+    .visa{font-size:24px;font-weight:900;letter-spacing:.02em}
+    .chip-mark{width:42px;height:32px;border-radius:9px;background:linear-gradient(135deg,rgba(255,255,255,.9),rgba(255,255,255,.55));opacity:.94;margin-top:30px}
+    .card-balance{font-size:14px;color:rgba(255,255,255,.72);margin-bottom:6px}
+    .card-value{font-size:28px;font-weight:850;letter-spacing:-.04em}
+    .card-bottom small{display:block;color:rgba(255,255,255,.72);font-size:11px;letter-spacing:.04em;text-transform:uppercase;margin-bottom:4px}
+    .card-bottom strong{font-size:14px}
+
+    .actions-strip{display:flex;gap:10px;overflow:auto;padding-bottom:4px;margin:0 -2px 18px}
+    .pill-action{flex:0 0 auto;background:rgba(255,255,255,.04);border:1px solid var(--line);border-radius:999px;padding:12px 14px;color:#dce5fb;font-size:13px;font-weight:700;display:inline-flex;align-items:center;gap:8px}
+
+    .wallet-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+    .mini-card{min-height:154px;border-radius:28px;padding:16px 16px 14px;border:1px solid rgba(255,255,255,.06);display:flex;flex-direction:column;justify-content:space-between;position:relative;overflow:hidden}
+    .mini-card::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(255,255,255,.08),transparent 44%);pointer-events:none}
+    .mini-purple{background:linear-gradient(145deg,#7720d9,#9c2cff)}
+    .mini-gray{background:linear-gradient(145deg,#666b78,#8c909b)}
+    .mini-white{background:linear-gradient(145deg,#f6f6f8,#dfdfe3);color:#10131c}
+    .mini-blue{background:linear-gradient(145deg,#0731e8,#203dff)}
+    .mini-card .title{font-size:13px;color:rgba(255,255,255,.72)}
+    .mini-white .title,.mini-white .meta{color:#4e5261}
+    .mini-card strong{font-size:17px;line-height:1.2}
+    .mini-card .meta{font-size:12px;color:rgba(255,255,255,.78)}
+    .plus-shell{height:56px;border-radius:999px;border:2px solid rgba(17,19,28,.12);display:grid;place-items:center;font-size:38px;color:#141720;margin-top:10px}
+
+    .bottom-nav{position:sticky;bottom:0;margin-top:22px;padding:12px;background:rgba(12,15,24,.88);backdrop-filter:blur(18px);border:1px solid var(--line);border-radius:24px;display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
+    .nav-item{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;border-radius:18px;padding:10px 6px;color:#9eabc5;font-size:11px;font-weight:700}
+    .nav-item.active{background:rgba(90,224,176,.12);color:#d8fff3}
+
+    .detail-panel{padding:24px 24px 26px}
+    .panel-top{display:flex;justify-content:space-between;gap:16px;align-items:flex-start;margin-bottom:22px}
+    .panel-top h2{font-size:30px;line-height:1.02;letter-spacing:-.04em;margin:0 0 8px}
+    .panel-top p{margin:0;color:var(--muted);max-width:620px;line-height:1.55}
+    .panel-actions{display:flex;gap:10px;flex-wrap:wrap}
+    .primary-btn,.soft-btn{padding:12px 16px;border-radius:16px;font-size:14px;font-weight:800;border:1px solid transparent}
+    .primary-btn{background:linear-gradient(135deg,#57deb3,#4593ff);color:#08131b}
+    .soft-btn{background:rgba(255,255,255,.04);border-color:var(--line);color:#e6edff}
+    .desktop-grid{display:grid;grid-template-columns:1.08fr .92fr;gap:20px}
+    .panel-card{background:var(--panel);border:1px solid var(--line);border-radius:28px;padding:20px;overflow:hidden}
+    .panel-card h3{margin:0 0 14px;font-size:18px}
+    .panel-sub{font-size:13px;color:var(--muted);margin-top:-6px;margin-bottom:16px}
+    .showcase-card{border-radius:30px;padding:22px;min-height:250px;background:linear-gradient(145deg,#1f2a44,#3856a8 45%,#6a81ff);position:relative;overflow:hidden}
+    .showcase-card::before{content:"";position:absolute;inset:auto -38px -35px auto;width:180px;height:180px;background:radial-gradient(circle,rgba(255,255,255,.24),transparent 66%)}
+    .showcase-card .brandline{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+    .showcase-card .store{font-size:34px;font-weight:860;letter-spacing:-.04em}
+    .showcase-card .copy{font-size:14px;color:rgba(255,255,255,.82)}
+    .code-preview{margin-top:22px;background:rgba(12,16,28,.34);border:1px solid rgba(255,255,255,.1);border-radius:18px;padding:14px}
+    .code-preview .row{display:flex;justify-content:space-between;gap:10px;align-items:center}
+    .secure-code{font:700 15px ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;letter-spacing:.12em}
+    .muted-kicker{font-size:11px;text-transform:uppercase;letter-spacing:.12em;color:rgba(255,255,255,.72)}
+    .detail-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:16px}
+    .mini-stat{background:rgba(255,255,255,.04);border:1px solid var(--line);border-radius:18px;padding:14px}
+    .mini-stat span{display:block;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:9px}
+    .mini-stat strong{font-size:19px;letter-spacing:-.03em}
+    .activity-list{display:grid;gap:12px}
+    .activity-item{display:flex;justify-content:space-between;gap:14px;align-items:center;background:rgba(255,255,255,.03);border:1px solid var(--line);padding:14px 15px;border-radius:18px}
+    .activity-item strong{display:block;font-size:14px;margin-bottom:4px}
+    .activity-item span{font-size:12px;color:var(--muted)}
+    .activity-amount{font-size:15px;font-weight:800}
+    .good{color:var(--green)}
+    .warn{color:var(--amber)}
+    .info-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    .info-box{border-radius:20px;background:rgba(255,255,255,.03);border:1px solid var(--line);padding:16px}
+    .info-box h4{margin:0 0 6px;font-size:14px}
+    .info-box p{margin:0;color:var(--muted);font-size:12px;line-height:1.55}
+    .share-list{display:flex;flex-wrap:wrap;gap:10px;margin-top:10px}
+    .share-pill{padding:9px 12px;border-radius:999px;background:rgba(255,255,255,.05);border:1px solid var(--line);font-size:12px;color:#dce5fb;font-weight:700}
+    .legend{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+    .legend span{display:inline-flex;gap:7px;align-items:center;font-size:12px;color:var(--muted)}
+    .dot{width:8px;height:8px;border-radius:50%}
+    .dot.green{background:var(--green)} .dot.amber{background:var(--amber)} .dot.blue{background:var(--blue)}
+
+    svg{display:block}
+    .ico{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+
+    @media (max-width: 1120px){
+      .layout{grid-template-columns:1fr}
+      .phone{position:relative;top:auto;min-height:auto}
+      .desktop-grid{grid-template-columns:1fr}
+    }
+    @media (max-width: 680px){
+      .page{padding:14px}
+      .phone-shell{padding:14px 12px 18px}
+      .hero h1{font-size:28px}
+      .summary-row{grid-template-columns:1fr 1fr}
+      .wallet-grid{grid-template-columns:1fr 1fr}
+      .panel-top{flex-direction:column}
+      .detail-stats{grid-template-columns:1fr}
+      .info-grid{grid-template-columns:1fr}
+    }
+    @media (max-width: 430px){
+      .wallet-grid{grid-template-columns:1fr 1fr}
+      .summary-row{grid-template-columns:1fr 1fr}
+      .featured-stack{height:232px}
+      .featured-card{height:186px}
+      .featured-card .issuer{font-size:31px}
+      .card-value{font-size:25px}
+      .mini-card{min-height:148px;padding:14px}
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div class="preview-banner">
+      <svg class="ico" viewBox="0 0 24 24"><path d="M12 3l2.2 4.8L19 10l-4.8 2.2L12 17l-2.2-4.8L5 10l4.8-2.2L12 3z"></path></svg>
+      Preview implementation — wallet-style UI direction only
+    </div>
+
+    <div class="layout">
+      <section class="phone">
+        <div class="phone-shell">
+          <div class="status-row">
+            <span>8:58</span>
+            <div class="status-icons">
+              <span>5G+</span>
+              <span>94%</span>
+            </div>
+          </div>
+
+          <div class="topbar">
+            <div class="app-brand">
+              <div class="brand-chip">
+                <svg class="ico" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="3"></rect><path d="M8 9h8M8 13h6"></path></svg>
+              </div>
+              <div class="brand-copy">
+                <strong>Gift Vault</strong>
+                <span>Wallet · Expiring · Insights</span>
+              </div>
+            </div>
+            <div class="toolbar">
+              <div class="icon-btn"><svg class="ico" viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"></path><path d="M10 21h4"></path></svg></div>
+              <div class="icon-btn"><svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"></circle><path d="M4 21v-2a8 8 0 0 1 16 0v2"></path></svg></div>
+            </div>
+          </div>
+
+          <div class="hero">
+            <div class="section-kicker">Wallet overview</div>
+            <h1>Cards that feel like a real wallet.</h1>
+            <p>Feature the best-looking card up top, keep quick access actions close, and surface the balances that need attention first.</p>
+          </div>
+
+          <div class="summary-row">
+            <div class="summary-chip">
+              <span class="label">Available</span>
+              <strong>C$1,245</strong>
+              <p>12 active cards</p>
+            </div>
+            <div class="summary-chip">
+              <span class="label">At risk</span>
+              <strong style="color:var(--amber)">3 cards</strong>
+              <p>C$175 expiring soon</p>
+            </div>
+          </div>
+
+          <div class="wallet-header">
+            <h2>My Wallet</h2>
+            <a href="#">View more</a>
+          </div>
+
+          <div class="featured-stack">
+            <div class="ghost-card one"></div>
+            <div class="ghost-card two"></div>
+            <div class="featured-card">
+              <div class="card-top">
+                <div>
+                  <div class="brand-mini">Dividend Cash Back</div>
+                  <div class="issuer">CIBC</div>
+                  <div class="sub">Everyday card · Featured</div>
+                </div>
+                <div class="visa">VISA</div>
+              </div>
+              <div class="chip-mark"></div>
+              <div class="card-bottom">
+                <div>
+                  <div class="card-balance">Available value</div>
+                  <div class="card-value">C$280.40</div>
+                </div>
+                <div>
+                  <small>Next expiry</small>
+                  <strong>Dec 12, 2026</strong>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="actions-strip">
+            <div class="pill-action"><svg class="ico" viewBox="0 0 24 24"><path d="M4 12s4-7 8-7 8 7 8 7-4 7-8 7-8-7-8-7z"></path><circle cx="12" cy="12" r="3"></circle></svg> Show code</div>
+            <div class="pill-action"><svg class="ico" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"></rect><path d="M16 3v4M8 3v4M3 10h18"></path></svg> Remind</div>
+            <div class="pill-action"><svg class="ico" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"></path><path d="M3 3v5h5M12 7v5l4 2"></path></svg> History</div>
+            <div class="pill-action"><svg class="ico" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"></circle><path d="M3 20v-2a6 6 0 0 1 12 0v2M17 5a3 3 0 0 1 0 6m4 9v-2a6 6 0 0 0-4-5.65"></path></svg> Share</div>
+          </div>
+
+          <div class="wallet-grid">
+            <article class="mini-card mini-purple">
+              <div>
+                <div class="title">Rewards</div>
+                <strong>Moi Program</strong>
+              </div>
+              <div class="meta">Loyalty · 2 offers available</div>
+            </article>
+
+            <article class="mini-card mini-white">
+              <div>
+                <div class="title">Transit</div>
+                <strong>PRESTO</strong>
+              </div>
+              <div>
+                <div class="meta">Balance</div>
+                <strong style="font-size:28px">$12.74</strong>
+                <div class="plus-shell">+</div>
+              </div>
+            </article>
+
+            <article class="mini-card mini-gray">
+              <div>
+                <div class="title">Shopping</div>
+                <strong>TJX Canada</strong>
+              </div>
+              <div class="meta">2 gift cards linked</div>
+            </article>
+
+            <article class="mini-card mini-blue">
+              <div>
+                <div class="title">Travel</div>
+                <strong>Flying Blue</strong>
+              </div>
+              <div class="meta">Demo member •••• 21</div>
+            </article>
+          </div>
+
+          <div class="bottom-nav">
+            <div class="nav-item active"><svg class="ico" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="3"></rect><path d="M8 9h8M8 13h6"></path></svg><span>Wallet</span></div>
+            <div class="nav-item"><svg class="ico" viewBox="0 0 24 24"><path d="M12 7v5l3 2"></path><circle cx="12" cy="12" r="9"></circle></svg><span>Expiring</span></div>
+            <div class="nav-item"><svg class="ico" viewBox="0 0 24 24"><path d="M12 3l2 5 5 2-5 2-2 5-2-5-5-2 5-2 2-5z"></path></svg><span>Insights</span></div>
+            <div class="nav-item"><svg class="ico" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"></circle><path d="M3 20v-2a6 6 0 0 1 12 0v2M17 5a3 3 0 0 1 0 6m4 9v-2a6 6 0 0 0-4-5.65"></path></svg><span>Family</span></div>
+            <div class="nav-item"><svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"></circle><path d="M19 12l2-1-2-4-2 1-2-1-.5-2h-5L9 7 7 8 5 7l-2 4 2 1v2l-2 1 2 4 2-1 2 1 .5 2h5l.5-2 2-1 2 1 2-4-2-1v-2z"></path></svg><span>Settings</span></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="detail-panel">
+        <div class="panel-top">
+          <div>
+            <div class="section-kicker">Implementation direction</div>
+            <h2>Wallet-first home screen + clean detail view</h2>
+            <p>This combines the wallet-style inspiration you liked with the cleaner design work already done: a featured card, stacked-card depth, smaller companion cards, and a full card detail area for balance, expiry, code access, reminders, history, and family sharing.</p>
+          </div>
+          <div class="panel-actions">
+            <button class="primary-btn">Adopt this direction</button>
+            <button class="soft-btn">Keep current features</button>
+          </div>
+        </div>
+
+        <div class="desktop-grid">
+          <div class="panel-card">
+            <h3>Focused card detail</h3>
+            <div class="panel-sub">Use a full-width hero card when the user opens one item from the wallet stack.</div>
+            <div class="showcase-card">
+              <div class="brandline">
+                <div>
+                  <div class="brand-mini" style="color:rgba(255,255,255,.8)">Gift card</div>
+                  <div class="store">Amazon</div>
+                  <div class="copy">Personal account · Secure code access</div>
+                </div>
+                <div class="visa" style="font-size:20px">Balance</div>
+              </div>
+
+              <div class="code-preview">
+                <div class="row">
+                  <div>
+                    <div class="muted-kicker">Protected redemption code</div>
+                    <div class="secure-code">•••• •••• •••• 4831</div>
+                  </div>
+                  <div class="soft-btn" style="padding:10px 12px">Reveal</div>
+                </div>
+              </div>
+
+              <div class="detail-stats">
+                <div class="mini-stat"><span>Available</span><strong>C$150.00</strong></div>
+                <div class="mini-stat"><span>Expires</span><strong>Dec 18</strong></div>
+                <div class="mini-stat"><span>Status</span><strong class="good">Active</strong></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="panel-card">
+            <h3>Recent activity</h3>
+            <div class="panel-sub">A cleaner transaction ledger tied to the card detail screen.</div>
+            <div class="activity-list">
+              <div class="activity-item">
+                <div><strong>Redeemed in store</strong><span>Amazon · Nov 18, 2026 · Sample transaction</span></div>
+                <div class="activity-amount warn">− C$25.00</div>
+              </div>
+              <div class="activity-item">
+                <div><strong>Reminder scheduled</strong><span>Expiry reminder · 7 days before</span></div>
+                <div class="activity-amount info">On</div>
+              </div>
+              <div class="activity-item">
+                <div><strong>Shared with family</strong><span>Visible to Family Vault · code still protected</span></div>
+                <div class="activity-amount good">Shared</div>
+              </div>
+            </div>
+            <div class="legend">
+              <span><i class="dot green"></i> healthy balance</span>
+              <span><i class="dot amber"></i> expiring soon</span>
+              <span><i class="dot blue"></i> shared / synced</span>
+            </div>
+          </div>
+        </div>
+
+        <div style="height:18px"></div>
+
+        <div class="desktop-grid">
+          <div class="panel-card">
+            <h3>How this translates into the product</h3>
+            <div class="info-grid">
+              <div class="info-box">
+                <h4>Home / Wallet</h4>
+                <p>Featured card at the top, stack depth for other cards, quick actions, and smaller tiles for transit, rewards, and loyalty items.</p>
+              </div>
+              <div class="info-box">
+                <h4>Expiring</h4>
+                <p>Keep the dashboard logic, but present urgent cards as a focused vertical feed with “use next” guidance.</p>
+              </div>
+              <div class="info-box">
+                <h4>Insights</h4>
+                <p>Show balances, at-risk value, and redemption history in the cleaner cards-and-panels style rather than dense tables.</p>
+              </div>
+              <div class="info-box">
+                <h4>Family</h4>
+                <p>Use share chips and permission pills for family members, while keeping redemption codes private until approved.</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="panel-card">
+            <h3>Planned quick actions</h3>
+            <div class="share-list">
+              <div class="share-pill">Show code</div>
+              <div class="share-pill">Reminder</div>
+              <div class="share-pill">Transaction history</div>
+              <div class="share-pill">Share with family</div>
+              <div class="share-pill">Barcode / QR</div>
+              <div class="share-pill">Edit card</div>
+              <div class="share-pill">Add funds / adjust</div>
+              <div class="share-pill">Archive / mark used</div>
+            </div>
+            <div style="height:16px"></div>
+            <div class="info-box" style="background:rgba(90,224,176,.08);border-color:rgba(90,224,176,.18)">
+              <h4 style="margin-bottom:8px">Implementation note</h4>
+              <p>The UI direction is now clear: convert the current dashboard into a wallet-style mobile-first interface while preserving the existing features you requested earlier — advanced filters, smart expiry reminders, transaction history, sharing, and a PWA experience.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+</body>
+</html>
