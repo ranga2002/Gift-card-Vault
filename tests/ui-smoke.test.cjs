@@ -63,3 +63,12 @@ test('wallet monetary totals use existing INR data until currency migration',()=
   assert.match(wallet,/currency:"INR"/);
   assert.doesNotMatch(wallet,/C\$1,245\.00|Sample data only/);
 });
+
+
+test('wallet provides a return route and prevents overdrawn manual redemptions',()=>{
+  const html=read('assets/index.html');
+  assert.match(html,/id="returnWalletBtn"/);
+  assert.match(html,/spent > Number\(c\.amount\)/);
+  assert.match(html,/Math\.round\(spent \* 100\) \/ 100 !== spent/);
+  assert.match(html,/if \(!dateStr\) return Infinity;/);
+});

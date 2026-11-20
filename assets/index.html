@@ -923,6 +923,7 @@
       </div>
     </div>
     <div class="topbar-actions">
+      <button class="btn" id="returnWalletBtn" type="button" onclick="window.walletLiveStart && window.walletLiveStart()">Back to wallet</button>
       <div class="user-pill" id="activeUserPill"></div>
       <button class="btn" id="topNotificationsBtn" onclick="switchMainView('notifications')">🔔 Notifications <span class="badge badge-amber" id="topNotifBadge" style="display:none; margin-left:4px;">0</span></button>
       <button class="btn" id="topBackupBtn" onclick="exportBackupJson()">💾 Save Backup to PC</button>
@@ -2531,6 +2532,7 @@
   // RENDERING UI
   // =========================================================================
   function daysUntil(dateStr) {
+    if (!dateStr) return Infinity;
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const target = new Date(dateStr + "T00:00:00");
@@ -2550,6 +2552,7 @@
   }
 
   function getExpiryBadgeHtml(coupon) {
+    if (!coupon.expiry && coupon.status === "active") return `<span class="badge badge-green">No expiry</span>`;
     if (coupon.status === "used") return `<span class="badge badge-red">✔️ Marked Used</span>`;
     const days = daysUntil(coupon.expiry);
     if (days < 0) return `<span class="badge badge-red">⚠️ Expired ${Math.abs(days)}d ago</span>`;
@@ -3396,11 +3399,15 @@
     const c = state.coupons.find(x => x.id === selectedSpendId);
     if (!c) return;
     const spent = parseFloat(document.getElementById("spendAmountInput").value);
-    if (isNaN(spent) || spent <= 0) {
-      alert("Enter a valid amount spent.");
+    if (!Number.isFinite(spent) || spent <= 0 || Math.round(spent * 100) / 100 !== spent) {
+      alert("Enter a valid positive amount with at most two decimal places.");
       return;
     }
-    const newAmt = Math.max(0, +((Number(c.amount) || 0) - spent).toFixed(2));
+    if (spent > Number(c.amount)) {
+      alert("The spending amount cannot exceed the available balance.");
+      return;
+    }
+    const newAmt = +((Number(c.amount) || 0) - spent).toFixed(2);
     const newStatus = newAmt === 0 ? "used" : "active";
 
     const { error } = await supabaseClient
@@ -3670,7 +3677,7 @@
     }) : null,
     canEdit: id => {
       const c = state.coupons.find(x => x.id === id);
-      return c ? canCurrentUserEditCoupon(c) : false;
+      return c ? (canCurrentUserAdd() && canCurrentUserEditCoupon(c)) : false;
     },
     canReveal: id => {
       const c = state.coupons.find(x => x.id === id);
