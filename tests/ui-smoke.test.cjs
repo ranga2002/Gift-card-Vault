@@ -68,8 +68,8 @@ test('wallet monetary totals use existing INR data until currency migration',()=
 test('wallet provides a return route and prevents overdrawn manual redemptions',()=>{
   const html=read('assets/index.html');
   assert.match(html,/id="returnWalletBtn"/);
-  assert.match(html,/spent > Number\(c\.amount\)/);
-  assert.match(html,/Math\.round\(spent \* 100\) \/ 100 !== spent/);
+  assert.match(html,/amount > Number\(c\.amount\)/);
+  assert.match(html,/Math\.round\(amount \* 100\) \/ 100 !== amount/);
   assert.match(html,/if \(!dateStr\) return Infinity;/);
 });
 

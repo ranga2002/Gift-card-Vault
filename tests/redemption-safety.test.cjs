@@ -43,7 +43,8 @@ function makeHarness(options={}) {
   };
   vm.createContext(sandbox);
   new vm.Script(app.slice(first,last)+'\nthis.actions={openSpendModal,confirmPartialSpend,confirmFullUse};').runInContext(sandbox);
-  return {actions:sandbox.actions,calls,alerts,fields,buttons,coupon,refreshes:()=>refreshes};
+  const actions={...sandbox.actions,openSpendModal:id=>{sandbox.actions.openSpendModal(id);fields.spendAmountInput.value=options.amount===undefined?'25':String(options.amount);}};
+  return {actions,calls,alerts,fields,buttons,coupon,refreshes:()=>refreshes};
 }
 
 test('migration uses an append-only ledger, RLS and a row lock',()=>{
