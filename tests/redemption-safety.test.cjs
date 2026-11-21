@@ -48,7 +48,7 @@ function makeHarness(options={}) {
 
 test('migration uses an append-only ledger, RLS and a row lock',()=>{
   assert.match(sql,/create table if not exists public\.coupon_transactions/i);
-  assert.match(sql,/on public\.coupons\(id\) on delete restrict/i);
+  assert.match(sql,/references public\.coupons\(id\) on delete restrict/i);
   assert.match(sql,/enable row level security/i);
   assert.match(sql,/revoke all on public\.coupon_transactions from public, anon, authenticated/i);
   assert.match(sql,/grant select on public\.coupon_transactions to authenticated/i);
