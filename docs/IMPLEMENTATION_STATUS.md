@@ -14,8 +14,12 @@
 - Partial and full redemption now call the RPC instead of writing coupon balances
   directly. There is no unsafe fallback when the migration is missing.
 - History in classic card actions and wallet card details.
-- 22 passing Node tests in GitHub Actions for the current F07 feature branch
-  (static + mocked client tests; NOT a live Supabase integration test).
+- 22 passing Node tests in GitHub Actions (static and mocked client checks).
+- Isolated PostgreSQL 16 CI now executes the real F07 SQL migration against
+  synthetic Supabase-like auth/RLS fixtures, including balance correctness,
+  role isolation, idempotency, ledger immutability, and two-connection
+  concurrency tests. Both sets of checks pass.
+- This is **not** verification against an actual Supabase staging project.
 
 ## Deployment gate — do not skip
 
@@ -33,7 +37,8 @@
 
 ## Next work
 
-- Execute F07 staging Supabase/Postgres integration tests and concurrency checks.
+- Execute F07 staging Supabase-specific integration and full regression tests
+  (the isolated PostgreSQL CI checks already pass).
 - Add atomic balance-adjustment RPC and cursor-based ledger pagination.
 - Smart expiry delivery, multi-currency data, scanning/OCR, barcode/QR display,
   family isolation, advanced analytics and database integration tests.

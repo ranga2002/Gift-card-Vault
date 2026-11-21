@@ -89,3 +89,19 @@ order by c.store;
   must be regression-tested against the new balance-owner trigger.
 - This is a **database migration**, not a frontend-only change.
   No runtime database test has been performed by creating these files.
+
+## Automated isolated Postgres CI (implemented)
+
+A separate `.github/workflows/db-integration.yml` workflow provisions a temporary
+PostgreSQL 16 service, creates synthetic Supabase-like auth tables/roles, applies
+`20261120223000_atomic_redemption_history.sql`, then runs:
+
+- `tests/db/f07_integration.sql`: ledger integrity, role permissions,
+  atomic redemption, idempotent retry, overdraw rejection, audit triggers
+- `tests/db/f07_concurrency.sh`: two simultaneous redemption connections,
+  exactly one success and no negative balance
+
+**Both isolated database and JavaScript test workflows pass.** The bootstrap
+simulates parts of Supabase's `auth.uid()` and RLS environment; it does not
+apply all historical migrations or replace real Supabase staging verification.
+Do not merge/deploy until the existing staging acceptance cases pass.
