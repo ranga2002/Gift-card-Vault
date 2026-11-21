@@ -1,0 +1,51 @@
+name: F07 isolated PostgreSQL integration
+on:
+  push:
+    branches: [feature/vault-upgrade-20261119]
+    paths:
+      - "supabase/migrations/**"
+      - "tests/db/**"
+      - ".github/workflows/db-integration.yml"
+  pull_request:
+    paths:
+      - "supabase/migrations/**"
+      - "tests/db/**"
+      - ".github/workflows/db-integration.yml"
+  workflow_dispatch:
+
+jobs:
+  f07-postgres:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: gift_vault_ci
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d gift_vault_ci"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 15
+    env:
+      PGHOST: 127.0.0.1
+      PGPORT: "5432"
+      PGUSER: postgres
+      PGPASSWORD: postgres
+      PGDATABASE: gift_vault_ci
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install PostgreSQL client if absent
+        run: command -v psql || (sudo apt-get update -qq && sudo apt-get install -y -qq postgresql-client)
+      - name: Bootstrap synthetic Supabase-like auth fixture
+        run: psql -X -v ON_ERROR_STOP=1 -f tests/db/bootstrap.sql
+      - name: Apply actual F07 migration
+        run: psql -X -v ON_ERROR_STOP=1 -f supabase/migrations/20261120223000_atomic_redemption_history.sql
+      - name: Test permissions, exact balances, immutable ledger and idempotency
+        run: psql -X -v ON_ERROR_STOP=1 -f tests/db/f07_integration.sql
+      - name: Test concurrent redemptions from two connections
+        run: bash tests/db/f07_concurrency.sh

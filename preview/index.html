@@ -1,0 +1,144 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Gift Vault — Redesign Preview (Demo)</title>
+<style>/* Gift Vault 2026: progressive, mobile-first visual refresh */
+:root{--bg:#090f1e;--bg-panel:#101b30;--bg-card:#142239;--bg-input:#0c192c;--border:#29405c;--text:#f3f8ff;--text-muted:#a8bcd2;--accent:#40d6ad;--blue:#89b5ff;--purple:#b8a2ff;--radius:18px}
+html{color-scheme:dark;scroll-behavior:smooth}
+body{background:radial-gradient(ellipse 85% 38% at 7% -10%,rgba(47,128,155,.25),transparent 80%),radial-gradient(ellipse 65% 48% at 98% 7%,rgba(79,66,162,.16),transparent 75%),#090f1e;background-attachment:fixed}
+button,input,select{font:inherit}button{transition:background-color .2s,transform .2s,box-shadow .2s}button:active{transform:scale(.99)}
+:where(button,a,input,select):focus-visible{outline:3px solid #7be9d3;outline-offset:3px}
+.topbar{background:rgba(10,19,37,.92)!important;backdrop-filter:blur(16px);border-bottom:1px solid rgba(130,164,197,.20);box-shadow:0 12px 35px #0003}
+.container{max-width:1380px}
+.btn,.tab-btn,.store-chip{border-radius:12px!important}
+.btn-primary{background:#36c59e!important;color:#08241c!important;border-color:#36c59e!important}
+.btn-primary:hover{background:#67e2be!important}
+.coupon-card,.quick-check-box,.stat-card,.panel-box,.auth-card,.store-group{border:1px solid rgba(154,186,221,.17)!important;box-shadow:0 12px 35px #0003}
+.coupon-card{transition:transform .2s,border-color .2s,box-shadow .2s}
+.coupon-card:hover{transform:translateY(-2px);border-color:rgba(66,211,173,.48)!important;box-shadow:0 20px 40px #0004}
+.vault-hero{display:flex;justify-content:space-between;align-items:center;gap:22px;flex-wrap:wrap;border-radius:24px;padding:clamp(22px,4vw,40px);margin:8px 0 24px;border:1px solid #35666a;background:radial-gradient(circle at 90% 15%,#25566c55,transparent 45%),linear-gradient(125deg,#173b46,#202a4c)}
+.vault-eyebrow{text-transform:uppercase;letter-spacing:.17em;font-size:11px;font-weight:800;color:#77e9c8;margin-bottom:10px}
+.vault-hero h2{font-size:clamp(24px,4vw,40px);letter-spacing:-.04em;line-height:1.1;margin-bottom:10px}
+.vault-hero p{color:#bacee2;max-width:680px;line-height:1.6;font-size:14px}
+.vault-hero-badge{border:1px solid #45697c;background:#132538bd;padding:12px 16px;border-radius:14px;color:#b8f4df;font-weight:750}
+.vault-section-title{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin:23px 0 12px}
+.vault-section-title h2{font-size:19px}
+.vault-insights{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin-bottom:22px}
+.vault-insight{background:linear-gradient(145deg,#182b44,#121f35);border:1px solid #3a4d64;border-radius:17px;padding:19px;min-width:0}
+.vault-insight .label{font-size:12px;color:#acc3d8;text-transform:uppercase;letter-spacing:.06em}
+.vault-insight strong{display:block;font-size:clamp(17px,2vw,22px);letter-spacing:-.03em;margin:10px 0 6px;overflow-wrap:anywhere}
+.vault-insight p{color:#aabdd1;font-size:12px;line-height:1.5}
+.vault-insight.urgent{border-color:#a88444}
+.vault-filters{display:flex;align-items:end;gap:12px;flex-wrap:wrap;background:#15243adf;padding:15px;border:1px solid #364c64;border-radius:17px;margin:12px 0 21px}
+.vault-filter{display:flex;flex-direction:column;flex:1 1 165px;gap:7px;min-width:130px}
+.vault-filter label{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:#b9c9dc}
+.vault-filter input,.vault-filter select{width:100%;height:43px;border:1px solid #38526d;border-radius:10px;padding:0 12px;background:#0c192c;color:#f4f7ff}
+.vault-filter-reset{height:43px}
+.vault-offline{position:fixed;z-index:3000;right:16px;bottom:15px;background:#422e18;color:#ffe5af;padding:11px 16px;border-radius:12px;box-shadow:0 14px 35px #0008;font-weight:700;font-size:12px}
+@media(max-width:930px){.vault-insights{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:650px){.vault-insights{grid-template-columns:1fr}.vault-hero{padding:20px}.vault-filter{flex-basis:calc(50% - 10px)}.coupon-card:hover{transform:none}}
+@media(prefers-reduced-motion:reduce){*,*:before,*:after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+</style>
+<style>
+*{box-sizing:border-box}body{margin:0;color:#f3f7ff;font-family:Inter,-apple-system,system-ui,sans-serif}
+.topbar{display:flex;justify-content:space-between;align-items:center;padding:22px max(4%,calc((100vw - 1320px)/2));gap:20px;background:#0e172b}.brand{display:flex;align-items:center;gap:12px}.brand-icon{display:grid;place-items:center;background:#21483f;border-radius:15px;width:47px;height:47px;font-size:22px}.brand-title h1{font-size:19px;margin:0}.brand-title p{font-size:11px;color:#8ea6b8;margin:5px 0 0}.topbar-actions{display:flex;gap:10px;align-items:center}.btn{background:#192c42;color:#f3f7ff;border:1px solid #34506b;padding:11px 14px;cursor:pointer}.container{margin:auto;padding:18px 28px 50px;max-width:1360px}.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:10px}.stat-card{background:#16253c;border-radius:17px;padding:19px}.stat-label{font-size:12px;color:#a7bdd2}.stat-value{display:block;font-size:24px;font-weight:800;margin:13px 0 8px}.stat-sub{font-size:11px;color:#a7bdd2}.quick-check-box{margin:20px 0;padding:18px;background:#142237;border-radius:18px}.qc-title{font-size:15px;font-weight:800}.qc-input{width:100%;margin-top:12px;padding:13px 15px;border-radius:11px;border:1px solid #35506b;background:#0d1929;color:white}.nav-tabs{margin:16px 0}.tab-group{display:flex;gap:10px;flex-wrap:wrap}.tab-btn{border:1px solid #324960;background:#15253b;color:#bdd0e5;padding:11px 15px;cursor:pointer}.tab-btn.active{background:#245d54;color:#aaf9df}.cards-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:15px}.coupon-card{background:#16263e;border-radius:18px;min-height:220px;padding:19px;display:flex;flex-direction:column;justify-content:space-between}.coupon-card h3{margin:0;font-size:20px}.account-pill{display:inline-block;color:#b3c6d7;background:#263a51;border-radius:20px;padding:5px 9px;margin-top:8px;font-size:11px}.amount{font-size:23px;color:#62ecc5;font-weight:850;letter-spacing:-.04em}.meta{display:flex;justify-content:space-between;color:#a8bad0;font-size:12px;margin:14px 0}.card-actions{display:flex;gap:8px;flex-wrap:wrap}.card-actions button{font-size:11px;padding:9px 10px}.offline{display:none}@media(max-width:900px){.stats-grid{grid-template-columns:repeat(2,1fr)}.cards-grid{grid-template-columns:repeat(2,1fr)}.topbar{flex-wrap:wrap}}@media(max-width:600px){.cards-grid{grid-template-columns:1fr}.container{padding:15px}.topbar{padding:17px}.topbar-actions .btn:nth-child(1){display:none}.stats-grid{gap:9px}.stat-card{padding:14px}.stat-value{font-size:19px}}
+
+/* Consistent 18px outline iconography */
+.ui-icon{display:inline-block;flex-shrink:0;width:18px;height:18px;vertical-align:-.25em;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.brand-icon .ui-icon,.auth-logo .ui-icon{width:26px;height:26px}
+.brand-icon{display:grid;place-items:center}
+.btn .ui-icon,.tab-btn .ui-icon,.qc-title .ui-icon,.vault-hero-badge .ui-icon{margin-inline-end:6px}
+.vault-section-title .ui-icon{color:#58d9b5;vertical-align:-.22em}
+.stat-label .ui-icon{width:16px;height:16px;margin-inline-end:5px}
+.coupon-card .meta .ui-icon{width:15px;height:15px;margin-inline-end:4px}
+.btn:has(>.ui-icon:only-child) .ui-icon{margin-inline-end:0}
+
+/* Mobile-width layouts: all controls remain reachable without page-level horizontal scrolling. */
+*,*::before,*::after{box-sizing:border-box}
+html,body{width:100%;max-width:100%;overflow-x:clip}
+.container,.topbar,.vault-hero,.vault-insights,.vault-filters,.cards-grid,.coupon-card,.stat-card,.store-group{min-width:0;max-width:100%}
+.topbar .brand,.brand-title,.topbar-actions,.coupon-card>div,.vault-hero>div{min-width:0}
+.stat-sub,.vault-insight p,.insight-card p,.coupon-card .meta,.coupon-card .amount,.vault-hero p{overflow-wrap:anywhere}
+.vault-insights .insight-card{background:linear-gradient(145deg,#182b44,#121f35);border:1px solid #3a4d64;border-radius:17px;padding:19px;min-width:0;display:flex;flex-direction:column;gap:8px}
+.vault-insights .insight-card strong{display:block;font-size:clamp(18px,2vw,22px);letter-spacing:-.03em}
+.vault-insights .insight-card .insight-label{font-size:12px;color:#acc3d8;text-transform:uppercase;letter-spacing:.06em}
+.vault-insights .insight-card p{font-size:12px;color:#aabdd1;line-height:1.5;margin:0}
+.vault-insights .insight-card.insight-urgent{border-color:#a88444}
+.nav-tabs{min-width:0;width:100%}
+.tab-group{min-width:0;max-width:100%}
+.coupon-card .meta{flex-wrap:wrap;gap:8px}
+.coupon-card .card-actions{display:flex;flex-wrap:wrap;gap:8px}
+.coupon-card .card-actions .btn{white-space:nowrap}
+@media(max-width:980px){
+  .topbar{gap:12px;padding:13px 18px}
+  .topbar-actions{max-width:100%}
+  .stats-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  .vault-insights{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  .cards-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  .qc-account-list{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  .vault-filters{gap:10px}
+}
+@media(max-width:640px){
+  .container{width:100%;padding:14px 14px 44px}
+  .topbar{position:relative;padding:12px 14px;gap:12px;align-items:stretch}
+  .brand{width:100%;gap:10px}
+  .brand-title h1{font-size:18px}
+  .brand-title p{font-size:11px}
+  .brand-icon{width:39px;height:39px;flex:none}
+  .topbar-actions{display:flex;flex-flow:row nowrap;width:100%;max-width:100%;overflow-x:auto;overscroll-behavior-inline:contain;gap:8px;padding:0 0 7px;scrollbar-width:thin;scroll-snap-type:x proximity}
+  .topbar-actions>*{flex:0 0 auto;scroll-snap-align:start}
+  .topbar-actions .btn{min-height:42px!important;padding:9px 12px!important;font-size:12px!important;white-space:nowrap}
+  .topbar-actions .btn:nth-child(1){display:inline-flex!important}
+  .vault-hero{display:block!important;padding:22px 18px;margin:6px 0 16px;gap:0}
+  .vault-hero h2{font-size:clamp(26px,8vw,34px);max-width:100%}
+  .vault-hero p{font-size:13px;line-height:1.55}
+  .vault-hero-badge{display:inline-flex;margin-top:14px;padding:9px 12px;font-size:12px;max-width:100%}
+  .stats-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:9px;margin-bottom:14px}
+  .stat-card{padding:14px 12px;gap:6px}
+  .stat-label{font-size:10px;line-height:1.4}
+  .stat-label .ui-icon{display:none}
+  .stat-value{font-size:clamp(17px,5vw,22px)!important;overflow-wrap:anywhere}
+  .stat-sub{font-size:11px;line-height:1.4}
+  .vault-section-title{margin:18px 0 10px}
+  .vault-section-title h2{font-size:17px}
+  .vault-insights{grid-template-columns:1fr!important;gap:9px;margin-bottom:14px}
+  .vault-insight,.vault-insights .insight-card{padding:15px}
+  .quick-check-box{padding:16px!important;margin:14px 0!important;border-radius:16px}
+  .qc-header{gap:8px}
+  .qc-title{font-size:15px}
+  .qc-input{max-width:100%;min-width:0;padding:12px 42px 12px 13px;font-size:15px}
+  .nav-tabs{display:block!important;margin:12px 0!important}
+  .tab-group{display:flex!important;flex-wrap:nowrap!important;overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;overscroll-behavior-inline:contain;scroll-snap-type:x proximity;gap:8px;padding:2px 0 10px;max-width:100%}
+  .tab-btn{flex:0 0 auto!important;scroll-snap-align:start;white-space:nowrap!important;min-height:42px;padding:9px 12px}
+  .vault-filters{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;padding:12px}
+  .vault-filter{min-width:0!important;max-width:100%;flex:none}
+  .vault-filter input,.vault-filter select{min-width:0;max-width:100%;font-size:14px}
+  .vault-filter-reset{grid-column:1/-1;min-height:42px}
+  .cards-grid,.qc-account-list{grid-template-columns:minmax(0,1fr)!important;gap:12px}
+  .coupon-card{padding:15px;max-width:100%;gap:12px}
+  .coupon-card>div:first-child>div:first-child{flex-wrap:wrap}
+  .coupon-card h3{overflow-wrap:anywhere}
+  .coupon-card .amount{font-size:22px}
+  .coupon-card .meta{font-size:11px}
+  .coupon-card .card-actions{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}
+  .coupon-card .card-actions .btn,.coupon-card .card-actions button{min-width:0;width:100%;padding:9px 6px;font-size:11px;white-space:normal}
+  .coupon-card .card-actions .ui-icon{width:15px;height:15px}
+  .store-group{padding:12px}
+  .store-group-header{gap:8px}
+  .store-total-pill{font-size:12px}
+  .code-strip{min-width:0;flex-wrap:wrap}
+  .modal-backdrop .modal,.auth-card{max-width:calc(100vw - 24px)}
+}
+@media(max-width:355px){
+  .vault-filters{grid-template-columns:minmax(0,1fr)}
+  .vault-filter-reset{grid-column:1}
+  .coupon-card .card-actions{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .topbar-actions .btn{font-size:11px!important}
+}
+
+</style></head>
+<body><div style="background:#123c35;padding:11px 18px;text-align:center;color:#b8ffe0;font:600 12px system-ui;letter-spacing:.02em">PREVIEW ONLY · SAMPLE GIFT CARDS · NO ACCOUNT OR DATABASE CONNECTION</div><header class="topbar"><div class="brand"><div class="brand-icon"><svg class="ui-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7a2 2 0 0 0 2-2h12v4a2 2 0 0 0 0 4v6H6a2 2 0 0 0-2-2V7Z"/><path d="M12 5v2m0 3v2m0 3v2m0 2v-1"/></svg></div><div class="brand-title"><h1>Gift Vault</h1><p>● Connected securely · Personal dashboard</p></div></div><div class="topbar-actions"><button class="btn"><svg class="ui-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"/><path d="M10 21h4"/></svg> Notifications</button><button class="btn btn-primary"><svg class="ui-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg> Add Gift Card</button><button class="btn"><svg class="ui-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21v-2a8 8 0 0 1 16 0v2"/></svg> Account</button></div></header>
+<main class="container"><section class="vault-hero"><div><div class="vault-eyebrow">YOUR EVERYDAY WALLET, ORGANIZED</div><h2>More value. Less waste.</h2><p>One beautiful home for your gift cards and coupons. Know what you have, find it fast, and use it before it expires.</p></div><div class="vault-hero-badge"><svg class="ui-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 3 1.6 5.4L19 10l-5.4 1.6L12 17l-1.6-5.4L5 10l5.4-1.6L12 3ZM19 17l.7 2.3L22 20l-2.3.7L19 23l-.7-2.3L16 20l2.3-.7L19 17Z"/></svg> Secure shared vault</div></section>
+<section class="stats-grid"><div class="stat-card"><span class="stat-label"><svg class="ui-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="15" rx="2"/><path d="M16 12h5M3 8h18"/></svg> Total Active Balance</span><strong class="stat-value" style="color:#64edc3">C$1,245.00</strong><span class="stat-sub">Across 12 gift cards</span></div><div class="stat-card"><span class="stat-label"><svg class="ui-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18M8 15h2"/></svg> Expiring Within 7 Days</span><strong class="stat-value" style="color:#f7c97b">3 cards</strong><span class="stat-sub">C$175.00 at risk</span></div><div class="stat-card"><span class="stat-label"><svg class="ui-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10 5 3h14l2 7"/><path d="M4 10v11h16V10M9 21v-7h6v7M2 10h20"/></svg> Stores & Accounts</span><strong class="stat-value" style="color:#a2cbff">8 Stores</strong><span class="stat-sub">12 accounts tracked</span></div><div class="stat-card"><span class="stat-label"><svg class="ui-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21v-2a8 8 0 0 1 16 0v2"/></svg> Signed in</span><strong class="stat-value" style="font-size:19px;color:#c5acff">Vault Member</strong><span class="stat-sub">2 unread notifications</span></div></section>
+<div class="vault-section-title"><h2><svg class="ui-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 3 1.6 5.4L19 10l-5.4 1.6L12 17l-1.6-5.4L5 10l5.4-1.6L12 3ZM19 17l.7 2.3L22 20l-2.3.7L19 23l-.7-2.3L16 20l2.3-.7L19 17Z"/></svg> Smart insights</h2><span style="font-size:12px;color:#a7bbcf">Make every balance count</span></div><section class="vault-insights"><div class="insight-card"><span class="insight-label">Available value</span><strong>C$1,245.00</strong><p>12 active cards across 8 stores</p></div><div class="insight-card insight-urgent"><span class="insight-label">At risk · 7 days</span><strong>C$175.00</strong><p>3 cards expiring this week</p></div><div class="insight-card"><span class="insight-label">Use next</span><strong>Starbucks</strong><p>C$25 · expires in 3 days</p></div></section>
+<section class="quick-check-box"><div class="qc-title"><svg class="ui-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8h18l-1.5 13h-15L3 8Z"/><path d="M8 9V6a4 4 0 0 1 8 0v3"/></svg> Shopping Quick-Check</div><input class="qc-input" placeholder="Search by website, store or account…" disabled></section>
+<div class="nav-tabs"><div class="tab-group"><button class="tab-btn active"><svg class="ui-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="15" rx="2"/><path d="M16 12h5M3 8h18"/></svg> All Active</button><button class="tab-btn"><svg class="ui-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10 5 3h14l2 7"/><path d="M4 10v11h16V10M9 21v-7h6v7M2 10h20"/></svg> By Store</button><button class="tab-btn"><svg class="ui-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg> Expiring Soon</button><button class="tab-btn"><svg class="ui-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5M12 7v5l4 2"/></svg> Used / Expired</button></div></div>
+<section class="vault-filters"><div class="vault-filter"><label>Store or account</label><input placeholder="Search all cards" disabled></div><div class="vault-filter"><label>Status</label><select disabled><option>Any status</option></select></div><div class="vault-filter"><label>Currency</label><select disabled><option>All currencies</option></select></div><div class="vault-filter"><label>Sort cards</label><select disabled><option>Expiry soonest</option></select></div><button class="btn vault-filter-reset">Reset</button></section>
+<section class="cards-grid"><article class="coupon-card"><div><div style="display:flex;justify-content:space-between;gap:12px"><div><h3>Amazon</h3><span class="account-pill">Personal account</span></div><div class="amount">C$150</div></div><div class="meta"><span><svg class="ui-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="8" width="18" height="13" rx="2"/><path d="M12 8v13M3 12h18"/><path d="M12 8c-3 0-5-1-5-3 0-3 5-3 5 3Zm0 0c3 0 5-1 5-3 0-3-5-3-5 3Z"/></svg> Gift Card / Wallet</span><span><svg class="ui-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3M12 14v3"/></svg> Private code</span></div></div><div><div class="meta"><span><svg class="ui-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18M8 15h2"/></svg> Expires Dec 18, 2026</span><span style="color:#64edc3">30 days left</span></div><div class="card-actions"><button class="btn"><svg class="ui-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"/><path d="M10 21h4"/></svg> Remind</button><button class="btn"><svg class="ui-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5M12 7v5l4 2"/></svg> History</button><button class="btn"><svg class="ui-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m16 4 4 4M4 20l5-.9L20.3 6.8a2.8 2.8 0 0 0-4-4L5 14.1 4 20Z"/></svg> Edit</button></div></div></article><article class="coupon-card"><div><div style="display:flex;justify-content:space-between;gap:12px"><div><h3>Starbucks</h3><span class="account-pill">Personal account</span></div><div class="amount">C$25</div></div><div class="meta"><span><svg class="ui-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="8" width="18" height="13" rx="2"/><path d="M12 8v13M3 12h18"/><path d="M12 8c-3 0-5-1-5-3 0-3 5-3 5 3Zm0 0c3 0 5-1 5-3 0-3-5-3-5 3Z"/></svg> Gift Card</span><span><svg class="ui-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a15 15 0 0 1 0 18M12 3a15 15 0 0 0 0 18"/></svg> Shared</span></div></div><div><div class="meta"><span><svg class="ui-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18M8 15h2"/></svg> Expires Nov 21, 2026</span><span style="color:#f5c976">3 days left</span></div><div class="card-actions"><button class="btn"><svg class="ui-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"/><path d="M10 21h4"/></svg> Remind</button><button class="btn"><svg class="ui-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5M12 7v5l4 2"/></svg> History</button><button class="btn"><svg class="ui-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m16 4 4 4M4 20l5-.9L20.3 6.8a2.8 2.8 0 0 0-4-4L5 14.1 4 20Z"/></svg> Edit</button></div></div></article><article class="coupon-card"><div><div style="display:flex;justify-content:space-between;gap:12px"><div><h3>Walmart</h3><span class="account-pill">Family account</span></div><div class="amount">C$75</div></div><div class="meta"><span><svg class="ui-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="8" width="18" height="13" rx="2"/><path d="M12 8v13M3 12h18"/><path d="M12 8c-3 0-5-1-5-3 0-3 5-3 5 3Zm0 0c3 0 5-1 5-3 0-3-5-3-5 3Z"/></svg> Gift Card</span><span><svg class="ui-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3M12 14v3"/></svg> Private code</span></div></div><div><div class="meta"><span><svg class="ui-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18M8 15h2"/></svg> Expires Nov 30, 2026</span><span style="color:#a8d0fa">12 days left</span></div><div class="card-actions"><button class="btn"><svg class="ui-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"/><path d="M10 21h4"/></svg> Remind</button><button class="btn"><svg class="ui-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5M12 7v5l4 2"/></svg> History</button><button class="btn"><svg class="ui-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m16 4 4 4M4 20l5-.9L20.3 6.8a2.8 2.8 0 0 0-4-4L5 14.1 4 20Z"/></svg> Edit</button></div></div></article></section></main></body></html>
