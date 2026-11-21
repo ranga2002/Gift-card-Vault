@@ -156,7 +156,7 @@ select pg_temp.expect_failure(
   'viewer redemption');
 -- A viewer's UPDATE can be RLS-filtered to *zero affected rows*, rather
 -- than raising a permission error. Either outcome must leave balance intact.
-do $
+do $viewer$
 declare changed integer; actual numeric;
 begin
   update public.coupons set amount=95
@@ -167,7 +167,7 @@ begin
   if changed <> 0 or actual <> 100 then
     raise exception 'Viewer mutated a restricted card (rows %, balance %)', changed, actual;
   end if;
-end $;
+end $viewer$;
 
 -- 7. Admin can redeem any member card but cannot destroy history.
 select set_config('request.jwt.claim.sub','44444444-4444-4444-8444-444444444444',false);
