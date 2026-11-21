@@ -140,3 +140,12 @@
 }
 @media(max-width:365px){.wl-nav button{min-width:45px}.wl-quick button{font-size:10px}.wl-code{flex-wrap:wrap}}
 @media(prefers-reduced-motion:reduce){.wl-root *{scroll-behavior:auto!important;transition:none!important}}
+
+/* F07: read-only ledger inside card detail overlay */
+.wl-ledger{margin-top:17px;border-top:1px solid #41536c;padding-top:13px}
+.wl-ledger h3{font-size:15px;margin:0 0 10px;font-weight:800}
+.wl-ledger-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 0;border-bottom:1px solid #364b61}
+.wl-ledger-row>div{min-width:0}
+.wl-ledger-row strong{font-size:12px;display:block}
+.wl-ledger-row small{display:block;font-size:11px;color:#b4c9dd;margin-top:5px;overflow-wrap:anywhere}
+.wl-ledger-row b{white-space:nowrap;font-size:13px;color:#ffd18b}

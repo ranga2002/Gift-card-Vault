@@ -77,8 +77,20 @@ function currentCard(){const s=snap();return s&&choices(s)[index];}
 function view(name){section=name;root.querySelectorAll(".wl-view").forEach(el=>el.hidden=el.id!=="wl-view-"+name);root.querySelectorAll(".wl-nav button").forEach(b=>{const on=b.dataset.tab===name||(name==="history"&&b.dataset.tab==="wallet");b.classList.toggle("active",on);if(on)b.setAttribute("aria-current","page");else b.removeAttribute("aria-current");});}
 function openDetails(id){const s=snap(),c=s&&s.cards.find(c=>c.id===id);if(!c)return;detailId=id;
 $("wl-dialog-title").textContent=c.store;
-const access=adapter.canReveal(id),edit=adapter.canEdit(id),spend=s.canAdd&&active(c);
-$("wl-dialog-body").innerHTML='<div class="wl-detail-art" style="background:'+theme(c.store)+'"><small>'+esc(c.type)+'</small><h3>'+esc(c.store)+'</h3><strong>'+money(c.amount)+'</strong></div><div class="wl-detail-grid"><div><small>Account</small><strong>'+esc(c.account)+'</strong></div><div><small>Expiry</small><strong>'+esc(dateText(c.expiry))+'</strong></div></div>'+(c.notes?'<p>'+esc(c.notes)+'</p>':'')+'<div class="wl-code"><div><small>Redemption code</small><strong id="wl-code-value">•••• •••• ••••</strong></div><div id="wl-code-action">'+(!c.hasSecretCode?'No code saved':access?'<button type="button" data-act="reveal">Reveal code</button>':'<button type="button" data-act="request">Request access</button>')+'</div></div><div class="wl-detail-actions"><button type="button" data-act="remind-detail">Remind</button>'+(spend?'<button type="button" data-act="spend">Spend / deduct</button>':'')+(edit?'<button type="button" data-act="edit">Edit</button>':'')+'</div>';
+const access=adapter.canReveal(id),edit=adapter.canEdit(id),spend=s.canAdd&&active(c)&&adapter.canSpend(id);
+const entries=(s.transactions||[]).filter(t=>t.couponId===c.id);
+const historyHtml=!s.historyAvailable
+ ? '<p class="wl-empty">Transaction history is not enabled on this database yet.</p>'
+ : entries.length?entries.map(t=>{
+     const label=t.type==="redemption"?"Redeemed":"Balance adjustment";
+     const prefix=t.amountDelta>0?"+":"−";
+     const date=new Date(t.createdAt);
+     return '<div class="wl-ledger-row"><div><strong>'+label+'</strong><small>'+
+       esc(Number.isNaN(+date)?"Unknown date":date.toLocaleString("en-IN",{dateStyle:"medium",timeStyle:"short"}))+
+       ' · '+money(t.balanceBefore)+' → '+money(t.balanceAfter)+'</small></div><b>'+
+       prefix+money(Math.abs(t.amountDelta))+'</b></div>';
+   }).join("") : '<p class="wl-empty">No transactions recorded yet.</p>';
+$("wl-dialog-body").innerHTML='<div class="wl-detail-art" style="background:'+theme(c.store)+'"><small>'+esc(c.type)+'</small><h3>'+esc(c.store)+'</h3><strong>'+money(c.amount)+'</strong></div><div class="wl-detail-grid"><div><small>Account</small><strong>'+esc(c.account)+'</strong></div><div><small>Expiry</small><strong>'+esc(dateText(c.expiry))+'</strong></div></div>'+(c.notes?'<p>'+esc(c.notes)+'</p>':'')+'<div class="wl-code"><div><small>Redemption code</small><strong id="wl-code-value">•••• •••• ••••</strong></div><div id="wl-code-action">'+(!c.hasSecretCode?'No code saved':access?'<button type="button" data-act="reveal">Reveal code</button>':'<button type="button" data-act="request">Request access</button>')+'</div></div><div class="wl-detail-actions"><button type="button" data-act="remind-detail">Remind</button>'+(spend?'<button type="button" data-act="spend">Spend / deduct</button>':'')+(edit?'<button type="button" data-act="edit">Edit</button>':'')+'</div><div class="wl-ledger"><h3>Transaction history</h3>'+historyHtml+'</div>';
 $("wl-overlay").hidden=false;$("wl-overlay").querySelector(".wl-dialog-top button").focus();
 }
 function closeDetails(){if(detailId)adapter.hideCode(detailId);detailId=null;$("wl-overlay").hidden=true;$("wl-dialog-body").replaceChildren();}
