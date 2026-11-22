@@ -150,20 +150,68 @@
 .wl-ledger-row strong{font-size:12px;display:block}
 .wl-ledger-row small{display:block;font-size:11px;color:#b4c9dd;margin-top:5px;overflow-wrap:anywhere}
 .wl-ledger-row b{white-space:nowrap;font-size:13px;color:#ffd18b}
+/* F02: minimal expiry alert center, integrated with the wallet dark UI. */
+.wl-root .wl-alert-summary{display:flex;justify-content:space-between;align-items:center;gap:12px;max-width:810px;padding:12px 15px;margin:-1px 0 14px;border:1px solid #354c60;border-radius:14px;background:#1a2d3e;color:#b6cbdc;font-size:12px}
+.wl-root #wl-alert-counter{font-weight:800;color:#a7edcf}
+.wl-root .wl-alert-item{background:#1b2b40;border:1px solid #3d526b;border-radius:17px;padding:15px 16px;margin-bottom:10px;max-width:810px;min-width:0}
+.wl-root .wl-alert-item.urgent{border-color:#94715d;background:linear-gradient(120deg,#362c35,#222940)}
+.wl-root .wl-alert-item.warning{border-color:#856b50}
+.wl-root .wl-alert-head{display:flex;justify-content:space-between;align-items:start;gap:10px}
+.wl-root .wl-alert-text{min-width:0;flex:1}
+.wl-root .wl-alert-severity{display:inline-flex;font-size:10px;letter-spacing:.045em;color:#ffe0a7;background:#785a413c;padding:4px 8px;border-radius:99px;font-weight:800;margin-bottom:9px}
+.wl-root .wl-alert-text strong{font-size:15px;display:block;overflow-wrap:anywhere}
+.wl-root .wl-alert-text small{color:#bacbdf;font-size:12px;display:block;margin-top:6px;line-height:1.5}
+.wl-root .wl-alert-dot{width:9px;height:9px;flex-shrink:0;background:#70e0b6;border-radius:100%;margin-top:4px}
+.wl-root .wl-alert-seen{font-size:11px;color:#a8bfd1}
+.wl-root .wl-alert-actions{display:flex;flex-wrap:wrap;gap:7px;margin-top:16px}
+.wl-root .wl-alert-actions button{background:#263b53;color:#e8f2ff;border:1px solid #405b77;border-radius:10px;padding:9px 11px;font-size:11px;font-weight:710}
+.wl-root .wl-alert-actions button:first-child{background:#4fd5ab;color:#0e2a24;border:0;font-weight:850}
+.wl-root .wl-alert-actions button:last-child{margin-left:auto;background:transparent}
+.wl-root .wl-alert-account,.wl-root .wl-alert-activity{margin-top:17px}
+.wl-root .wl-alert-account p,.wl-root .wl-alert-activity p{font-size:12px}
+.wl-root .wl-alert-account .wl-outline{margin-top:8px}
+.wl-root .wl-alert-history-row{border-bottom:1px solid #344960;padding:11px 0;font-size:12px;color:#d8e8f5}
+.wl-root .wl-alert-history-row:last-child{border-bottom:0}
+.wl-root .wl-alert-history-row strong{color:#f6f8ff}
+.wl-root .wl-alert-history-row small{display:block;margin-top:4px;color:#afc6db;font-size:11px}
+.wl-root .wl-alert-empty{padding:24px 15px;border:1px dashed #3f526a;border-radius:15px;max-width:810px;color:#b1c3d8;font-size:13px;line-height:1.6}
+.wl-root .wl-alert-settings{margin-top:13px}
+.wl-root .wl-alert-toggle{display:flex;align-items:center;gap:10px;padding:13px 0;color:#edf5ff;font-weight:700;font-size:13px}
+.wl-root .wl-alert-toggle input{width:19px;height:19px;flex:0 0 auto;accent-color:#53d6ae}
+.wl-root .wl-alert-options{display:flex;flex-wrap:wrap;gap:9px;margin:5px 0 11px}
+.wl-root .wl-alert-option{display:flex;align-items:center;gap:8px;background:#24354d;border:1px solid #415871;border-radius:11px;padding:10px 12px;font-size:12px;color:#e5f1ff;cursor:pointer}
+.wl-root .wl-alert-option:has(input:disabled){opacity:.5}
+.wl-root .wl-alert-option input{width:16px;height:16px;margin:0;accent-color:#5bd4ad}
+.wl-root .wl-alert-note{color:#adc1d5;line-height:1.55;font-size:12px;margin:11px 0}
+.wl-root .wl-alert-dialog{max-width:440px}
+.wl-root #wl-alert-card-form .wl-alert-options{margin-top:6px}
+.wl-root .wl-alert-dialog .wl-dialog-top button{background:#293f57;border:1px solid #4b657e;padding:7px 13px;font-size:12px;font-weight:800}
+.wl-root .wl-alert-dialog .wl-alert-note{max-width:100%}
+@media(max-width:580px){
+.wl-root .wl-alert-summary{flex-direction:column;align-items:start;gap:4px;font-size:11px}
+.wl-root .wl-alert-item{padding:13px}
+.wl-root .wl-alert-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.wl-root .wl-alert-actions button{min-height:40px;padding:9px 5px}
+.wl-root .wl-alert-actions button:last-child{margin-left:0}
+.wl-root .wl-alert-option{flex:1 1 calc(50% - 9px);min-width:128px}
+.wl-root .wl-title .wl-outline{padding:10px 11px;font-size:12px}
+}
+
 </style></head><body>
 <div id="sample-indicator" style="font:700 11px system-ui;padding:9px 15px;text-align:center;background:#1c3540;color:#c5f9e5">INTERACTIVE PREVIEW · SAMPLE CARDS · NO REAL ACCOUNT CONNECTED</div>
 <div id="appScreen" style="display:block"></div>
 <script>
 (function(){
+  const plusDays=n=>{const d=new Date();d.setHours(12,0,0,0);d.setDate(d.getDate()+n);return [d.getFullYear(),String(d.getMonth()+1).padStart(2,"0"),String(d.getDate()).padStart(2,"0")].join("-")};
   const demo={
     cards:[
-      {id:"card-a",store:"Starbucks",account:"Personal",type:"Gift Card / Wallet",amount:2500,initialAmount:3000,expiry:"2026-11-24",notes:"",status:"active",hasSecretCode:true,codeVisibility:"private"},
-      {id:"card-b",store:"Amazon",account:"Personal",type:"Gift Card / Wallet",amount:5000,initialAmount:6000,expiry:"2026-12-18",notes:"",status:"active",hasSecretCode:true,codeVisibility:"public"},
-      {id:"card-c",store:"Walmart",account:"Family",type:"Gift Card / Wallet",amount:1900,initialAmount:1900,expiry:"2026-11-30",notes:"",status:"active",hasSecretCode:false,codeVisibility:"public"},
-      {id:"card-d",store:"Indigo",account:"Personal",type:"Gift Card / Wallet",amount:700,initialAmount:700,expiry:"2027-02-28",notes:"",status:"active",hasSecretCode:false,codeVisibility:"public"},
-      {id:"card-e",store:"Uber Eats",account:"Family",type:"Gift Card / Wallet",amount:1200,initialAmount:1200,expiry:"2026-12-05",notes:"",status:"active",hasSecretCode:false,codeVisibility:"public"}
+      {id:"card-a",store:"Starbucks",account:"Personal",type:"Gift Card / Wallet",amount:2500,initialAmount:3000,expiry:plusDays(3),notes:"",status:"active",hasSecretCode:true,codeVisibility:"private"},
+      {id:"card-b",store:"Amazon",account:"Personal",type:"Gift Card / Wallet",amount:5000,initialAmount:6000,expiry:plusDays(27),notes:"",status:"active",hasSecretCode:true,codeVisibility:"public"},
+      {id:"card-c",store:"Walmart",account:"Family",type:"Gift Card / Wallet",amount:1900,initialAmount:1900,expiry:plusDays(9),notes:"",status:"active",hasSecretCode:false,codeVisibility:"public"},
+      {id:"card-d",store:"Indigo",account:"Personal",type:"Gift Card / Wallet",amount:700,initialAmount:700,expiry:plusDays(90),notes:"",status:"active",hasSecretCode:false,codeVisibility:"public"},
+      {id:"card-e",store:"Uber Eats",account:"Family",type:"Gift Card / Wallet",amount:1200,initialAmount:1200,expiry:plusDays(14),notes:"",status:"active",hasSecretCode:false,codeVisibility:"public"}
     ],
-    user:{name:"Vault Member",email:"member@example.invalid",role:"super_admin"},
+    user:{id:"00000000-0000-4000-8000-0000000000a1",name:"Vault Member",email:"member@example.invalid",role:"super_admin"},
     members:[{name:"Vault Member",role:"super_admin"},{name:"Family Member",role:"viewer"}],
     unread:2,canAdd:true,historyAvailable:true,
     transactions:[{id:"demo-t1",couponId:"card-b",type:"redemption",amountDelta:-500,balanceBefore:5500,balanceAfter:5000,createdAt:"2026-11-18T13:30:00Z"},{id:"demo-t2",couponId:"card-c",type:"adjustment",amountDelta:200,balanceBefore:1700,balanceAfter:1900,createdAt:"2026-11-16T10:00:00Z"}]
@@ -189,6 +237,117 @@
 })();
 </script>
 <div id="demo-toast" hidden style="position:fixed;z-index:2500;bottom:90px;left:50%;transform:translateX(-50%);background:#d2ffeb;color:#123b30;padding:12px 16px;border-radius:12px;max-width:90%;font:700 13px system-ui"></div>
+<script>/* F02: device-local expiry reminder rules. No networking, secrets or push. */
+(function (root, factory) {
+  const api = factory();
+  if (typeof module === 'object' && module.exports) module.exports = api;
+  if (root) root.GiftVaultExpiry = api;
+})(typeof globalThis !== 'undefined' ? globalThis : undefined, function () {
+  'use strict';
+  const STEPS = Object.freeze([30, 15, 7, 3, 1]);
+  const isRecord = x => !!x && typeof x === 'object' && !Array.isArray(x);
+  const validThresholds = xs => Array.isArray(xs) ? STEPS.filter(x => xs.includes(x)) : STEPS.slice();
+  const ymd = value => {
+    if (typeof value !== 'string') return null;
+    const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
+    if (!match) return null;
+    const y=+match[1],m=+match[2],d=+match[3];
+    const date = new Date(y,m-1,d);
+    return date.getFullYear() === y && date.getMonth() === m-1 && date.getDate() === d ? {y,m,d} : null;
+  };
+  const dateKey = date => [date.getFullYear(),String(date.getMonth()+1).padStart(2,'0'),String(date.getDate()).padStart(2,'0')].join('-');
+  const addDays = (date,count) => {const d=new Date(date.getFullYear(),date.getMonth(),date.getDate());d.setDate(d.getDate()+count);return dateKey(d);};
+  function daysUntil(iso,now=new Date()) {
+    const day=ymd(iso);
+    if (!day || !(now instanceof Date) || Number.isNaN(+now)) return null;
+    return Math.round((Date.UTC(day.y,day.m-1,day.d)-Date.UTC(now.getFullYear(),now.getMonth(),now.getDate()))/86400000);
+  }
+  const defaultState = () => ({version:1,enabled:true,thresholds:STEPS.slice(),cards:{},actions:{},history:[]});
+  function normalize(raw) {
+    const src=isRecord(raw)?raw:{};
+    const next=defaultState();
+    next.enabled=src.enabled!==false;
+    next.thresholds=validThresholds(src.thresholds);
+    if(isRecord(src.cards)) Object.entries(src.cards).slice(0,1000).forEach(([id,v])=>{
+      if(!isRecord(v)||!/^[-\w]{1,128}$/.test(id))return;
+      next.cards[id]={enabled:v.enabled!==false};
+      if(Array.isArray(v.thresholds))next.cards[id].thresholds=validThresholds(v.thresholds);
+    });
+    if(isRecord(src.actions))Object.entries(src.actions).slice(-1500).forEach(([id,v])=>{
+      if(typeof id!=='string'||id.length>240||!isRecord(v))return;
+      if(!['read','dismissed','snoozed'].includes(v.status))return;
+      next.actions[id]={status:v.status,until:ymd(v.until)?v.until:null,at:typeof v.at==='string'?v.at.slice(0,30):''};
+    });
+    if(Array.isArray(src.history))next.history=src.history.slice(-100).filter(v=>
+      isRecord(v)&&typeof v.cardId==='string'&&v.cardId.length<=128&&ymd(v.expiry)&&['read','dismissed','snoozed'].includes(v.action)&&typeof v.stage==='string'
+    ).map(v=>({cardId:v.cardId,expiry:v.expiry,stage:v.stage,action:v.action,at:String(v.at||'').slice(0,30)}));
+    return next;
+  }
+  function scope(userId) {
+    if(typeof userId!=='string'||!/^[-\w]{5,128}$/.test(userId))return null;
+    return 'gift-vault:expiry:v1:'+userId;
+  }
+  function load(storage,userId) {
+    const key=scope(userId);
+    if(!key||!storage||typeof storage.getItem!=='function')return defaultState();
+    try{return normalize(JSON.parse(storage.getItem(key)||'{}'));}catch{return defaultState();}
+  }
+  function save(storage,userId,state) {
+    const key=scope(userId);
+    if(!key||!storage||typeof storage.setItem!=='function')return false;
+    try{storage.setItem(key,JSON.stringify(normalize(state)));return true;}catch{return false;}
+  }
+  function stageFor(days,thresholds) {
+    if(days<0)return 'expired';
+    if(days===0)return 'today';
+    for(const threshold of [...thresholds].sort((a,b)=>a-b))if(days<=threshold)return String(threshold);
+    return null;
+  }
+  function evaluate(cards,raw,now=new Date()) {
+    const state=normalize(raw),result=[];
+    if(!state.enabled||!Array.isArray(cards))return result;
+    for(const c of cards){
+      if(!c||typeof c.id!=='string'||!/^[-\w]{1,128}$/.test(c.id))continue;
+      if(c.status!=='active'||!(Number(c.amount)>0))continue;
+      const remaining=daysUntil(c.expiry,now);
+      if(remaining===null)continue;
+      const override=state.cards[c.id];
+      if(override&&override.enabled===false)continue;
+      const thresholds=override&&Array.isArray(override.thresholds)?override.thresholds:state.thresholds;
+      const stage=stageFor(remaining,thresholds);
+      if(!stage)continue;
+      const id=['expiry',c.id,c.expiry,stage].join(':');
+      const reaction=state.actions[id];
+      const suppressed=reaction&&(reaction.status==='dismissed'||(reaction.status==='snoozed'&&reaction.until&&daysUntil(reaction.until,now)>0));
+      if(suppressed)continue;
+      result.push({id,cardId:c.id,expiry:c.expiry,store:String(c.store||'Card'),account:String(c.account||''),amount:Number(c.amount),days:remaining,stage,unread:!reaction||reaction.status!=='read',level:remaining<=3?'urgent':remaining<=7?'warning':'upcoming'});
+    }
+    result.sort((a,b)=>a.days-b.days||a.store.localeCompare(b.store));
+    return result;
+  }
+  function act(raw,alert,action,now=new Date()) {
+    const state=normalize(raw);
+    if(!alert||typeof alert.id!=='string'||!['read','dismissed','snoozed'].includes(action))return state;
+    const until=action==='snoozed'?addDays(now,1):null;
+    state.actions[alert.id]={status:action,until,at:now.toISOString()};
+    state.history.push({cardId:alert.cardId,expiry:alert.expiry,stage:alert.stage,action,at:now.toISOString()});
+    state.history=state.history.slice(-100);
+    return normalize(state);
+  }
+  function setEnabled(raw,on){const s=normalize(raw);s.enabled=Boolean(on);return s;}
+  function setThreshold(raw,day,on){const s=normalize(raw);if(!STEPS.includes(day))return s;s.thresholds=STEPS.filter(v=>v===day?Boolean(on):s.thresholds.includes(v));return s;}
+  function setCardEnabled(raw,id,on){const s=normalize(raw);if(!/^[-\w]{1,128}$/.test(String(id)))return s;const prev=s.cards[id]||{};s.cards[id]={...prev,enabled:Boolean(on)};return s;}
+  function setCardSchedule(raw,id,thresholds) {
+    const s=normalize(raw);
+    if(!/^[-\w]{1,128}$/.test(String(id)))return s;
+    const current=s.cards[id]||{enabled:true};
+    if(thresholds===null)delete current.thresholds;
+    else current.thresholds=validThresholds(thresholds);
+    s.cards[id]=current;
+    return s;
+  }
+  return Object.freeze({STEPS,defaultState,normalize,daysUntil,dateKey,load,save,scope,evaluate,act,setEnabled,setThreshold,setCardEnabled,setCardSchedule});
+});</script>
 <script>/* Wallet-first authenticated view. Supabase and authorization remain in index.html. */
 (function(){
 "use strict";
@@ -281,7 +440,7 @@ const historyHtml=!s.historyAvailable
        ' · '+money(t.balanceBefore)+' → '+money(t.balanceAfter)+'</small></div><b>'+
        prefix+money(Math.abs(t.amountDelta))+'</b></div>';
    }).join("") : '<p class="wl-empty">No transactions recorded yet.</p>';
-$("wl-dialog-body").innerHTML='<div class="wl-detail-art" style="background:'+theme(c.store)+'"><small>'+esc(c.type)+'</small><h3>'+esc(c.store)+'</h3><strong>'+money(c.amount)+'</strong></div><div class="wl-detail-grid"><div><small>Account</small><strong>'+esc(c.account)+'</strong></div><div><small>Expiry</small><strong>'+esc(dateText(c.expiry))+'</strong></div></div>'+(c.notes?'<p>'+esc(c.notes)+'</p>':'')+'<div class="wl-code"><div><small>Redemption code</small><strong id="wl-code-value">•••• •••• ••••</strong></div><div id="wl-code-action">'+(!c.hasSecretCode?'No code saved':access?'<button type="button" data-act="reveal">Reveal code</button>':'<button type="button" data-act="request">Request access</button>')+'</div></div><div class="wl-detail-actions"><button type="button" data-act="remind-detail">Remind</button>'+(spend?'<button type="button" data-act="spend">Spend / deduct</button>':'')+(edit?'<button type="button" data-act="edit">Edit</button>':'')+'</div><div class="wl-ledger"><h3>Transaction history</h3>'+historyHtml+'</div>';
+$("wl-dialog-body").innerHTML='<div class="wl-detail-art" style="background:'+theme(c.store)+'"><small>'+esc(c.type)+'</small><h3>'+esc(c.store)+'</h3><strong>'+money(c.amount)+'</strong></div><div class="wl-detail-grid"><div><small>Account</small><strong>'+esc(c.account)+'</strong></div><div><small>Expiry</small><strong>'+esc(dateText(c.expiry))+'</strong></div></div>'+(c.notes?'<p>'+esc(c.notes)+'</p>':'')+'<div class="wl-code"><div><small>Redemption code</small><strong id="wl-code-value">•••• •••• ••••</strong></div><div id="wl-code-action">'+(!c.hasSecretCode?'No code saved':access?'<button type="button" data-act="reveal">Reveal code</button>':'<button type="button" data-act="request">Request access</button>')+'</div></div><div class="wl-detail-actions"><button type="button" data-act="remind-detail">Calendar</button><button type="button" data-act="expiry-settings">Expiry alerts</button>'+(spend?'<button type="button" data-act="spend">Spend / deduct</button>':'')+(edit?'<button type="button" data-act="edit">Edit</button>':'')+'</div><div class="wl-ledger"><h3>Transaction history</h3>'+historyHtml+'</div>';
 $("wl-overlay").hidden=false;$("wl-overlay").querySelector(".wl-dialog-top button").focus();
 }
 function closeDetails(){if(detailId)adapter.hideCode(detailId);detailId=null;$("wl-overlay").hidden=true;$("wl-dialog-body").replaceChildren();}
@@ -295,7 +454,12 @@ if(name==="clear-search"){$("wl-search").hidden=true;$("wl-query").value="";sear
 if(name==="open"||name==="details"||name==="code"){if(c)openDetails(c);return;}
 if(name==="close"){closeDetails();return;}
 if(name==="add"){adapter.add();return;}
-if(name==="notifications"||name==="admin"||name==="classic"){hide();adapter.legacy(name==="notifications"?"notifications":name==="admin"?"admin":"all");return;}
+if(name==="notifications"){
+  if(window.walletExpiryOpenCenter){window.walletExpiryOpenCenter();return;}
+  hide();adapter.legacy("notifications");return;
+}
+if(name==="admin"||name==="classic"){hide();adapter.legacy(name==="admin"?"admin":"all");return;}
+if(name==="expiry-settings"){if(detailId&&window.walletExpiryOpenCardSettings){const selected=detailId;closeDetails();window.walletExpiryOpenCardSettings(selected);}return;}
 if(name==="refresh"){await adapter.refresh();render();return;}
 if(name==="logout"){hide();await adapter.logout();return;}
 if(name==="backup"){adapter.backup();return;}
@@ -323,8 +487,199 @@ document.addEventListener("keydown",e=>{if(e.key==="Escape"&&!$("wl-overlay").hi
 if(snap())start();
 }
 window.walletLiveStart=()=>{if(!root)setup();start();};
+window.walletLiveOpenSection=name=>{if(!root)setup();if(root)view(name);};
+window.walletLiveOpenCard=id=>{if(!root)setup();if(root)openDetails(id);};
+window.walletLiveShowClassic=viewName=>{hide();adapter.legacy(viewName);};
 window.walletLiveRefresh=()=>{if(!root)setup();render();};
-window.walletLiveHandleBack=()=>{if(root&&!root.hidden){if(!$("wl-overlay").hidden){closeDetails();return true;}if(section!=="wallet"){view("wallet");return true;}}return false;};
+window.walletLiveHandleBack=()=>{if(window.walletExpiryHandleBack&&window.walletExpiryHandleBack())return true;if(root&&!root.hidden){if(!$("wl-overlay").hidden){closeDetails();return true;}if(section!=="wallet"){view("wallet");return true;}}return false;};
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",setup,{once:true});else setup();
+})();</script>
+<script>/* F02 in-app expiry alerts. No email, push, service worker notifications or network writes.
+ * Only reminder preferences + acknowledgement IDs live in per-account localStorage.
+ * Merchant names, balances and redemption codes are never written to that storage. */
+(function(){
+"use strict";
+const $=id=>document.getElementById(id);
+const api=window.GiftVaultExpiry;
+if(!api){console.error("Expiry reminder engine was not loaded");return;}
+const store=()=>{try{return window.localStorage;}catch{return null;}};
+const esc=x=>String(x==null?"":x).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const currency=n=>new Intl.NumberFormat("en-IN",{currency:"INR",style:"currency",maximumFractionDigits:2}).format(Number(n)||0);
+let mounted=false,userId=null,settings=api.defaultState(),alerts=[],lastSnapshot=null,cardId=null;
+const statusText=a=>a.days<0?"Expired "+Math.abs(a.days)+" day"+(a.days===-1?"":"s")+" ago":a.days===0?"Expires today":a.days===1?"Expires tomorrow":"Expires in "+a.days+" days";
+const stageText=stage=>stage==="today"?"Expiry day":stage==="expired"?"Expired":stage+"-day reminder";
+function data(){return window.giftVaultLiveBridge?.snapshot?.()||null;}
+function ensureAccount(){
+  const snap=data();
+  if(!snap||!snap.user||!api.scope(snap.user.id)){lastSnapshot=null;userId=null;settings=api.defaultState();alerts=[];return null;}
+  if(snap.user.id!==userId){userId=snap.user.id;settings=api.load(store(),userId);}
+  lastSnapshot=snap;
+  return snap;
+}
+function persist(){if(userId)api.save(store(),userId,settings);}
+function evaluate(){const s=ensureAccount();alerts=s?api.evaluate(s.cards,settings):[];return s;}
+function allAlertMarkup(a){
+  return '<article class="wl-alert-item '+a.level+'">'+
+   '<div class="wl-alert-head"><div class="wl-alert-text"><span class="wl-alert-severity">'+(a.days<=0?"Action needed":a.days<=3?"Urgent":a.days<=7?"Soon":"Upcoming")+'</span>'+
+   '<strong>'+esc(a.store)+'</strong><small>'+esc(statusText(a))+' · '+currency(a.amount)+'</small></div>'+
+   (a.unread?'<span class="wl-alert-dot" aria-label="Unread reminder"></span>':'<span class="wl-alert-seen">Read</span>')+'</div>'+
+   '<div class="wl-alert-actions"><button type="button" data-expiry-action="open" data-alert="'+esc(a.id)+'">View card</button>'+
+   (a.unread?'<button type="button" data-expiry-action="read" data-alert="'+esc(a.id)+'">Mark read</button>':'')+
+   '<button type="button" data-expiry-action="snoozed" data-alert="'+esc(a.id)+'">Snooze 1 day</button>'+
+   '<button type="button" data-expiry-action="dismissed" data-alert="'+esc(a.id)+'">Dismiss</button></div></article>';
+}
+function historyMarkup(h){
+  const card=lastSnapshot?.cards.find(c=>c.id===h.cardId);
+  const label=h.action==="read"?"Marked read":h.action==="dismissed"?"Dismissed":"Snoozed";
+  let when="";
+  const dt=new Date(h.at);
+  if(!Number.isNaN(+dt))when=dt.toLocaleDateString("en-CA",{month:"short",day:"numeric",year:"numeric"});
+  return '<div class="wl-alert-history-row"><span><strong>'+label+'</strong> · '+esc(card?.store||"Removed card")+
+    '<small>'+esc(stageText(h.stage))+(when?" · "+esc(when):"")+'</small></span></div>';
+}
+function thresholdOptions(selected,prefix,disabled){
+  return api.STEPS.map(d=>'<label class="wl-alert-option"><input type="checkbox" data-'+prefix+'="'+d+'" '+(selected.includes(d)?"checked ":"")+(disabled?"disabled ":"")+'/>'+
+    '<span>'+d+' day'+(d!==1?"s":"")+' before</span></label>').join("");
+}
+function render(){
+  if(!mounted)return;
+  const snap=evaluate();
+  if(!snap)return;
+  const unread=alerts.filter(a=>a.unread).length;
+  const serverUnread=Number(snap.unread)||0;
+  const badge=$("wl-badge");
+  if(badge){badge.hidden=!(unread+serverUnread);badge.textContent=unread+serverUnread>99?"99+":String(unread+serverUnread);}
+  const notif=rootElement()?.querySelector('[data-act="notifications"]');
+  if(notif)notif.setAttribute("aria-label","Notifications: "+unread+" unread expiry alerts and "+serverUnread+" account notifications");
+  const count=$("wl-alert-counter");if(count)count.textContent=unread+" unread";
+  const list=$("wl-alert-list");
+  if(list)list.innerHTML=alerts.length?alerts.map(allAlertMarkup).join(""):'<div class="wl-alert-empty">No expiry alerts right now. Your active cards will appear here when they reach a reminder date.</div>';
+  const recent=$("wl-alert-history");
+  if(recent)recent.innerHTML=settings.history.length?settings.history.slice(-12).reverse().map(historyMarkup).join(""):'<p class="wl-alert-note">No reminder activity yet.</p>';
+  const srv=$("wl-account-notifications");
+  if(srv)srv.textContent="Account notifications"+(serverUnread?" ("+serverUnread+" unread)":"");
+  const enabled=$("wl-alert-enabled");
+  if(enabled)enabled.checked=settings.enabled;
+  const options=$("wl-alert-thresholds");
+  if(options)options.innerHTML=thresholdOptions(settings.thresholds,"expiry-day",!settings.enabled);
+  const summary=$("wl-alert-summary");
+  if(summary)summary.textContent=settings.enabled?"Alerts appear only when the wallet is open. Timing is saved on this device.":"In-app expiry reminders are paused on this device.";
+  if(cardId&&$("wl-card-reminder-dialog")&&!$("wl-card-reminder-dialog").hidden)renderCardControls();
+}
+function rootElement(){return $("giftWalletLive");}
+function center(){
+  if(!mounted)mount();
+  if(!mounted||!data())return;
+  window.walletLiveOpenSection?.("alerts");
+  render();
+}
+function cardControls(){
+  const s=data();const card=s?.cards.find(c=>c.id===cardId);
+  if(!card)return '';
+  const opts=settings.cards[cardId]||{enabled:true};
+  const custom=Array.isArray(opts.thresholds);
+  return '<p class="wl-alert-note">This changes reminders for <strong>'+esc(card.store)+'</strong> on this device only.</p>'+
+  '<label class="wl-alert-toggle"><input id="wl-alert-card-enabled" type="checkbox" '+(opts.enabled!==false?"checked":"")+'/> Remind me about this card</label>'+
+  '<label class="wl-alert-toggle"><input id="wl-alert-card-custom" type="checkbox" '+(custom?"checked":"")+'/> Customize timing for this card</label>'+
+  '<div class="wl-alert-options" id="wl-alert-card-days">'+thresholdOptions(custom?opts.thresholds:settings.thresholds,"expiry-card-day",!custom||opts.enabled===false)+'</div>'+
+  '<p class="wl-alert-note">If custom timing is off, this card follows your global schedule.</p>';
+}
+function renderCardControls(){const e=$("wl-alert-card-form");if(e)e.innerHTML=cardControls();}
+function cardSettings(id){
+  if(!mounted)mount();
+  const snap=ensureAccount();
+  if(!snap||!snap.cards.some(c=>c.id===id))return;
+  cardId=id;
+  renderCardControls();
+  const dialog=$("wl-card-reminder-dialog");
+  dialog.hidden=false;
+  $("wl-card-reminder-close").focus();
+}
+function closeCard(){const el=$("wl-card-reminder-dialog");if(!el||el.hidden)return false;el.hidden=true;cardId=null;return true;}
+function handleAction(e){
+  const node=e.target.closest("[data-expiry-action]");
+  if(!node)return;
+  const action=node.dataset.expiryAction;
+  if(action==="back"){window.walletLiveOpenSection?.("wallet");return;}
+  if(action==="close-card"){closeCard();return;}
+  if(action==="preferences"){window.walletLiveOpenSection?.("settings");$("wl-alert-settings")?.scrollIntoView({block:"start",behavior:"smooth"});return;}
+  if(action==="server"){window.walletLiveShowClassic?.("notifications");return;}
+  const selected=alerts.find(a=>a.id===node.dataset.alert);
+  if(!selected)return;
+  if(action==="open"){settings=api.act(settings,selected,"read");persist();render();window.walletLiveOpenCard?.(selected.cardId);return;}
+  if(["read","snoozed","dismissed"].includes(action)){settings=api.act(settings,selected,action);persist();render();}
+}
+function onChange(e){
+  const snap=ensureAccount();if(!snap)return;
+  const el=e.target;
+  if(el.id==="wl-alert-enabled"){settings=api.setEnabled(settings,el.checked);persist();render();return;}
+  if(el.dataset.expiryDay){settings=api.setThreshold(settings,+el.dataset.expiryDay,el.checked);persist();render();return;}
+  if(!cardId)return;
+  if(el.id==="wl-alert-card-enabled"){settings=api.setCardEnabled(settings,cardId,el.checked);persist();render();return;}
+  if(el.id==="wl-alert-card-custom"){
+    settings=api.setCardSchedule(settings,cardId,el.checked?settings.thresholds:null);
+    persist();render();return;
+  }
+  if(el.dataset.expiryCardDay){
+    const old=settings.cards[cardId]?.thresholds||settings.thresholds;
+    const day=+el.dataset.expiryCardDay;
+    const next=api.STEPS.filter(d=>d===day?el.checked:old.includes(d));
+    settings=api.setCardSchedule(settings,cardId,next);
+    persist();render();
+  }
+}
+function markup(){
+  return '<section id="wl-view-alerts" class="wl-view" hidden>'+
+   '<div class="wl-title"><div><small>YOUR REMINDERS</small><h1>Expiry alerts</h1><p>Make every gift card count.</p></div>'+
+   '<button type="button" class="wl-outline" data-expiry-action="preferences">Preferences</button></div>'+
+   '<div class="wl-alert-summary"><span id="wl-alert-counter">0 unread</span><span>In-app reminders · This device</span></div>'+
+   '<div class="wl-list" id="wl-alert-list"></div>'+
+   '<div class="wl-panel wl-alert-account"><h2>Other activity</h2><p>Code access approvals and messages from your shared vault.</p>'+
+   '<button type="button" class="wl-outline" id="wl-account-notifications" data-expiry-action="server">Account notifications</button></div>'+
+   '<div class="wl-panel wl-alert-activity"><h2>Recent reminder activity</h2><div id="wl-alert-history"></div></div>'+
+   '<button type="button" class="wl-link" data-expiry-action="back">Back to wallet</button></section>';
+}
+function settingsMarkup(){
+  return '<div class="wl-panel wl-alert-settings" id="wl-alert-settings"><h2>Expiry reminders</h2>'+
+   '<p id="wl-alert-summary">Alerts appear only when your wallet is open.</p>'+
+   '<label class="wl-alert-toggle"><input id="wl-alert-enabled" type="checkbox" checked /> Enable in-app reminders</label>'+
+   '<div class="wl-alert-options" id="wl-alert-thresholds"></div>'+
+   '<p class="wl-alert-note">Alerts also appear on the expiry day or if a card remains active after expiring. Email and push are not yet enabled.</p>'+
+   '</div>';
+}
+function cardModalMarkup(){
+  return '<div id="wl-card-reminder-dialog" class="wl-overlay" hidden>'+
+   '<div class="wl-dialog wl-alert-dialog" role="dialog" aria-modal="true" aria-labelledby="wl-alert-card-title">'+
+   '<div class="wl-dialog-top"><h2 id="wl-alert-card-title">Card reminders</h2><button type="button" id="wl-card-reminder-close" data-expiry-action="close-card">Close</button></div>'+
+   '<div id="wl-alert-card-form"></div></div></div>';
+}
+function mount(){
+  if(mounted)return;
+  const root=rootElement();
+  if(!root||!root.querySelector("#wl-view-settings"))return;
+  root.querySelector("#wl-view-settings").insertAdjacentHTML("beforebegin",markup());
+  root.querySelector("#wl-view-settings .wl-settings").insertAdjacentHTML("beforebegin",settingsMarkup());
+  root.insertAdjacentHTML("beforeend",cardModalMarkup());
+  root.addEventListener("click",handleAction);
+  root.addEventListener("change",onChange);
+  $("wl-card-reminder-dialog").addEventListener("click",e=>{if(e.target===$("wl-card-reminder-dialog"))closeCard();});
+  document.addEventListener("keydown",e=>{if(e.key==="Escape")closeCard();});
+  mounted=true;
+  render();
+}
+function refresh(){if(!mounted)mount();render();}
+window.walletExpiryOpenCenter=center;
+window.walletExpiryOpenCardSettings=cardSettings;
+window.walletExpiryHandleBack=closeCard;
+if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",mount,{once:true});else mount();
+document.addEventListener("visibilitychange",()=>{if(!document.hidden)refresh();});
+window.addEventListener("focus",refresh);
+// In-app only: a foreground timer refreshes the date and local alert badges.
+// No service-worker push is scheduled and nothing runs after the app is closed.
+setInterval(()=>{if(!document.hidden&&rootElement()&&!rootElement().hidden)refresh();},60000);
+const oldRefresh=window.walletLiveRefresh;
+if(typeof oldRefresh==="function")window.walletLiveRefresh=function(){oldRefresh.apply(this,arguments);refresh();};
+const oldStart=window.walletLiveStart;
+if(typeof oldStart==="function")window.walletLiveStart=function(){oldStart.apply(this,arguments);refresh();};
 })();</script>
 </body></html>
