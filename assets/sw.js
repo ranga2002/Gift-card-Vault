@@ -1,5 +1,5 @@
 /* Static assets only. Never cache responses from Supabase or private card data. */
-const VERSION='gift-vault-static-v6';
+const VERSION='gift-vault-static-v7';
 const ASSETS=['./vault-refresh.css','./vault-enhancements.js','./vault-icons.js','./wallet-filter-engine.js','./wallet-live.js','./wallet-live.css','./expiry-reminders.js','./wallet-expiry-ui.js','./wallet-expiry-ui.css','./wallet-filters.css','./vault-icon.svg','./manifest.webmanifest'];
 self.addEventListener('install',e=>{e.waitUntil(caches.open(VERSION).then(c=>c.addAll(ASSETS)));self.skipWaiting()});
 self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k.startsWith('gift-vault-static-')&&k!==VERSION).map(k=>caches.delete(k)))));self.clients.claim()});

@@ -119,3 +119,13 @@ test('signed-in wallet UI has functional filter controls and scoped reset',()=>{
  new vm.Script(read('assets/wallet-filter-engine.js'));
  new vm.Script(wallet);
 });
+
+test('search is visible and interactive without opening the search icon',()=>{
+  const ui=read('assets/wallet-live.js');
+  assert.ok(ui.includes('id="wl-search">'));
+  assert.ok(ui.includes('"wl-query").addEventListener("input",filterControlChange)'));
+  assert.match(ui,/filters=\{\.\.\.filters,query:target\.value\}/);
+  assert.ok(ui.includes('filters={...filters,query:""}'));
+  assert.ok(!ui.includes('id="wl-search" hidden'));
+  assert.ok(!ui.includes('search="";'));
+});

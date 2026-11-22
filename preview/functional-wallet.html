@@ -510,7 +510,7 @@ return [
 '<div class="wl-head-actions"><button type="button" data-act="search" aria-label="Search">',icon("search"),'</button><button type="button" data-act="notifications" aria-label="Notifications">',icon("bell"),'<span id="wl-badge" hidden></span></button><button class="wl-user" type="button" data-tab="settings" aria-label="Account">GV</button></div></header>',
 '<nav class="wl-nav" aria-label="Wallet navigation">',
 ...["wallet","expiring","insights","family","settings"].map((n,i)=>'<button type="button" class="'+(!i?"active":"")+'" data-tab="'+n+'">'+icon(n==="wallet"?"wallet":n==="expiring"?"clock":n==="insights"?"chart":n==="family"?"users":"settings")+'<span>'+n[0].toUpperCase()+n.slice(1)+'</span></button>'),
-'</nav><div class="wl-search" id="wl-search" hidden>',icon("search"),'<input type="search" id="wl-query" placeholder="Search stores and accounts" aria-label="Search"><button type="button" data-act="clear-search" aria-label="Clear search">',icon("x"),'</button></div>',
+'</nav><div class="wl-search" id="wl-search">',icon("search"),'<input type="search" id="wl-query" placeholder="Search stores and accounts" aria-label="Search"><button type="button" data-act="clear-search" aria-label="Clear search">',icon("x"),'</button></div>',
 '<section id="wl-view-wallet" class="wl-view"><div class="wl-title"><div><small>YOUR WALLET</small><h1>My cards</h1><p>Everything you need, all in one place.</p></div><button type="button" class="wl-add" data-act="add">',icon("plus"),'<span>Add card</span></button></div>',
 '<div class="wl-filter-toolbar"><button class="wl-filter-trigger" type="button" data-act="toggle-filters" aria-controls="wl-filter-panel" aria-expanded="false">',icon("settings"),'<span>Filters</span><span class="wl-filter-active-count" id="wl-filter-active-count" hidden>0</span></button><button type="button" id="wl-clear-filters" data-act="reset-filters" hidden>Clear all</button><span class="wl-filter-result-count" id="wl-filter-results" role="status" aria-live="polite"></span></div>',
 '<div class="wl-filter-panel" id="wl-filter-panel" hidden><div class="wl-filter-grid">',
@@ -526,7 +526,7 @@ return [
 '<div id="wl-metrics" class="wl-metrics"></div><div class="wl-columns"><div><div class="wl-section-title"><h2>Featured card</h2><span>Tap to open</span></div><div class="wl-stack"><div class="wl-shadow one"></div><div class="wl-shadow two"></div><button type="button" id="wl-featured" data-act="details"></button></div>',
 '<div class="wl-arrows"><button data-act="previous" type="button" aria-label="Previous card">',icon("left"),'</button><span id="wl-pos"></span><button data-act="next" type="button" aria-label="Next card">',icon("right"),'</button></div>',
 '<div class="wl-quick"><button type="button" data-act="code">',icon("eye"),' View code</button><button type="button" data-act="remind">',icon("bell"),' Remind me</button><button type="button" data-act="details">',icon("wallet"),' Details</button></div>',
-'<div class="wl-section-title"><h2>My gift cards</h2><span id="wl-count"></span></div><div class="wl-tiles" id="wl-cards"></div><button type="button" data-tab="history" class="wl-link">Used & expired cards</button></div>',
+'<div class="wl-section-title"><h2>Cards</h2><span id="wl-count"></span></div><div class="wl-tiles" id="wl-cards"></div><button type="button" data-tab="history" class="wl-link">Used & expired cards</button></div>',
 '<aside class="wl-aside"><div class="wl-section-title"><h2>Expiring soon</h2><button type="button" data-tab="expiring">View all</button></div><div id="wl-upcoming" class="wl-panel"></div></aside></div></section>',
 '<section id="wl-view-expiring" class="wl-view" hidden><div class="wl-title"><div><small>STAY ON TOP</small><h1>Expiring soon</h1><p>Use your cards before they expire.</p></div></div><div id="wl-expiring-list" class="wl-list"></div></section>',
 '<section id="wl-view-insights" class="wl-view" hidden><div class="wl-title"><div><small>AT A GLANCE</small><h1>Insights</h1><p>Your wallet summary.</p></div></div><div id="wl-insights-metrics" class="wl-metrics"></div><div class="wl-panel"><h2>Balances by store</h2><div id="wl-stores"></div></div></section>',
@@ -585,8 +585,7 @@ if(!root||root.hidden)return;const s=snap();if(!s){hide();return;}
 if(lastAccount!==s.user.id){
   lastAccount=s.user.id;filters=filterApi.defaults();index=0;
   const query=$("wl-query");if(query)query.value="";
-  if($("wl-search"))$("wl-search").hidden=true;
-}
+  }
 const cards=s.cards.filter(active),show=choices(s),other=filteredOther(s),
   exp=other.filter(c=>active(c)&&Number.isFinite(days(c.expiry))&&days(c.expiry)<=14).sort((a,b)=>days(a.expiry)-days(b.expiry)),
   up=other.filter(c=>active(c)&&Number.isFinite(days(c.expiry))&&days(c.expiry)<=30).sort((a,b)=>days(a.expiry)-days(b.expiry));
@@ -640,7 +639,7 @@ if(name==="next"||name==="previous"){const s=snap(),len=s?choices(s).length:0;if
 if(name==="search"){$("wl-search").hidden=false;$("wl-query").focus();return;}
 if(name==="toggle-filters"){const panel=$("wl-filter-panel");panel.hidden=!panel.hidden;const btn=root.querySelector('[data-act="toggle-filters"]');btn.setAttribute("aria-expanded",String(!panel.hidden));return;}
 if(name==="reset-filters"){filters=filterApi.defaults();$("wl-query").value="";index=0;render();return;}
-if(name==="clear-search"){$("wl-search").hidden=true;$("wl-query").value="";filters={...filters,query:""};index=0;render();return;}
+if(name==="clear-search"){$("wl-query").value="";filters={...filters,query:""};index=0;render();$("wl-query").focus();return;}
 if(name==="open"||name==="details"||name==="code"){if(c)openDetails(c);return;}
 if(name==="close"){closeDetails();return;}
 if(name==="add"){adapter.add();return;}
