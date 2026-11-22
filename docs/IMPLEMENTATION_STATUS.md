@@ -49,6 +49,30 @@ can be cleared independently of the account.
 **F02 acceptance:** in-app reminder milestone implemented and smoke tested;
 production readiness and backend email/push scheduling pending.
 
+## F03 — Advanced Search, Filtering and Sorting
+
+**Implemented in the mobile-first authenticated wallet (feature branch only).**
+
+- Combined live search across store, account, card type and notes.
+- Filter by store, account, card type, derived active / used / expired status,
+  upcoming expiry window (7/14/30 days), expired date, and no expiry date.
+- Optional minimum and maximum INR balance, inclusive.
+- Sort expiry soonest/latest, balance high/low, store A-Z/Z-A, recent add,
+  and account A-Z. Cards without an expiry date sort last in both directions.
+- Filter result counts, active-filter count, reset, and useful empty states.
+- The wallet supports viewing historical/used cards through status selection;
+  the existing classic manager remains available and its filters are unchanged.
+- Filters operate only on card metadata authorized by the existing Supabase
+  session. Redemption codes and secret values are never indexed or stored.
+- Filters live only in this browser tab and reset when the signed-in user changes;
+  no extra Supabase schema, network API, or local storage is needed.
+- Sample-data preview covers active, expired, fully used and undated cards.
+- 16 focused F03 engine/UI tests added. 51 total JS tests plus isolated F07
+  PostgreSQL regression workflow passed at implementation review.
+
+**Still pending:** validation with real Supabase users and database; optimized
+server-side pagination/search for very large vaults.
+
 ## Deployment gate — do not skip
 
 1. Do NOT apply the F07 migration to production before testing in staging.
