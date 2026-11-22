@@ -90,7 +90,7 @@ const historyHtml=!s.historyAvailable
        ' · '+money(t.balanceBefore)+' → '+money(t.balanceAfter)+'</small></div><b>'+
        prefix+money(Math.abs(t.amountDelta))+'</b></div>';
    }).join("") : '<p class="wl-empty">No transactions recorded yet.</p>';
-$("wl-dialog-body").innerHTML='<div class="wl-detail-art" style="background:'+theme(c.store)+'"><small>'+esc(c.type)+'</small><h3>'+esc(c.store)+'</h3><strong>'+money(c.amount)+'</strong></div><div class="wl-detail-grid"><div><small>Account</small><strong>'+esc(c.account)+'</strong></div><div><small>Expiry</small><strong>'+esc(dateText(c.expiry))+'</strong></div></div>'+(c.notes?'<p>'+esc(c.notes)+'</p>':'')+'<div class="wl-code"><div><small>Redemption code</small><strong id="wl-code-value">•••• •••• ••••</strong></div><div id="wl-code-action">'+(!c.hasSecretCode?'No code saved':access?'<button type="button" data-act="reveal">Reveal code</button>':'<button type="button" data-act="request">Request access</button>')+'</div></div><div class="wl-detail-actions"><button type="button" data-act="remind-detail">Remind</button>'+(spend?'<button type="button" data-act="spend">Spend / deduct</button>':'')+(edit?'<button type="button" data-act="edit">Edit</button>':'')+'</div><div class="wl-ledger"><h3>Transaction history</h3>'+historyHtml+'</div>';
+$("wl-dialog-body").innerHTML='<div class="wl-detail-art" style="background:'+theme(c.store)+'"><small>'+esc(c.type)+'</small><h3>'+esc(c.store)+'</h3><strong>'+money(c.amount)+'</strong></div><div class="wl-detail-grid"><div><small>Account</small><strong>'+esc(c.account)+'</strong></div><div><small>Expiry</small><strong>'+esc(dateText(c.expiry))+'</strong></div></div>'+(c.notes?'<p>'+esc(c.notes)+'</p>':'')+'<div class="wl-code"><div><small>Redemption code</small><strong id="wl-code-value">•••• •••• ••••</strong></div><div id="wl-code-action">'+(!c.hasSecretCode?'No code saved':access?'<button type="button" data-act="reveal">Reveal code</button>':'<button type="button" data-act="request">Request access</button>')+'</div></div><div class="wl-detail-actions"><button type="button" data-act="remind-detail">Calendar</button><button type="button" data-act="expiry-settings">Expiry alerts</button>'+(spend?'<button type="button" data-act="spend">Spend / deduct</button>':'')+(edit?'<button type="button" data-act="edit">Edit</button>':'')+'</div><div class="wl-ledger"><h3>Transaction history</h3>'+historyHtml+'</div>';
 $("wl-overlay").hidden=false;$("wl-overlay").querySelector(".wl-dialog-top button").focus();
 }
 function closeDetails(){if(detailId)adapter.hideCode(detailId);detailId=null;$("wl-overlay").hidden=true;$("wl-dialog-body").replaceChildren();}
@@ -104,7 +104,12 @@ if(name==="clear-search"){$("wl-search").hidden=true;$("wl-query").value="";sear
 if(name==="open"||name==="details"||name==="code"){if(c)openDetails(c);return;}
 if(name==="close"){closeDetails();return;}
 if(name==="add"){adapter.add();return;}
-if(name==="notifications"||name==="admin"||name==="classic"){hide();adapter.legacy(name==="notifications"?"notifications":name==="admin"?"admin":"all");return;}
+if(name==="notifications"){
+  if(window.walletExpiryOpenCenter){window.walletExpiryOpenCenter();return;}
+  hide();adapter.legacy("notifications");return;
+}
+if(name==="admin"||name==="classic"){hide();adapter.legacy(name==="admin"?"admin":"all");return;}
+if(name==="expiry-settings"){if(detailId&&window.walletExpiryOpenCardSettings){const selected=detailId;closeDetails();window.walletExpiryOpenCardSettings(selected);}return;}
 if(name==="refresh"){await adapter.refresh();render();return;}
 if(name==="logout"){hide();await adapter.logout();return;}
 if(name==="backup"){adapter.backup();return;}
@@ -132,7 +137,10 @@ document.addEventListener("keydown",e=>{if(e.key==="Escape"&&!$("wl-overlay").hi
 if(snap())start();
 }
 window.walletLiveStart=()=>{if(!root)setup();start();};
+window.walletLiveOpenSection=name=>{if(!root)setup();if(root)view(name);};
+window.walletLiveOpenCard=id=>{if(!root)setup();if(root)openDetails(id);};
+window.walletLiveShowClassic=viewName=>{hide();adapter.legacy(viewName);};
 window.walletLiveRefresh=()=>{if(!root)setup();render();};
-window.walletLiveHandleBack=()=>{if(root&&!root.hidden){if(!$("wl-overlay").hidden){closeDetails();return true;}if(section!=="wallet"){view("wallet");return true;}}return false;};
+window.walletLiveHandleBack=()=>{if(window.walletExpiryHandleBack&&window.walletExpiryHandleBack())return true;if(root&&!root.hidden){if(!$("wl-overlay").hidden){closeDetails();return true;}if(section!=="wallet"){view("wallet");return true;}}return false;};
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",setup,{once:true});else setup();
 })();

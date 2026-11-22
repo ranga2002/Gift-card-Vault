@@ -98,5 +98,14 @@
   function setEnabled(raw,on){const s=normalize(raw);s.enabled=Boolean(on);return s;}
   function setThreshold(raw,day,on){const s=normalize(raw);if(!STEPS.includes(day))return s;s.thresholds=STEPS.filter(v=>v===day?Boolean(on):s.thresholds.includes(v));return s;}
   function setCardEnabled(raw,id,on){const s=normalize(raw);if(!/^[-\w]{1,128}$/.test(String(id)))return s;const prev=s.cards[id]||{};s.cards[id]={...prev,enabled:Boolean(on)};return s;}
-  return Object.freeze({STEPS,defaultState,normalize,daysUntil,dateKey,load,save,scope,evaluate,act,setEnabled,setThreshold,setCardEnabled});
+  function setCardSchedule(raw,id,thresholds) {
+    const s=normalize(raw);
+    if(!/^[-\w]{1,128}$/.test(String(id)))return s;
+    const current=s.cards[id]||{enabled:true};
+    if(thresholds===null)delete current.thresholds;
+    else current.thresholds=validThresholds(thresholds);
+    s.cards[id]=current;
+    return s;
+  }
+  return Object.freeze({STEPS,defaultState,normalize,daysUntil,dateKey,load,save,scope,evaluate,act,setEnabled,setThreshold,setCardEnabled,setCardSchedule});
 });

@@ -3744,7 +3744,7 @@
   // Redemption codes are never included in snapshots or persisted to browser storage.
   window.giftVaultLiveBridge = {
     snapshot: () => currentUser ? ({
-      user: { name: currentUser.name, email: currentUser.email, role: currentUser.role },
+      user: { id: currentUser.id, name: currentUser.name, email: currentUser.email, role: currentUser.role },
       canAdd: canCurrentUserAdd(),
       cards: state.coupons.map(c => ({
         id: c.id, store: c.store, account: c.account, type: c.type,
@@ -3798,6 +3798,8 @@
 </script>
 <script src="vault-enhancements.js" defer></script>
 <script src="vault-icons.js" defer></script>
+<script src="expiry-reminders.js" defer></script>
 <script src="wallet-live.js" defer></script>
+<script src="wallet-expiry-ui.js" defer></script>
 </body>
 </html>
