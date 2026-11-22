@@ -67,8 +67,10 @@ production readiness and backend email/push scheduling pending.
 - Filters live only in this browser tab and reset when the signed-in user changes;
   no extra Supabase schema, network API, or local storage is needed.
 - Sample-data preview covers active, expired, fully used and undated cards.
-- 16 focused F03 engine/UI tests added. 51 total JS tests plus isolated F07
-  PostgreSQL regression workflow passed at implementation review.
+- 17 focused F03 engine/UI tests added. 52 total JavaScript tests passed
+  in GitHub Actions, along with isolated F07 PostgreSQL regression tests.
+- Browser verification passed: Used / Expired card filters, balance sorting,
+  reset, visible text search and search clearing on sample cards.
 
 **Still pending:** validation with real Supabase users and database; optimized
 server-side pagination/search for very large vaults.
