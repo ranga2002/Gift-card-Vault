@@ -45,10 +45,15 @@ function sortCards(cards,sort="expiry-asc",now=new Date()){
   items.sort((a,b)=>{
     const amtA=Number(a.amount)||0,amtB=Number(b.amount)||0;
     const dA=days(a.expiry,now),dB=days(b.expiry,now);
-    const ea=dA===null?Infinity:dA,eb=dB===null?Infinity:dB;
     let order=0;
-    if(mode==="expiry-asc")order=ea-eb;
-    else if(mode==="expiry-desc")order=(dA===null?Infinity:0)-(dB===null?Infinity:0)||(dA===null?0:dB===null?0:dB-dA);
+    // An undated card always sorts AFTER cards with dates, even descending.
+    // Do not coerce Infinity into a tie: that moved no-expiry cards to the top.
+    if(mode==="expiry-asc"||mode==="expiry-desc"){
+      if(dA===null&&dB===null)order=0;
+      else if(dA===null)order=1;
+      else if(dB===null)order=-1;
+      else order=mode==="expiry-asc"?dA-dB:dB-dA;
+    }
     else if(mode==="balance-desc")order=amtB-amtA;
     else if(mode==="balance-asc")order=amtA-amtB;
     else if(mode==="store-asc")order=compareStr(a.store,b.store);

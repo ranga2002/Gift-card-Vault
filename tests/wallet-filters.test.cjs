@@ -56,7 +56,7 @@ test('balance min and max are inclusive, and zero balances can be queried',()=>{
  assert.deepEqual(ids({minBalance:'200'}),[]);
 });
 test('combined query + status + account + expiry + balance + sorting',()=>{
- assert.deepEqual(ids({query:'gift',status:'active',account:'Personal',expiry:'30',minBalance:'20',maxBalance:'160',sort:'balance-desc'}),['a2']);
+ assert.deepEqual(ids({query:'holiday',status:'active',account:'Personal',expiry:'30',minBalance:'20',maxBalance:'160',sort:'balance-desc'}),['a2']);
  assert.deepEqual(ids({store:'Walmart',account:'Personal'}),[]);
 });
 test('sort balance ascending and descending is stable and nonmutating',()=>{
