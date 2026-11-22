@@ -21,6 +21,34 @@
   concurrency tests. Both sets of checks pass.
 - This is **not** verification against an actual Supabase staging project.
 
+## F02 — Smart expiry notifications (in-app phase)
+
+**Code implemented on the feature branch; no Supabase access or production rollout.**
+
+- Calculates local calendar-day expiry stages at 30, 15, 7, 3 and 1 days,
+  plus expiry day and past-due active cards.
+- Alert center in the signed-in wallet, accessible from the header bell.
+- Read, snooze to the next day, dismiss, and a compact local action history.
+- Global on-device enable/disable and timing preferences, plus per-card
+  enable/disable and optional custom reminder timing.
+- Account-scoped device storage contains only alert identifiers, dates and
+  preferences, not merchant names, amounts or redemption codes.
+- Existing Supabase access-request notifications remain available via
+  the alert center's **Account notifications** button.
+- Sample-data interactive preview uses dates relative to the day it opens.
+- 13 new reminder tests; 35/35 total Node tests passed in GitHub Actions.
+  Isolated F07 PostgreSQL integration tests continue to pass.
+- Browser preview verified alert badges, actions, preference controls and
+  card-level reminder settings.
+
+**Not built yet:** Background delivery while closed, scheduled email or push,
+server-side durable preferences and cross-device synchronization. These
+require a backend job/scheduler and database access. Browser device storage
+can be cleared independently of the account.
+
+**F02 acceptance:** in-app reminder milestone implemented and smoke tested;
+production readiness and backend email/push scheduling pending.
+
 ## Deployment gate — do not skip
 
 1. Do NOT apply the F07 migration to production before testing in staging.
@@ -40,5 +68,6 @@
 - Execute F07 staging Supabase-specific integration and full regression tests
   (the isolated PostgreSQL CI checks already pass).
 - Add atomic balance-adjustment RPC and cursor-based ledger pagination.
-- Smart expiry delivery, multi-currency data, scanning/OCR, barcode/QR display,
-  family isolation, advanced analytics and database integration tests.
+- F02 server-side email/push delivery and durable cross-device preferences.
+- Multi-currency data, scanning/OCR, barcode/QR display, family isolation,
+  advanced analytics and full Supabase integration tests.
