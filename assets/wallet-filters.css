@@ -24,3 +24,5 @@
 .wl-root .wl-filter-grid select,.wl-root .wl-filter-grid input{padding:9px 8px;font-size:12px}
 }
 @media(max-width:345px){.wl-root .wl-filter-grid{grid-template-columns:1fr}}
+
+.wl-root .wl-currency-note{font-size:12px;line-height:1.5;color:#bfdbeb;background:#20374b;padding:10px 12px;border-radius:12px}
