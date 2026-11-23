@@ -1296,16 +1296,61 @@
     </div>
     <div id="spendModalInfo" style="margin-bottom:14px; font-size:14px; color:var(--text-muted);"></div>
     <div class="form-group" style="margin-bottom:14px;">
-      <label>How much did you spend from this balance? (₹)</label>
-      <input type="number" step="0.01" min="0" id="spendAmountInput" class="form-control" placeholder="Enter amount spent..." />
+      <label id="spendCardDebitLabel" for="spendAmountInput">Card amount deducted (card currency)</label>
+      <input type="number" step="0.01" min="0.01" id="spendAmountInput" class="form-control" placeholder="Amount from card balance" />
+    </div>
+    <div class="form-group" style="margin-bottom:14px;">
+      <label for="spendCurrencySelect">Merchant checkout currency</label>
+      <select id="spendCurrencySelect" class="form-control" onchange="updateSpendCurrencyUi()">
+        <option value="INR">INR (₹)</option>
+        <option value="CAD">CAD (CA$)</option>
+        <option value="USD">USD (US$)</option>
+      </select>
+      <p id="spendCurrencyMessage" style="font-size:12px;margin-top:8px;line-height:1.5;" aria-live="polite"></p>
+    </div>
+    <div class="form-group" id="spendSettlementRow" style="margin-bottom:14px;display:none;">
+      <label for="spendSettlementAmount">Amount actually charged by merchant (checkout currency)</label>
+      <input type="number" step="0.01" min="0.01" id="spendSettlementAmount" class="form-control" placeholder="From merchant receipt or issuer terms" />
+      <small style="color:var(--text-muted);">No automatic FX conversion. Use the merchant-confirmed amount.</small>
     </div>
     <div style="display:flex; justify-content:space-between; gap:8px; flex-wrap:wrap;">
-      <button class="btn btn-amber" onclick="confirmFullUse()">✅ Mark 100% Used</button>
+      <button class="btn btn-amber" id="spendFullButton" onclick="confirmFullUse()">Mark 100% Used</button>
       <div style="display:flex; gap:8px;">
         <button class="btn" onclick="closeSpendModal()">Cancel</button>
-        <button class="btn btn-primary" onclick="confirmPartialSpend()">Deduct &amp; Log</button>
+        <button class="btn btn-primary" id="spendPartialButton" onclick="confirmPartialSpend()">Deduct &amp; Log</button>
       </div>
     </div>
+  </div>
+</div>
+
+<!-- ISSUER-VERIFIED, CARD-SPECIFIC CROSS-CURRENCY PERMISSIONS -->
+<div class="modal-backdrop" id="currencyApprovalModalBackdrop">
+  <div class="modal" style="max-width:520px;">
+    <div class="modal-header">
+      <h2 id="currencyApprovalTitle" style="font-size:18px;font-weight:800;">Verify issuer currency eligibility</h2>
+      <button class="btn btn-sm" type="button" onclick="closeCurrencyApprovalModal()">Close</button>
+    </div>
+    <p style="font-size:12px;color:var(--text-muted);line-height:1.5;">
+      Never assume a brand accepts gift cards from another country or currency.
+      Verify this exact card product with the issuer. Approval permits wallet
+      tracking only, not actual merchant acceptance.
+    </p>
+    <form onsubmit="saveCurrencyIssuerApproval(event)">
+      <label for="currencyApprovalTarget">Permitted merchant checkout currency</label>
+      <select id="currencyApprovalTarget" class="form-control" required></select>
+      <label for="currencyEvidenceUrl" style="margin-top:12px;display:block;">Issuer's official terms / written confirmation (HTTPS URL)</label>
+      <input id="currencyEvidenceUrl" class="form-control" type="url" required maxlength="2000" placeholder="https://issuer.example/official-terms" />
+      <label for="currencyApprovalNote" style="margin-top:12px;display:block;">Confirmation details for this card product</label>
+      <textarea id="currencyApprovalNote" class="form-control" required minlength="12" maxlength="1000" placeholder="Exact card product, region, and issuer-approved currency pair"></textarea>
+      <label for="currencyApprovalUntil" style="margin-top:12px;display:block;">Verification expiry (optional)</label>
+      <input id="currencyApprovalUntil" class="form-control" type="date" />
+      <label style="display:flex;gap:9px;margin:13px 0;align-items:start;font-size:12px;">
+        <input id="currencyVerificationConfirmed" type="checkbox" required />
+        I checked the issuer's terms for this exact card and checkout currency.
+      </label>
+      <button class="btn btn-primary" type="submit">Save verified issuer permission</button>
+    </form>
+    <div id="currencyApprovalExisting" style="margin-top:15px;" aria-live="polite"></div>
   </div>
 </div>
 
