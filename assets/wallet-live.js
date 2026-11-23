@@ -100,7 +100,21 @@ function filterControlChange(e){
   if(!target.id.startsWith("wl-filter-"))return;
   const key=target.id.slice("wl-filter-".length);
   if(!filterFieldIds.includes(key))return;
-  filters=filterApi.normalize({...filters,[key]:target.value});
+  const currentData=snap();
+  const distinct=new Set((currentData?.cards||[]).map(c=>c.currency||"INR"));
+  const mixed=distinct.size>1;
+  if(mixed&&filters.currency==="all"&&
+    ((key==="sort"&&target.value.startsWith("balance"))||
+     ((key==="minBalance"||key==="maxBalance")&&target.value!==""))){
+    alert("Select one card currency before comparing balances. INR, CAD and USD cannot be compared without a documented FX rate.");
+    target.value=filters[key];return;
+  }
+  const nextFields={...filters,[key]:target.value};
+  if(mixed&&key==="currency"&&target.value==="all"&&
+     (filters.sort.startsWith("balance")||filters.minBalance!==""||filters.maxBalance!=="")){
+    nextFields.sort="expiry-asc";nextFields.minBalance="";nextFields.maxBalance="";
+  }
+  filters=filterApi.normalize(nextFields);
   index=0;
   render();
 }
