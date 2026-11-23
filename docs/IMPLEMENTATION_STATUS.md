@@ -158,7 +158,7 @@ specific issuer evidence, not because another branch or location uses the brand.
   flow; sample code/PIN is discarded and demo data stays in memory.
 - Browser flow verified: fictional CAD 75, expiry 2027-11-30 and masked
   identifier; sample card added only after second confirmation, and fields
-  cleared on reopening. **86 JavaScript tests passed** at first F05 CI run.
+  cleared on reopening. **87 JavaScript tests passed** at first F05 CI run.
 
 **Outstanding:** Real-device photo/OCR accuracy and HEIC compatibility,
 third-party OCR trust/deployment policy, mobile camera testing, live
