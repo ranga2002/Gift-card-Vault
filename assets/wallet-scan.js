@@ -139,6 +139,7 @@ async function enhancedOCR(){
     worker=await tesseract.createWorker("eng",1,{logger:m=>{
       if(ticket===serial&&m.status==="recognizing text")status("Reading the image: "+Math.round(100*(m.progress||0))+"%");
     }});
+    if(ticket!==serial)return; // user cancelled while the worker downloaded
     const out=await worker.recognize(file);
     if(ticket!==serial)return;
     const text=String(out?.data?.text||"").slice(0,api.MAX_TEXT);

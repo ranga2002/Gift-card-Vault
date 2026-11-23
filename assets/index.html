@@ -1567,6 +1567,7 @@
         return;
       }
       if (event === "SIGNED_OUT") {
+        window.GiftVaultScan?.close();
         currentUser = null;
         state = { updatedAt: 0, members: [], coupons: [], logs: [] };
         if (!pendingInviteToken) {
@@ -1852,6 +1853,7 @@
   }
 
   async function logoutCurrentUser() {
+    window.GiftVaultScan?.close();
     stopNotificationsSync();
     revealedSecrets = {};
     currentUser = null;
