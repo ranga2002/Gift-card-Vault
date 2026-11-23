@@ -115,6 +115,27 @@ scheduled exchange-rate integrations. These are intentionally separate concerns.
 The product records eligibility only after a trusted administrator documents
 specific issuer evidence, not because another branch or location uses the brand.
 
+## F06 — Barcode / QR display (optional, deferred)
+
+**Priority:** Optional / post-launch enhancement. **Status:** Not implemented.
+
+- Remove F06 from the mandatory MVP and production-readiness gates.
+- Do not fabricate payment-accepted barcodes or QR codes from arbitrary
+  gift-card numbers; issuer formats and country-specific acceptance matter.
+- Revisit only when real users have cards whose issuers provide a legitimate
+  barcode/QR format or official scannable image.
+- When revisited, prefer exact issuer-provided codes and secured reveal over
+  generating an unsupported format. Existing card-number/PIN handling remains.
+- No F06 implementation is needed before shipping the core gift-card vault.
+
+## Next development milestone — F05 scanning and capture
+
+Start with safe, optional receipt/card-image intake and extraction of candidate
+metadata for user confirmation; never automatically save card numbers, PINs,
+balances or currency based on OCR guesses. Prefer on-device processing where
+feasible and do not transmit private gift-card codes to unvetted third parties.
+Keep backend/database functionality staged until Supabase access is restored.
+
 ## Deployment gate — do not skip
 
 1. Do NOT apply the F07 migration to production before testing in staging.
@@ -136,5 +157,6 @@ specific issuer evidence, not because another branch or location uses the brand.
 - Add atomic balance-adjustment RPC and cursor-based ledger pagination.
 - F02 server-side email/push delivery and durable cross-device preferences.
 - F04 multi-currency issuer eligibility regression with real Supabase users.
-- Scanning/OCR, barcode/QR display, family isolation, advanced analytics and
-  full Supabase integration tests.
+- F05 optional receipt/card scanning and extraction workflow, then family
+  isolation, advanced analytics and full Supabase integration tests.
+- F06 barcode/QR display remains optional/post-launch, not an MVP blocker.
