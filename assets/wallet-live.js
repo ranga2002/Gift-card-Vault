@@ -2,7 +2,9 @@
 (function(){
 "use strict";
 const $=id=>document.getElementById(id);
-const money=n=>new Intl.NumberFormat("en-IN",{style:"currency",currency:"INR",maximumFractionDigits:2}).format(Number(n)||0);
+const currencyApi=window.GiftVaultCurrency;
+if(!currencyApi){console.error("Currency protection module missing");return;}
+const money=(n,c)=>currencyApi.format(n,c);
 const esc=s=>String(s==null?"":s).replace(/[&<>"']/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch]));
 const dateText=d=>d?new Date(d+"T00:00:00").toLocaleDateString("en-IN",{day:"numeric",month:"short",year:"numeric"}):"No expiry";
 const days=d=>d?Math.round((new Date(d+"T00:00:00")-new Date(new Date().toDateString()))/86400000):Infinity;
@@ -41,11 +43,12 @@ return [
 '<label>Store<select id="wl-filter-store"><option value="all">All stores</option></select></label>',
 '<label>Account<select id="wl-filter-account"><option value="all">All accounts</option></select></label>',
 '<label>Card type<select id="wl-filter-type"><option value="all">All types</option></select></label>',
+'<label>Currency<select id="wl-filter-currency"><option value="all">All currencies</option><option value="INR">INR</option><option value="CAD">CAD</option><option value="USD">USD</option></select></label>',
 '<label>Status<select id="wl-filter-status"><option value="active">Active</option><option value="all">All statuses</option><option value="used">Used</option><option value="expired">Expired</option></select></label>',
 '<label>Expiry<select id="wl-filter-expiry"><option value="any">Any expiry</option><option value="7">Next 7 days</option><option value="14">Next 14 days</option><option value="30">Next 30 days</option><option value="none">No expiry date</option><option value="expired">Past expiry</option></select></label>',
 '<label>Sort by<select id="wl-filter-sort"><option value="expiry-asc">Expires soonest</option><option value="expiry-desc">Expires latest</option><option value="balance-desc">Balance: high to low</option><option value="balance-asc">Balance: low to high</option><option value="store-asc">Store A to Z</option><option value="store-desc">Store Z to A</option><option value="newest">Recently added</option><option value="account-asc">Account A to Z</option></select></label>',
-'<label>Minimum balance (INR)<input type="number" id="wl-filter-minBalance" min="0" step="0.01" inputmode="decimal" placeholder="No minimum"></label>',
-'<label>Maximum balance (INR)<input type="number" id="wl-filter-maxBalance" min="0" step="0.01" inputmode="decimal" placeholder="No maximum"></label>',
+'<label>Minimum balance (card currency)<input type="number" id="wl-filter-minBalance" min="0" step="0.01" inputmode="decimal" placeholder="No minimum"></label>',
+'<label>Maximum balance (card currency)<input type="number" id="wl-filter-maxBalance" min="0" step="0.01" inputmode="decimal" placeholder="No maximum"></label>',
 '</div></div>',
 '<div id="wl-metrics" class="wl-metrics"></div><div class="wl-columns"><div><div class="wl-section-title"><h2>Featured card</h2><span>Tap to open</span></div><div class="wl-stack"><div class="wl-shadow one"></div><div class="wl-shadow two"></div><button type="button" id="wl-featured" data-act="details"></button></div>',
 '<div class="wl-arrows"><button data-act="previous" type="button" aria-label="Previous card">',icon("left"),'</button><span id="wl-pos"></span><button data-act="next" type="button" aria-label="Next card">',icon("right"),'</button></div>',
@@ -64,7 +67,7 @@ function snap(){return adapter&&adapter.snapshot();}
 function choices(s){return filterApi.filter(s.cards,filters);}
 function filteredOther(s){return filterApi.filter(s.cards,{...filters,status:"all"});}
 
-const filterFieldIds=["store","account","type","status","expiry","sort","minBalance","maxBalance"];
+const filterFieldIds=["store","account","type","currency","status","expiry","sort","minBalance","maxBalance"];
 function syncFilters(cards){
   const opts=filterApi.options(cards);
   for(const [field,values] of [["store",opts.stores],["account",opts.accounts],["type",opts.types]]){
@@ -80,7 +83,7 @@ function syncFilters(cards){
     }
     if(select.value!==current)select.value=current;
   }
-  for(const field of ["status","expiry","sort","minBalance","maxBalance"]){
+  for(const field of ["currency","status","expiry","sort","minBalance","maxBalance"]){
     const control=$("wl-filter-"+field);
     if(control&&control!==document.activeElement&&control.value!==filters[field])control.value=filters[field];
   }
@@ -101,9 +104,9 @@ function filterControlChange(e){
   index=0;
   render();
 }
-function moneySum(cs){return cs.reduce((s,c)=>s+Number(c.amount||0),0);}
+function walletTotals(cs){return currencyApi.summary(cs);}
 function metric(a,b,c){return '<div class="wl-metric"><small>'+esc(a)+'</small><strong>'+esc(b)+'</strong><span>'+esc(c)+'</span></div>';}
-function row(c){const d=days(c.expiry);const sub=c.expiry?(d<0?"Expired":d===0?"Expires today":d===1?"Tomorrow":d+" days left"):"No expiry";return '<button class="wl-row" data-act="open" data-id="'+esc(c.id)+'" type="button"><span class="wl-row-logo" style="background:'+theme(c.store)+'">'+esc(c.store.slice(0,1).toUpperCase())+'</span><span class="wl-row-copy"><strong>'+esc(c.store)+'</strong><small>'+esc(c.account)+' · '+esc(sub)+'</small></span><b>'+money(c.amount)+'</b></button>';}
+function row(c){const d=days(c.expiry);const sub=c.expiry?(d<0?"Expired":d===0?"Expires today":d===1?"Tomorrow":d+" days left"):"No expiry";return '<button class="wl-row" data-act="open" data-id="'+esc(c.id)+'" type="button"><span class="wl-row-logo" style="background:'+theme(c.store)+'">'+esc(c.store.slice(0,1).toUpperCase())+'</span><span class="wl-row-copy"><strong>'+esc(c.store)+'</strong><small>'+esc(c.account)+' · '+esc(sub)+'</small></span><b>'+money(c.amount,c.currency)+'</b></button>';}
 function render(){
 if(!root||root.hidden)return;const s=snap();if(!s){hide();return;}
 if(lastAccount!==s.user.id){
@@ -116,18 +119,18 @@ const cards=s.cards.filter(active),show=choices(s),other=filteredOther(s),
 if(index>=show.length)index=0;
 syncFilters(s.cards);
 $("wl-filter-results").textContent="Showing "+show.length+" of "+s.cards.length+" cards";
-$("wl-metrics").innerHTML=metric("Available",money(moneySum(cards)),cards.length+" active cards")+metric("Expiring in 14 days",exp.length+" cards",money(moneySum(exp))+" remaining")+metric("Total saved",s.cards.length+" cards","Shared vault");
-$("wl-insights-metrics").innerHTML=metric("Available",money(moneySum(cards)),"Active balances")+metric("Active cards",cards.length,"Ready to use")+metric("Expiring soon",exp.length,"Within 14 days");
+$("wl-metrics").innerHTML=metric("Available",walletTotals(cards),cards.length+" active cards")+metric("Expiring in 14 days",exp.length+" cards",walletTotals(exp)+" remaining")+metric("Total saved",s.cards.length+" cards","Shared vault");
+$("wl-insights-metrics").innerHTML=metric("Available",walletTotals(cards),"Active balances")+metric("Active cards",cards.length,"Ready to use")+metric("Expiring soon",exp.length,"Within 14 days");
 const current=show[index],featured=$("wl-featured");
-if(current){featured.disabled=false;featured.style.background=theme(current.store);featured.innerHTML='<div><small>'+esc(current.type)+'</small><strong>'+esc(current.store)+'</strong><span>'+esc(current.account)+'</span></div><div class="wl-featured-bottom"><div><small>Balance</small><strong>'+money(current.amount)+'</strong></div><div><small>Expires</small><b>'+esc(dateText(current.expiry))+'</b></div></div>';}
+if(current){featured.disabled=false;featured.style.background=theme(current.store);featured.innerHTML='<div><small>'+esc(current.type)+'</small><strong>'+esc(current.store)+'</strong><span>'+esc(current.account)+'</span></div><div class="wl-featured-bottom"><div><small>Balance</small><strong>'+money(current.amount,current.currency)+'</strong></div><div><small>Expires</small><b>'+esc(dateText(current.expiry))+'</b></div></div>';}
 else{featured.disabled=true;featured.style.background="#28364b";featured.innerHTML='<strong>No matching cards</strong>';}
 $("wl-pos").textContent=show.length?(index+1)+" of "+show.length:"No cards";$("wl-count").textContent=show.length+" cards";
-$("wl-cards").innerHTML=show.map(c=>'<button type="button" class="wl-tile" data-act="open" data-id="'+esc(c.id)+'" style="background:'+theme(c.store)+'"><strong>'+esc(c.store)+'</strong><span>'+money(c.amount)+'</span><small>'+esc(c.type)+' · '+esc(dateText(c.expiry))+' · '+esc(filterApi.statusOf(c))+'</small></button>').join("")||'<p class="wl-empty">No cards match your filters. <button class="wl-inline-clear" data-act="reset-filters" type="button">Clear filters</button></p>';
+$("wl-cards").innerHTML=show.map(c=>'<button type="button" class="wl-tile" data-act="open" data-id="'+esc(c.id)+'" style="background:'+theme(c.store)+'"><strong>'+esc(c.store)+'</strong><span>'+money(c.amount,c.currency)+'</span><small>'+esc(c.type)+' · '+esc(dateText(c.expiry))+' · '+esc(filterApi.statusOf(c))+'</small></button>').join("")||'<p class="wl-empty">No cards match your filters. <button class="wl-inline-clear" data-act="reset-filters" type="button">Clear filters</button></p>';
 $("wl-upcoming").innerHTML=up.slice(0,5).map(row).join("")||'<p class="wl-empty">Nothing expiring within 30 days.</p>';
 $("wl-expiring-list").innerHTML=exp.map(row).join("")||'<p class="wl-empty">No cards expiring within 14 days.</p>';
 $("wl-history-list").innerHTML=other.filter(c=>!active(c)).map(row).join("")||'<p class="wl-empty">No used or expired cards match your search.</p>';
-const grouped=new Map();cards.forEach(c=>grouped.set(c.store,(grouped.get(c.store)||0)+Number(c.amount||0)));
-$("wl-stores").innerHTML=[...grouped.entries()].sort((a,b)=>b[1]-a[1]).map(([store,value])=>'<div class="wl-store"><span>'+esc(store)+'</span><strong>'+money(value)+'</strong></div>').join("")||'<p class="wl-empty">No active balances yet.</p>';
+const grouped=new Map();cards.forEach(c=>{if(!grouped.has(c.store))grouped.set(c.store,[]);grouped.get(c.store).push(c);});
+$("wl-stores").innerHTML=[...grouped.entries()].sort((a,b)=>b[1]-a[1]).map(([store,value])=>'<div class="wl-store"><span>'+esc(store)+'</span><strong>'+walletTotals(value)+'</strong></div>').join("")||'<p class="wl-empty">No active balances yet.</p>';
 $("wl-members").innerHTML=s.members.map(m=>'<div class="wl-member"><span>'+esc((m.name||"?").slice(0,1).toUpperCase())+'</span><div><strong>'+esc(m.name)+'</strong><small>'+esc(m.role)+(m.isPendingInvite?" · invited":"")+'</small></div></div>').join("");
 $("wl-manage").hidden=s.user.role!=="super_admin";$("wl-backup").hidden=s.user.role!=="super_admin";root.querySelectorAll('[data-act="add"]').forEach(b=>b.hidden=!s.canAdd);
 $("wl-account").textContent=s.user.email;$("wl-role").textContent=s.user.role;
@@ -148,10 +151,10 @@ const historyHtml=!s.historyAvailable
      const date=new Date(t.createdAt);
      return '<div class="wl-ledger-row"><div><strong>'+label+'</strong><small>'+
        esc(Number.isNaN(+date)?"Unknown date":date.toLocaleString("en-IN",{dateStyle:"medium",timeStyle:"short"}))+
-       ' · '+money(t.balanceBefore)+' → '+money(t.balanceAfter)+'</small></div><b>'+
-       prefix+money(Math.abs(t.amountDelta))+'</b></div>';
+       ' · '+money(t.balanceBefore,t.currency)+' → '+money(t.balanceAfter,t.currency)+'</small></div><b>'+
+       prefix+money(Math.abs(t.amountDelta),t.currency)+'</b></div>';
    }).join("") : '<p class="wl-empty">No transactions recorded yet.</p>';
-$("wl-dialog-body").innerHTML='<div class="wl-detail-art" style="background:'+theme(c.store)+'"><small>'+esc(c.type)+'</small><h3>'+esc(c.store)+'</h3><strong>'+money(c.amount)+'</strong></div><div class="wl-detail-grid"><div><small>Account</small><strong>'+esc(c.account)+'</strong></div><div><small>Expiry</small><strong>'+esc(dateText(c.expiry))+'</strong></div></div>'+(c.notes?'<p>'+esc(c.notes)+'</p>':'')+'<div class="wl-code"><div><small>Redemption code</small><strong id="wl-code-value">•••• •••• ••••</strong></div><div id="wl-code-action">'+(!c.hasSecretCode?'No code saved':access?'<button type="button" data-act="reveal">Reveal code</button>':'<button type="button" data-act="request">Request access</button>')+'</div></div><div class="wl-detail-actions"><button type="button" data-act="remind-detail">Calendar</button><button type="button" data-act="expiry-settings">Expiry alerts</button>'+(spend?'<button type="button" data-act="spend">Spend / deduct</button>':'')+(edit?'<button type="button" data-act="edit">Edit</button>':'')+'</div><div class="wl-ledger"><h3>Transaction history</h3>'+historyHtml+'</div>';
+$("wl-dialog-body").innerHTML='<div class="wl-detail-art" style="background:'+theme(c.store)+'"><small>'+esc(c.type)+'</small><h3>'+esc(c.store)+'</h3><strong>'+money(c.amount,c.currency)+'</strong></div><div class="wl-detail-grid"><div><small>Account</small><strong>'+esc(c.account)+'</strong></div><div><small>Expiry</small><strong>'+esc(dateText(c.expiry))+'</strong></div></div>'+(c.notes?'<p>'+esc(c.notes)+'</p>':'')+'<div class="wl-code"><div><small>Redemption code</small><strong id="wl-code-value">•••• •••• ••••</strong></div><div id="wl-code-action">'+(!c.hasSecretCode?'No code saved':access?'<button type="button" data-act="reveal">Reveal code</button>':'<button type="button" data-act="request">Request access</button>')+'</div></div><div class="wl-detail-actions"><button type="button" data-act="remind-detail">Calendar</button><button type="button" data-act="expiry-settings">Expiry alerts</button>'+(spend?'<button type="button" data-act="spend">Spend / deduct</button>':'')+(edit?'<button type="button" data-act="edit">Edit</button>':'')+'</div><div class="wl-ledger"><h3>Transaction history</h3>'+historyHtml+'</div>';
 $("wl-overlay").hidden=false;$("wl-overlay").querySelector(".wl-dialog-top button").focus();
 }
 function closeDetails(){if(detailId)adapter.hideCode(detailId);detailId=null;$("wl-overlay").hidden=true;$("wl-dialog-body").replaceChildren();}

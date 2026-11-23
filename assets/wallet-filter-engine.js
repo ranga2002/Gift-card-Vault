@@ -10,11 +10,12 @@
 const sorts=["expiry-asc","expiry-desc","balance-desc","balance-asc","store-asc","store-desc","newest","account-asc"];
 const statuses=["active","all","used","expired"];
 const windows=["any","7","14","30","none","expired"];
-function defaults(){return {query:"",store:"all",account:"all",type:"all",status:"active",expiry:"any",minBalance:"",maxBalance:"",sort:"expiry-asc"};}
+function defaults(){return {query:"",store:"all",account:"all",type:"all",currency:"all",status:"active",expiry:"any",minBalance:"",maxBalance:"",sort:"expiry-asc"};}
 function normalize(raw){
   const s=raw&&typeof raw==="object"?raw:{},out=defaults();
   out.query=String(s.query||"").trim().slice(0,180);
   for(const name of ["store","account","type"]){const v=String(s[name]??"all");out[name]=v==="all"?"all":v.slice(0,150);}
+  out.currency=["all","INR","CAD","USD"].includes(s.currency)?s.currency:"all";
   out.status=statuses.includes(s.status)?s.status:"active";
   out.expiry=windows.includes(s.expiry)?s.expiry:"any";
   out.sort=sorts.includes(s.sort)?s.sort:"expiry-asc";
@@ -72,6 +73,7 @@ function filter(cards,raw={},now=new Date()){
     const status=statusOf(c,now),remaining=days(c.expiry,now);
     if(f.status!=="all"&&status!==f.status)return false;
     if(f.store!=="all"&&normText(c.store)!==normText(f.store))return false;
+    if(f.currency!=="all"&&(c.currency||"INR")!==f.currency)return false;
     if(f.account!=="all"&&normText(c.account)!==normText(f.account))return false;
     if(f.type!=="all"&&normText(c.type)!==normText(f.type))return false;
     // Only public metadata fields participate in search; never secret values.
@@ -90,6 +92,6 @@ function options(cards){
   function unique(field){return [...new Set((Array.isArray(cards)?cards:[]).map(c=>String(c&&c[field]||"").trim()).filter(Boolean))].sort(compareStr);}
   return {stores:unique("store"),accounts:unique("account"),types:unique("type")};
 }
-function activeCount(raw){const f=normalize(raw),d=defaults();return ["query","store","account","type","status","expiry","minBalance","maxBalance","sort"].filter(k=>f[k]!==d[k]).length;}
+function activeCount(raw){const f=normalize(raw),d=defaults();return ["query","store","account","type","currency","status","expiry","minBalance","maxBalance","sort"].filter(k=>f[k]!==d[k]).length;}
 return Object.freeze({sorts,statuses,windows,defaults,normalize,days,statusOf,sortCards,filter,options,activeCount});
 });
