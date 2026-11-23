@@ -3463,7 +3463,7 @@
       }
 
       await writeActivityLog("EDITED", `Updated ${store} (${account}) — ${formatCurrency(amount,currency)}`, `Expires ${expiry}`);
-      savedCouponForCal = { id: editId, store, account, type: benefitType, amount, expiry, notes };
+      savedCouponForCal = { id: editId, store, account, type: benefitType, amount, currency, expiry, notes };
     } else {
       const { data: inserted, error: insErr } = await supabaseClient
         .from("coupons")
@@ -3498,7 +3498,7 @@
       }
 
       await writeActivityLog("ADDED", `Added ${formatCurrency(amount,currency)} for ${store} (${account})`, `${benefitType} • ${codeVisibility === "private" ? "Private code" : "Public code"} • Expires ${expiry}`);
-      savedCouponForCal = { id: inserted.id, store, account, type: benefitType, amount, expiry, notes };
+      savedCouponForCal = { id: inserted.id, store, account, type: benefitType, amount, currency, expiry, notes };
     }
 
     closeCouponModal();
@@ -3874,6 +3874,7 @@
             benefit_type: String(item.type || "Gift Card / Wallet"),
             amount: Number(item.amount) || 0,
             initial_amount: Number(item.initialAmount || item.amount) || 0,
+            currency_code: ["INR","CAD","USD"].includes(item.currency) ? item.currency : "INR",
             expiry: item.expiry || getFutureDateStr(30),
             notes: String(item.notes || ""),
             status: item.status === "used" ? "used" : "active",

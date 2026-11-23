@@ -81,7 +81,7 @@
       const reaction=state.actions[id];
       const suppressed=reaction&&(reaction.status==='dismissed'||(reaction.status==='snoozed'&&reaction.until&&daysUntil(reaction.until,now)>0));
       if(suppressed)continue;
-      result.push({id,cardId:c.id,expiry:c.expiry,store:String(c.store||'Card'),account:String(c.account||''),amount:Number(c.amount),days:remaining,stage,unread:!reaction||reaction.status!=='read',level:remaining<=3?'urgent':remaining<=7?'warning':'upcoming'});
+      result.push({id,cardId:c.id,expiry:c.expiry,store:String(c.store||'Card'),account:String(c.account||''),amount:Number(c.amount),currency:c.currency||"INR",days:remaining,stage,unread:!reaction||reaction.status!=='read',level:remaining<=3?'urgent':remaining<=7?'warning':'upcoming'});
     }
     result.sort((a,b)=>a.days-b.days||a.store.localeCompare(b.store));
     return result;

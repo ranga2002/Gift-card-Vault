@@ -8,7 +8,7 @@ const api=window.GiftVaultExpiry;
 if(!api){console.error("Expiry reminder engine was not loaded");return;}
 const store=()=>{try{return window.localStorage;}catch{return null;}};
 const esc=x=>String(x==null?"":x).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-const currency=n=>new Intl.NumberFormat("en-IN",{currency:"INR",style:"currency",maximumFractionDigits:2}).format(Number(n)||0);
+const currency=(n,cur)=>window.GiftVaultCurrency?window.GiftVaultCurrency.format(n,cur||"INR"):String(n)+" "+(cur||"INR");
 let mounted=false,userId=null,settings=api.defaultState(),alerts=[],lastSnapshot=null,cardId=null;
 const statusText=a=>a.days<0?"Expired "+Math.abs(a.days)+" day"+(a.days===-1?"":"s")+" ago":a.days===0?"Expires today":a.days===1?"Expires tomorrow":"Expires in "+a.days+" days";
 const stageText=stage=>stage==="today"?"Expiry day":stage==="expired"?"Expired":stage+"-day reminder";
@@ -25,7 +25,7 @@ function evaluate(){const s=ensureAccount();alerts=s?api.evaluate(s.cards,settin
 function allAlertMarkup(a){
   return '<article class="wl-alert-item '+a.level+'">'+
    '<div class="wl-alert-head"><div class="wl-alert-text"><span class="wl-alert-severity">'+(a.days<=0?"Action needed":a.days<=3?"Urgent":a.days<=7?"Soon":"Upcoming")+'</span>'+
-   '<strong>'+esc(a.store)+'</strong><small>'+esc(statusText(a))+' · '+currency(a.amount)+'</small></div>'+
+   '<strong>'+esc(a.store)+'</strong><small>'+esc(statusText(a))+' · '+currency(a.amount,a.currency)+'</small></div>'+
    (a.unread?'<span class="wl-alert-dot" aria-label="Unread reminder"></span>':'<span class="wl-alert-seen">Read</span>')+'</div>'+
    '<div class="wl-alert-actions"><button type="button" data-expiry-action="open" data-alert="'+esc(a.id)+'">View card</button>'+
    (a.unread?'<button type="button" data-expiry-action="read" data-alert="'+esc(a.id)+'">Mark read</button>':'')+
