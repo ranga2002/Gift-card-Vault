@@ -9,7 +9,7 @@ const app=read('assets/index.html');
 const sql=read('supabase/migrations/20261120223000_atomic_redemption_history.sql');
 
 function makeHarness(options={}) {
-  const first=app.indexOf('let pendingRedemption = null;');
+  const first=app.indexOf('function updateSpendCurrencyUi(){');
   const last=app.indexOf('async function deleteCoupon(id)',first);
   assert.ok(first>=0&&last>first,'Redemption functions exist');
   const alerts=[],calls=[],buttons=[{disabled:false},{disabled:false},{disabled:false}];

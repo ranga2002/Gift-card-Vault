@@ -58,9 +58,13 @@ test('authenticated wallet view hooks into existing guarded Supabase actions',()
   assert.match(css,/#appScreen\.wallet-mode/);
   assert.doesNotMatch(wallet,/localStorage|sessionStorage|service_role|sb_secret_/);
 });
-test('wallet monetary totals use existing INR data until currency migration',()=>{
+test('wallet displays native INR/CAD/USD currency rather than assuming INR only',()=>{
   const wallet=read('assets/wallet-live.js');
-  assert.match(wallet,/currency:"INR"/);
+  const app=read('assets/index.html');
+  assert.match(wallet,/GiftVaultCurrency/);
+  assert.match(wallet,/walletTotals/);
+  assert.match(app,/currency_code/);
+  assert.match(app,/spendCurrencySelect/);
   assert.doesNotMatch(wallet,/C\$1,245\.00|Sample data only/);
 });
 
