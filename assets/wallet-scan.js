@@ -68,8 +68,12 @@ function close(){
   focusBefore=null;
 }
 async function selectFile(event){
-  clearImage();
+  // Capture the selected file BEFORE clearing the old input. Resetting a
+  // file input also clears its FileList, which otherwise silently drops the
+  // user's freshly selected photo.
   const f=event.target.files&&event.target.files[0];
+  const ticket=++serial;
+  clearImage();
   if(!f)return;
   if(!validTypes.has(f.type)){status("Use a JPG, PNG, WebP or supported HEIC/HEIF file. SVG and PDF are not supported.","error");return;}
   if(f.size<1||f.size>MAX_SIZE){status("Choose an image no larger than 8 MB.","error");return;}
@@ -77,10 +81,16 @@ async function selectFile(event){
   const img=get("gv-scan-preview");img.src=url;
   try{
     await img.decode();
+    // A discarded, replaced, or signed-out image must never reopen a stale
+    // preview or overwrite the status of another file.
+    if(ticket!==serial||file!==f||!root||root.hidden)return;
     if(img.naturalWidth*img.naturalHeight>MAX_PIXELS)throw new Error("Image too large");
     get("gv-scan-preview-wrap").hidden=false;
     status("Image loaded locally. Run OCR or enter details manually.");
-  }catch{clearImage();status("The image could not be decoded or is too large. Try a smaller JPG or PNG.","error");}
+  }catch{
+    if(ticket!==serial||file!==f||!root||root.hidden)return;
+    clearImage();status("The image could not be decoded or is too large. Try a smaller JPG or PNG.","error");
+  }
 }
 function display(p){
   result=p;

@@ -171,3 +171,12 @@ test('closing or logging out invalidates in-flight OCR and scrubs files',()=>{
  assert.match(app,/if \(event === "SIGNED_OUT"\) \{\s*window\.GiftVaultScan\?\.close\(\);/);
  assert.match(app,/async function logoutCurrentUser\(\) \{\s*window\.GiftVaultScan\?\.close\(\);/);
 });
+
+test('F05 selected image remains available after input cleanup and obsolete decode cannot repopulate the dialog',()=>{
+ const ui=file('assets/wallet-scan.js');
+ const s=ui.slice(ui.indexOf('async function selectFile(event){'),ui.indexOf('function display('));
+ assert.ok(s.indexOf('const f=event.target.files&&event.target.files[0];')<s.indexOf('clearImage();'));
+ assert.match(s,/const ticket=\+\+serial/);
+ assert.match(s,/if\(ticket!==serial\|\|file!==f\|\|!root\|\|root\.hidden\)return/);
+ assert.match(s,/URL\.createObjectURL\(f\)/);
+});

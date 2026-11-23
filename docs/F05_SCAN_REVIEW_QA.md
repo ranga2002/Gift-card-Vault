@@ -69,3 +69,11 @@
 - \`assets/wallet-live.js\` — wallet scanning entry point
 - \`tests/scan-extract.test.cjs\` — F05 regression tests
 - \`preview/functional-wallet.html\` — synthetic review flow
+
+## Additional regression safeguard
+
+- The image input now captures its `File` **before** clearing the previous
+  selection (clearing `input.value` empties its FileList).
+- Each image decode receives a cancellation ticket. An old decode cannot
+  change a newly opened dialog after the user closes, signs out, or chooses
+  another file. This should be exercised with slow image decoding on mobile.
