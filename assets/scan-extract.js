@@ -74,7 +74,7 @@ function extract(input){
   if(!raw.trim())return res;
   const merchant=[],amounts=[],currenciesFound=[],expiries=[],codes=[];
   const moneyLabels=/(?:gift\s*card\s*(?:balance|value|amount)?|e-?gift|voucher\s*(?:value|balance)?|stored\s*value|remaining\s*balance|available\s*balance|card\s*balance|balance|value|amount)/i;
-  const expLabels=/(?:expires?|expir(?:y|ation)?(?:\s*date)?|valid\s*(?:until|till|through)|use\s*by)/i;
+  const expLabels=/(?:\bexp\.?\b|\bexpires?\b|\bexpir(?:y|ation)\b|valid\s*(?:until|till|through)|use\s*by)/i;
   const cardCodeLabels=/(?:gift\s*card\s*(?:number|no\.?|#|code|id)|e-?gift\s*(?:code|number)|voucher\s*(?:code|number)|redemption\s*(?:code|number)|claim\s*code)/i;
   for(let i=0;i<lines.length;i++){
     const line=lines[i],lower=line.toLowerCase();
@@ -97,7 +97,9 @@ function extract(input){
         else warnings.push("Expiry date was ambiguous or invalid; enter it manually.");
       }
     }
-    if(moneyLabels.test(line)){
+    // Gift card numbers, serials and PINs are not balances.
+    const isIdentifier=/\b(?:gift\s*card|voucher|e-?gift)\s*(?:no\.?|number|#|code|id|pin|serial)\b/i.test(line);
+    if(moneyLabels.test(line)&&!isIdentifier){
       // Prefer an explicit currency-prefixed amount or a value after a label.
       let remainder=line.replace(/^.*?(?:gift\s*card\s*(?:balance|value|amount)?|e-?gift|voucher\s*(?:value|balance)?|stored\s*value|remaining\s*balance|available\s*balance|card\s*balance|balance|value|amount)\s*(?:[:=\-]|is)?\s*/i,"");
       let v=parseMoney(remainder);
