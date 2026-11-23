@@ -3009,6 +3009,7 @@
           </div>
           <div class="card-actions">
             <button class="btn btn-sm" onclick="openRedemptionHistoryModal('${c.id}')">History</button>
+            ${isCurrentUserSuperAdmin() ? `<button class="btn btn-sm" onclick="openCurrencyApprovalModal('${c.id}')">Issuer currency terms</button>` : ""}
             <button class="btn btn-sm btn-blue" onclick="openCalModal('${c.id}')">📅 Remind</button>
             ${(isCouponActive(c) && canCurrentUserAdd() && isCouponOwnerOrAdmin(c)) ? `<button class="btn btn-sm btn-amber" onclick="openSpendModal('${c.id}')">💸 Spend / Deduct</button>` : ""}
             ${canCurrentUserEditCoupon(c) ? `<button class="btn btn-sm" onclick="openEditCouponModal('${c.id}')">✏️ Edit</button>` : ""}
@@ -3536,6 +3537,83 @@
   }
 
 
+  let selectedCurrencyApprovalId=null;
+  function showIssuerCurrencyApprovals(id){
+    const container=document.getElementById("currencyApprovalExisting");
+    container.replaceChildren();
+    const existing=(state.currencyPermissions||[]).filter(p=>p.couponId===id&&p.active);
+    const title=document.createElement("p");
+    title.textContent=existing.length+" active card-specific issuer approval(s)";
+    container.append(title);
+    existing.forEach(p=>{
+      const line=document.createElement("div");
+      line.style.cssText="display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin-top:9px;";
+      const label=document.createElement("span");
+      label.textContent=p.sourceCurrency+" → "+p.targetCurrency+" (verified)";
+      const link=document.createElement("a");
+      link.textContent="Issuer evidence";
+      link.href=p.evidenceUrl;link.target="_blank";link.rel="noopener noreferrer";
+      const revoke=document.createElement("button");
+      revoke.type="button";revoke.className="btn btn-sm btn-danger";revoke.textContent="Revoke";
+      revoke.onclick=()=>revokeCurrencyIssuerApproval(id,p.targetCurrency);
+      line.append(label,link,revoke);container.append(line);
+    });
+  }
+  function openCurrencyApprovalModal(id){
+    if(!isCurrentUserSuperAdmin())return;
+    const card=state.coupons.find(c=>c.id===id);
+    if(!card)return;
+    selectedCurrencyApprovalId=id;
+    document.getElementById("currencyApprovalTitle").textContent=
+      card.store+" — verify "+card.currency+" card";
+    const select=document.getElementById("currencyApprovalTarget");
+    select.replaceChildren();
+    ["INR","CAD","USD"].filter(code=>code!==card.currency).forEach(code=>{
+      const option=document.createElement("option");option.value=code;option.textContent=code;select.append(option);
+    });
+    ["currencyEvidenceUrl","currencyApprovalNote","currencyApprovalUntil"]
+      .forEach(id=>{document.getElementById(id).value="";});
+    document.getElementById("currencyVerificationConfirmed").checked=false;
+    showIssuerCurrencyApprovals(id);
+    document.getElementById("currencyApprovalModalBackdrop").classList.add("show");
+  }
+  function closeCurrencyApprovalModal(){
+    selectedCurrencyApprovalId=null;
+    document.getElementById("currencyApprovalModalBackdrop").classList.remove("show");
+  }
+  async function saveCurrencyIssuerApproval(event){
+    event.preventDefault();
+    if(!isCurrentUserSuperAdmin()||!selectedCurrencyApprovalId||!supabaseClient)return;
+    if(!document.getElementById("currencyVerificationConfirmed").checked){
+      alert("Review the issuer's terms before granting a currency exception.");return;
+    }
+    const url=document.getElementById("currencyEvidenceUrl").value.trim();
+    const note=document.getElementById("currencyApprovalNote").value.trim();
+    const target=document.getElementById("currencyApprovalTarget").value;
+    const validUntil=document.getElementById("currencyApprovalUntil").value||null;
+    try{const parsed=new URL(url);
+      if(parsed.protocol!=="https:"||!parsed.hostname||note.length<12)throw Error("invalid");
+    }catch{alert("Provide a valid issuer HTTPS URL and an explanation of at least 12 characters.");return;}
+    const selected=selectedCurrencyApprovalId;
+    const {error}=await supabaseClient.rpc("approve_coupon_currency_exception",{
+      p_coupon_id:selected,p_target_currency:target,p_evidence_url:url,
+      p_issuer_approval_note:note,p_valid_until:validUntil
+    });
+    if(error){alert(error.message||"Issuer approval could not be saved.");return;}
+    await fetchVaultStatus();
+    if(selectedCurrencyApprovalId===selected)showIssuerCurrencyApprovals(selected);
+  }
+  async function revokeCurrencyIssuerApproval(id,currency){
+    if(!isCurrentUserSuperAdmin()||!supabaseClient)return;
+    if(!confirm("Revoke cross-currency permission for this gift card?"))return;
+    const {error}=await supabaseClient.rpc("revoke_coupon_currency_exception",{
+      p_coupon_id:id,p_target_currency:currency
+    });
+    if(error){alert(error.message||"Could not revoke permission.");return;}
+    await fetchVaultStatus();
+    if(selectedCurrencyApprovalId===id)showIssuerCurrencyApprovals(id);
+  }
+
   // The card debit is always in the original denomination. Different checkout
   // currency requires issuer-verification for this precise card and currency.
   function updateSpendCurrencyUi(){
@@ -3920,6 +3998,7 @@
     add: () => openCouponModal(),
     edit: id => openEditCouponModal(id),
     spend: id => openSpendModal(id),
+    approveCurrency: id => openCurrencyApprovalModal(id),
     remind: id => openCalModal(id),
     refresh: () => fetchVaultStatus(),
     legacy: view => switchMainView(view),
