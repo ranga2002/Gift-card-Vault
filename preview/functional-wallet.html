@@ -278,6 +278,57 @@
     transactions:[{id:"demo-t1",couponId:"card-b",type:"redemption",amountDelta:-20,balanceBefore:120,balanceAfter:100,currency:"USD",settlementCurrency:"USD",settlementAmount:20,createdAt:"2026-11-18T13:30:00Z"},{id:"demo-t2",couponId:"card-c",type:"adjustment",amountDelta:10,balanceBefore:80,balanceAfter:90,currency:"CAD",settlementCurrency:null,settlementAmount:null,createdAt:"2026-11-16T10:00:00Z"}]
   };
   const notify=message=>{const el=document.getElementById("demo-toast");el.textContent=message;el.hidden=false;clearTimeout(window.demoToastTimer);window.demoToastTimer=setTimeout(()=>el.hidden=true,3500)};
+
+  let demoSpendId=null;
+  function closeSampleSpend(){document.getElementById("demo-spend").hidden=true;demoSpendId=null;}
+  function updateSampleSpend(){
+    const c=demo.cards.find(x=>x.id===demoSpendId);if(!c)return;
+    const target=document.getElementById("demo-spend-currency").value;
+    const different=c.currency!==target;
+    const allowed=!different||Boolean(window.GiftVaultCurrency.approvedFor(c,target,demo.currencyPermissions));
+    document.getElementById("demo-merchant-wrap").hidden=!different;
+    document.getElementById("demo-spend-confirm").disabled=!allowed;
+    const message=document.getElementById("demo-spend-feedback");
+    message.style.color=allowed?"#a6edc7":"#ffc9a1";
+    message.textContent=!different
+      ?"Same card and checkout currency. Original-currency balance will be reduced."
+      :allowed
+        ?"FICTIONAL issuer approval for this exact test card. Enter the merchant-confirmed "+target+" amount. No FX rate assumed."
+        :"BLOCKED: No issuer-confirmed permission for "+c.currency+" → "+target+". The brand must explicitly allow this specific card.";
+  }
+  function openSampleSpend(id){
+    const c=demo.cards.find(x=>x.id===id);if(!c)return;
+    demoSpendId=id;
+    document.getElementById("demo-spend-title").textContent="Sample spend — "+c.store;
+    document.getElementById("demo-card-balance").textContent=window.GiftVaultCurrency.format(c.amount,c.currency)+" "+c.currency+" remaining";
+    document.getElementById("demo-spend-debit").value="";
+    document.getElementById("demo-merchant-charge").value="";
+    document.getElementById("demo-spend-currency").value=c.currency;
+    updateSampleSpend();
+    document.getElementById("demo-spend").hidden=false;
+  }
+  function submitSampleSpend(){
+    const c=demo.cards.find(x=>x.id===demoSpendId);if(!c)return;
+    const target=document.getElementById("demo-spend-currency").value;
+    const debit=document.getElementById("demo-spend-debit").value;
+    const charge=document.getElementById("demo-merchant-charge").value;
+    const r=window.GiftVaultCurrency.validate(c,target,debit,target===c.currency?null:charge,demo.currencyPermissions);
+    const message=document.getElementById("demo-spend-feedback");
+    if(!r.ok){message.textContent=r.message;message.style.color="#ffc9a1";return;}
+    const balanceBefore=c.amount;c.amount=+(c.amount-r.cardDebit).toFixed(2);
+    if(!c.amount)c.status="used";
+    demo.transactions.unshift({id:"demo-"+Date.now(),couponId:c.id,type:"redemption",
+      amountDelta:-r.cardDebit,balanceBefore,balanceAfter:c.amount,currency:c.currency,
+      settlementCurrency:r.target,settlementAmount:r.chargedAmount,createdAt:new Date().toISOString()});
+    closeSampleSpend();
+    window.walletLiveRefresh?.();
+    notify("SAMPLE ONLY: "+window.GiftVaultCurrency.format(r.cardDebit,c.currency)+" deducted from "+c.currency+" card; merchant checkout "+r.target+".");
+  }
+  document.addEventListener("DOMContentLoaded",()=>{
+    document.getElementById("demo-spend-currency")?.addEventListener("change",updateSampleSpend);
+    document.getElementById("demo-spend-confirm")?.addEventListener("click",submitSampleSpend);
+    document.getElementById("demo-spend-cancel")?.addEventListener("click",closeSampleSpend);
+  });
   window.giftVaultLiveBridge={
     snapshot:()=>demo,
     canEdit:()=>true,
@@ -288,7 +339,8 @@
     request:()=>notify("Access requests work after sign-in."),
     add:()=>{const store=prompt("Enter a sample store name:");if(!store||!store.trim())return;demo.cards.push({id:"new-"+demo.cards.length,store:store.trim().slice(0,35),account:"Personal",type:"Gift Card / Wallet",amount:1000,expiry:"2027-01-01",notes:"",status:"active",hasSecretCode:false,codeVisibility:"public",currency:"CAD"});window.walletLiveRefresh();notify("Sample card added to this preview.")},
     edit:()=>notify("Editing opens the existing secured form when signed in."),
-    spend:()=>notify("Redemptions use your account's permissions when connected."),
+    spend:id=>openSampleSpend(id),
+    approveCurrency:()=>notify("Issuer verification is admin-only in the real connected application."),
     remind:()=>notify("Expiry reminders open Google Calendar when signed in."),
     refresh:async()=>{notify("Sample wallet is up to date.")},
     legacy:()=>notify("Management screens are available after sign-in."),
@@ -297,6 +349,36 @@
   };
 })();
 </script>
+<style>
+#demo-spend[hidden],#demo-merchant-wrap[hidden]{display:none!important}
+#demo-spend{position:fixed;inset:0;z-index:2300;display:grid;place-items:center;background:rgba(2,8,16,.88);padding:15px}
+#demo-spend>div{background:#19283c;color:#f7fbff;max-width:480px;width:100%;border:1px solid #516982;border-radius:21px;padding:22px;max-height:90vh;overflow-y:auto;font-family:system-ui}
+#demo-spend label{display:block;font-weight:700;font-size:12px;margin-top:13px}
+#demo-spend input,#demo-spend select{width:100%;padding:11px;border:1px solid #4c6380;border-radius:11px;background:#112337;color:white;margin-top:6px;font:inherit}
+#demo-spend button{padding:11px 15px;border-radius:12px;background:#5cd4ab;border:0;color:#082c21;font-weight:800;cursor:pointer;margin-top:15px}
+#demo-spend button:disabled{opacity:.35;cursor:not-allowed}
+#demo-spend #demo-spend-cancel{background:#34465b;color:#edf7ff;margin-left:8px}
+</style>
+<div id="demo-spend" hidden>
+  <div role="dialog" aria-modal="true" aria-labelledby="demo-spend-title">
+    <h2 id="demo-spend-title" style="margin:0 0 5px;font-size:20px">Sample spend</h2>
+    <p id="demo-card-balance" style="color:#b5cedf;font-size:13px;margin:7px 0"></p>
+    <label for="demo-spend-debit">Card debit (always original card currency)</label>
+    <input type="number" id="demo-spend-debit" min="0.01" step="0.01" placeholder="e.g. 10.00">
+    <label for="demo-spend-currency">Merchant checkout currency</label>
+    <select id="demo-spend-currency">
+      <option value="CAD">CAD</option><option value="USD">USD</option><option value="INR">INR</option>
+    </select>
+    <div id="demo-merchant-wrap" hidden>
+      <label for="demo-merchant-charge">Actual merchant-charged amount (target currency)</label>
+      <input id="demo-merchant-charge" type="number" min="0.01" step="0.01" placeholder="From merchant receipt; no FX estimate">
+    </div>
+    <p id="demo-spend-feedback" role="status" style="font-size:12px;line-height:1.6"></p>
+    <p style="font-size:11px;color:#abc2d7">This is a fictional in-memory demonstration. No real card, charge or issuer approval is involved.</p>
+    <button type="button" id="demo-spend-confirm">Record sample spend</button>
+    <button type="button" id="demo-spend-cancel">Cancel</button>
+  </div>
+</div>
 <div id="demo-toast" hidden style="position:fixed;z-index:2500;bottom:90px;left:50%;transform:translateX(-50%);background:#d2ffeb;color:#123b30;padding:12px 16px;border-radius:12px;max-width:90%;font:700 13px system-ui"></div>
 <script>/* F02: device-local expiry reminder rules. No networking, secrets or push. */
 (function (root, factory) {
