@@ -22,14 +22,19 @@ function build(){
   get("gv-scan-parse").addEventListener("click",parseText);
   get("gv-scan-example").addEventListener("click",example);
   get("gv-scan-apply").addEventListener("click",apply);
-  root.addEventListener("click",e=>{if(e.target===root&&!busy)close();});
+  root.addEventListener("click",e=>{if(e.target===root)close();});
   document.addEventListener("keydown",e=>{if(e.key==="Escape"&&root&&!root.hidden&&!busy){e.preventDefault();close();}});
 }
 function status(text,kind="info"){const el=get("gv-scan-status");if(el){el.textContent=String(text);el.dataset.kind=kind;}}
 function setBusy(value){
   busy=value;
   if(!root)return;
-  root.querySelectorAll("button,input[type=file]").forEach(el=>{el.disabled=value;});
+  root.querySelectorAll("button,input[type=file]").forEach(el=>{
+    // Close/Discard remain available while expensive OCR runs. Closing
+    // invalidates the in-flight result before its asynchronous continuation.
+    if(el.id==="gv-scan-close"||el.id==="gv-scan-cancel")return;
+    el.disabled=value;
+  });
 }
 function clearImage(){
   if(url){URL.revokeObjectURL(url);url=null;}
@@ -54,8 +59,11 @@ function open(config={}){
   get("gv-scan-file").focus();
 }
 function close(){
-  if(!root||root.hidden||busy)return;
+  if(!root||root.hidden)return;
   root.hidden=true;clearData();handler=null;
+  // An OCR worker may still terminate asynchronously, but its ticket has
+  // been invalidated and cannot repopulate a new or signed-out session.
+  setBusy(false);
   if(focusBefore?.isConnected&&typeof focusBefore.focus==="function")focusBefore.focus();
   focusBefore=null;
 }
@@ -104,8 +112,8 @@ async function nativeOCR(){
     if(!detected.trim())throw Error("No readable text found. Try a clearer photo or enter values manually.");
     get("gv-scan-raw").value=detected.slice(0,api.MAX_TEXT);
     parseText();
-  }catch(err){status(err.message||"Could not read this image.","error");}
-  finally{if(bitmap?.close)bitmap.close();setBusy(false);}
+  }catch(err){if(ticket===serial)status(err.message||"Could not read this image.","error");}
+  finally{if(bitmap?.close)bitmap.close();if(ticket===serial)setBusy(false);}
 }
 function loadEnhancedOCR(){
   if(window.Tesseract?.createWorker)return Promise.resolve(window.Tesseract);
@@ -136,8 +144,8 @@ async function enhancedOCR(){
     const text=String(out?.data?.text||"").slice(0,api.MAX_TEXT);
     if(!text.trim())throw Error("No text found in the photo.");
     get("gv-scan-raw").value=text;parseText();
-  }catch(err){status("Enhanced OCR unavailable: "+(err.message||"unknown error")+". You can enter details manually.","error");}
-  finally{if(worker)try{await worker.terminate();}catch{}setBusy(false);}
+  }catch(err){if(ticket===serial)status("Enhanced OCR unavailable: "+(err.message||"unknown error")+". You can enter details manually.","error");}
+  finally{if(worker)try{await worker.terminate();}catch{}if(ticket===serial)setBusy(false);}
 }
 function example(){
   get("gv-scan-raw").value="STORE: Fictional Demo Market\nGIFT CARD BALANCE: CAD 75.00\nVALID UNTIL: 30 Nov 2027\nGIFT CARD NUMBER: DEMO-1234-5678\nPIN: 9999";
