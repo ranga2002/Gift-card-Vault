@@ -37,7 +37,7 @@ return [
 '<nav class="wl-nav" aria-label="Wallet navigation">',
 ...["wallet","expiring","insights","family","settings"].map((n,i)=>'<button type="button" class="'+(!i?"active":"")+'" data-tab="'+n+'">'+icon(n==="wallet"?"wallet":n==="expiring"?"clock":n==="insights"?"chart":n==="family"?"users":"settings")+'<span>'+n[0].toUpperCase()+n.slice(1)+'</span></button>'),
 '</nav><div class="wl-search" id="wl-search">',icon("search"),'<input type="search" id="wl-query" placeholder="Search stores and accounts" aria-label="Search"><button type="button" data-act="clear-search" aria-label="Clear search">',icon("x"),'</button></div>',
-'<section id="wl-view-wallet" class="wl-view"><div class="wl-title"><div><small>YOUR WALLET</small><h1>My cards</h1><p>Everything you need, all in one place.</p></div><button type="button" class="wl-add" data-act="add">',icon("plus"),'<span>Add card</span></button></div>',
+'<section id="wl-view-wallet" class="wl-view"><div class="wl-title"><div><small>YOUR WALLET</small><h1>My cards</h1><p>Everything you need, all in one place.</p></div><button type="button" class="wl-add" data-act="add">',icon("plus"),'<span>Add card</span></button><button type="button" class="wl-scan-entry" data-act="scan">Scan card / receipt</button></div>',
 '<div class="wl-filter-toolbar"><button class="wl-filter-trigger" type="button" data-act="toggle-filters" aria-controls="wl-filter-panel" aria-expanded="false">',icon("settings"),'<span>Filters</span><span class="wl-filter-active-count" id="wl-filter-active-count" hidden>0</span></button><button type="button" id="wl-clear-filters" data-act="reset-filters" hidden>Clear all</button><span class="wl-filter-result-count" id="wl-filter-results" role="status" aria-live="polite"></span></div>',
 '<div class="wl-filter-panel" id="wl-filter-panel" hidden><div class="wl-filter-grid">',
 '<label>Store<select id="wl-filter-store"><option value="all">All stores</option></select></label>',
@@ -184,6 +184,7 @@ if(name==="clear-search"){$("wl-query").value="";filters={...filters,query:""};i
 if(name==="open"||name==="details"||name==="code"){if(c)openDetails(c);return;}
 if(name==="close"){closeDetails();return;}
 if(name==="add"){adapter.add();return;}
+if(name==="scan"){if(snap()?.canAdd&&adapter.scan)adapter.scan();return;}
 if(name==="notifications"){
   if(window.walletExpiryOpenCenter){window.walletExpiryOpenCenter();return;}
   hide();adapter.legacy("notifications");return;

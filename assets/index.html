@@ -720,6 +720,7 @@
 <link rel="stylesheet" href="wallet-live.css" />
 <link rel="stylesheet" href="wallet-expiry-ui.css" />
 <link rel="stylesheet" href="wallet-filters.css" />
+<link rel="stylesheet" href="wallet-scan.css" />
 </head>
 <body>
 
@@ -1183,6 +1184,7 @@
       <h2 id="couponModalTitle" style="font-size:19px; font-weight:800;">➕ Add Coupon or Gift Card</h2>
       <button class="btn btn-sm" onclick="closeCouponModal()">✕ Close</button>
     </div>
+    <div class="gv-scan-add-row"><button type="button" class="btn gv-scan-launch" onclick="openGiftCardScan()">Scan a card or receipt</button></div>
     <form id="couponForm" onsubmit="saveCouponForm(event)">
       <input type="hidden" id="editCouponId" />
       <div class="form-grid">
@@ -1222,6 +1224,7 @@
         <div class="form-group">
           <label for="fCurrency">Gift card denomination *</label>
           <select id="fCurrency" class="form-control" required>
+            <option value="">Select currency</option>
             <option value="INR">INR — Indian Rupee (₹)</option>
             <option value="CAD">CAD — Canadian Dollar (CA$)</option>
             <option value="USD">USD — US Dollar (US$)</option>
@@ -3297,6 +3300,35 @@
     }
   }
 
+  function openGiftCardScan() {
+    if (!canCurrentUserAdd()) {
+      alert("Only contributors and administrators may add gift cards.");
+      return;
+    }
+    if (!window.GiftVaultScan) {
+      alert("Scanner is unavailable. Refresh the page and try again.");
+      return;
+    }
+    window.GiftVaultScan.open({
+      onApply: draft => {
+        // Create a NEW unsaved card draft. Never auto-submit to Supabase.
+        openCouponModal();
+        document.getElementById("fStore").value = draft.store || "";
+        document.getElementById("fAmount").value = draft.amount === null ? "" : String(draft.amount);
+        document.getElementById("fCurrency").value = draft.currency || "";
+        document.getElementById("fExpiry").value = draft.expiry || "";
+        if (draft.codeConfirmed && draft.code) {
+          document.getElementById("fCode").value = draft.code;
+          document.getElementById("fCodeVisibility").value = "private";
+        }
+        document.getElementById("fCurrencyHint").textContent =
+          "Please verify the denomination from the issuer; OCR is not proof of a card's currency.";
+        document.getElementById("couponModalTitle").textContent = "Review scanned card · Not saved";
+        document.getElementById("fStore").focus();
+      }
+    });
+  }
+
   function openCouponModal(prefillStore) {
     if (!canCurrentUserAdd()) {
       alert("🔒 Protected Action: Your account is set to 'Viewer Only'.");
@@ -3942,6 +3974,7 @@
   }
 
   window.handleAndroidBack = function() {
+    if (window.GiftVaultScan?.isOpen()) { window.GiftVaultScan.close(); return true; }
     if (window.walletLiveHandleBack && window.walletLiveHandleBack()) return true;
     const openModal = document.querySelector(".modal-backdrop.show");
     if (openModal) {
@@ -3997,6 +4030,7 @@
     hideCode: id => { if (id) hideCouponCode(id); },
     request: id => openRequestAccessModal(id),
     add: () => openCouponModal(),
+    scan: () => openGiftCardScan(),
     edit: id => openEditCouponModal(id),
     spend: id => openSpendModal(id),
     approveCurrency: id => openCurrencyApprovalModal(id),
@@ -4020,6 +4054,8 @@
 <script src="wallet-currency.js" defer></script>
 <script src="wallet-filter-engine.js" defer></script>
 <script src="wallet-live.js" defer></script>
+<script src="scan-extract.js" defer></script>
+<script src="wallet-scan.js" defer></script>
 <script src="wallet-expiry-ui.js" defer></script>
 </body>
 </html>
