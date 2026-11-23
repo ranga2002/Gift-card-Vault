@@ -160,3 +160,14 @@ test('service worker caches ONLY static scanner code and styling, not images or 
  assert.match(sw,/wallet-scan\.css/);
  assert.doesNotMatch(sw,/traineddata|scan-result|scan-photo|ocr-output/);
 });
+
+test('closing or logging out invalidates in-flight OCR and scrubs files',()=>{
+ const ui=file('assets/wallet-scan.js');
+ const app=file('assets/index.html');
+ assert.match(ui,/function close\(\)\{\s*if\(!root\|\|root\.hidden\)return;/);
+ assert.match(ui,/root\.hidden=true;clearData\(\);handler=null;/);
+ assert.match(ui,/if\(ticket!==serial\)return; \/\/ user cancelled while the worker downloaded/);
+ assert.match(ui,/if\(ticket===serial\)setBusy\(false\)/);
+ assert.match(app,/if \(event === "SIGNED_OUT"\) \{\s*window\.GiftVaultScan\?\.close\(\);/);
+ assert.match(app,/async function logoutCurrentUser\(\) \{\s*window\.GiftVaultScan\?\.close\(\);/);
+});

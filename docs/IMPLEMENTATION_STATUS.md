@@ -128,13 +128,44 @@ specific issuer evidence, not because another branch or location uses the brand.
   generating an unsupported format. Existing card-number/PIN handling remains.
 - No F06 implementation is needed before shipping the core gift-card vault.
 
-## Next development milestone — F05 scanning and capture
+## F05 — Card / receipt scanning and review
 
-Start with safe, optional receipt/card-image intake and extraction of candidate
-metadata for user confirmation; never automatically save card numbers, PINs,
-balances or currency based on OCR guesses. Prefer on-device processing where
-feasible and do not transmit private gift-card codes to unvetted third parties.
-Keep backend/database functionality staged until Supabase access is restored.
+**Feature-branch implementation complete; real-image and Supabase staging QA pending.**
+
+- Scan is available from the wallet and the authenticated Add Card form to
+  contributors/administrators. Camera file capture or existing JPG/PNG/WebP
+  image selection are supported; HEIC/HEIF only if the browser can decode them.
+- The photo stays in the browser's memory. Image object URLs are revoked when
+  discarded, new images are chosen, or the user signs out. No scan-image upload
+  or Supabase database migration is part of F05.
+- Built-in OCR uses the browser's optional TextDetector API where available.
+- Optional Enhanced OCR lazily downloads pinned Tesseract.js 6.0.1 from cdnjs
+  **only after explicit consent**. The browser library processes images locally;
+  using downloaded third-party code requires trust in that provider. OCR model
+  downloads require internet. For confidential cards, prefer the native mode
+  or manual entry unless the third-party code is independently audited/self-hosted.
+- Users can paste recognized text or enter everything manually when OCR is
+  unavailable, unreliable, or the image is too difficult to read.
+- Conservative parsing suggests brand, denomination, card balance, expiry and
+  optionally a card identifier. Ambiguous $ symbols, multiple currencies, and
+  ambiguous date formats never produce silent currency/date guesses.
+- Possible codes are masked; users must **opt in** before transferring any
+  detected identifier. PINs are never auto-copied.
+- Applying suggestions fills a **new unsaved card draft**, retaining the
+  existing authorization/visibility rules. The user must review and Save
+  separately. No OCR text or original photo is stored in the new card.
+- Fictional sample preview has a two-stage Scan → Review Draft → Add Sample
+  flow; sample code/PIN is discarded and demo data stays in memory.
+- Browser flow verified: fictional CAD 75, expiry 2027-11-30 and masked
+  identifier; sample card added only after second confirmation, and fields
+  cleared on reopening. **86 JavaScript tests passed** at first F05 CI run.
+
+**Outstanding:** Real-device photo/OCR accuracy and HEIC compatibility,
+third-party OCR trust/deployment policy, mobile camera testing, live
+Supabase authentication/permission regression, and end-to-end database save
+validation. OCR confidence is heuristic and is never issuer verification.
+
+
 
 ## Deployment gate — do not skip
 
@@ -157,6 +188,6 @@ Keep backend/database functionality staged until Supabase access is restored.
 - Add atomic balance-adjustment RPC and cursor-based ledger pagination.
 - F02 server-side email/push delivery and durable cross-device preferences.
 - F04 multi-currency issuer eligibility regression with real Supabase users.
-- F05 optional receipt/card scanning and extraction workflow, then family
-  isolation, advanced analytics and full Supabase integration tests.
+- F05 real-image OCR/browser testing and eventual self-hosted OCR assets, then
+  family isolation, advanced analytics and full Supabase integration tests.
 - F06 barcode/QR display remains optional/post-launch, not an MVP blocker.
