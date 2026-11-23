@@ -253,6 +253,50 @@
 
 .wl-root .wl-currency-note{font-size:12px;line-height:1.5;color:#bfdbeb;background:#20374b;padding:10px 12px;border-radius:12px}
 
+/* F05 — Simple private scan/review overlay; no preview image leaves the browser. */
+.gv-scan-overlay[hidden],.gv-scan-upload [hidden],#gv-scan-preview-wrap[hidden]{display:none!important}
+.gv-scan-overlay{position:fixed;inset:0;z-index:4400;background:rgba(3,10,20,.85);display:flex;align-items:flex-start;justify-content:center;overflow-y:auto;padding:22px 12px;color:#ecf6ff;font-family:Inter,system-ui,sans-serif}
+.gv-scan-dialog{width:min(100%,760px);background:#182b3e;border:1px solid #455a72;border-radius:22px;box-shadow:0 24px 75px #0009;overflow:hidden;margin:auto}
+.gv-scan-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:15px;padding:23px 24px 16px;border-bottom:1px solid #3d536d}
+.gv-scan-heading small{font-size:10px;letter-spacing:.16em;color:#79d6b8;font-weight:850}
+.gv-scan-heading h2{font-size:23px;line-height:1.15;margin:5px 0 6px;font-weight:800}
+.gv-scan-heading p,.gv-scan-review p{color:#b2c7dc;font-size:13px;line-height:1.6;margin:6px 0}
+.gv-scan-body{display:grid;gap:20px;padding:21px 24px}
+.gv-scan-body label{display:block;font-size:13px;color:#eaf2ff;font-weight:750;margin-bottom:7px}
+.gv-scan-body input[type=file],.gv-scan-body input[type=text],.gv-scan-body input[type=number],.gv-scan-body input[type=date],.gv-scan-body select,.gv-scan-body textarea{box-sizing:border-box;width:100%;background:#0e1f31;color:#eaf3ff;border:1px solid #4e6480;border-radius:11px;padding:11px 13px;font:inherit;font-size:13px;outline:none}
+.gv-scan-body input:focus-visible,.gv-scan-body select:focus-visible,.gv-scan-body textarea:focus-visible{border-color:#72e5bf;box-shadow:0 0 0 3px #57d4aa22}
+.gv-scan-upload{background:#1f3549;border:1px dashed #63809a;border-radius:15px;padding:16px}
+.gv-scan-upload small,.gv-scan-code small{font-size:11px;color:#abc2d7;line-height:1.6;display:block;margin-top:6px}
+#gv-scan-preview-wrap{display:flex;align-items:center;justify-content:center;max-height:265px;overflow:hidden;margin-top:12px;padding:8px;background:#0f1f31;border-radius:12px}
+#gv-scan-preview{max-height:250px;max-width:100%;object-fit:contain}
+.gv-scan-controls{display:flex;flex-wrap:wrap;gap:9px;margin-bottom:12px}
+.gv-scan-controls button,.gv-scan-footer button,.gv-scan-ocr>button{border:0;border-radius:11px;background:#5edbb4;color:#102b23;font:inherit;font-size:12px;font-weight:850;min-height:40px;padding:10px 14px;cursor:pointer}
+.gv-scan-secondary,.gv-scan-controls .gv-scan-secondary,.gv-scan-footer .gv-scan-secondary,.gv-scan-ocr>button.gv-scan-secondary{background:#2a4057;color:#dcebfc;border:1px solid #4c6580}
+.gv-scan-privacy-consent{display:flex!important;align-items:flex-start;gap:11px;margin-top:8px!important;line-height:1.55;font-size:12px!important;color:#dae9fb!important;font-weight:550!important}
+.gv-scan-privacy-consent input,.gv-scan-code input{width:17px;height:17px;accent-color:#62d8b2;flex-shrink:0;margin:1px 0 0}
+.gv-scan-hint{font-size:11px;color:#aec3d7;line-height:1.6;margin:8px 0 14px}
+.gv-scan-ocr textarea{resize:vertical;min-height:84px;line-height:1.5}
+.gv-scan-ocr>button{margin-top:10px}
+#gv-scan-status{font-size:12px;border:1px solid #425b77;background:#20394e;padding:11px 13px;border-radius:11px;margin:0;line-height:1.5}
+#gv-scan-status[data-kind=error]{border-color:#b46b61;background:#4a3032;color:#ffd9cd}
+#gv-scan-status[data-kind=success]{border-color:#43886e;color:#c1fbe6}
+.gv-scan-review{border-top:1px solid #3f556c;padding-top:12px}
+.gv-scan-review h3{font-size:17px;font-weight:850;margin:4px 0}
+.gv-scan-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-top:17px}
+.gv-scan-grid label{min-width:0;margin:0}
+.gv-scan-grid label small{font-weight:500;color:#9fb8ce;font-size:10px;display:block;min-height:18px;margin-top:2px}
+.gv-scan-grid input,.gv-scan-grid select{display:block;margin-top:7px}
+.gv-scan-code{padding:12px 15px;background:#203448;border-radius:12px;margin-top:15px}
+.gv-scan-code p{font-size:12px;margin:0 0 10px}
+.gv-scan-code label{display:flex;align-items:flex-start;gap:9px;font-weight:600;font-size:12px}
+#gv-scan-warnings p{background:#4c3b35;padding:9px 11px;border-radius:9px;font-size:11px;color:#ffe0c6;line-height:1.55}
+.gv-scan-footer{display:flex;flex-wrap:wrap;align-items:center;gap:10px;padding:17px 24px 23px;border-top:1px solid #3e536c;background:#142638}
+.gv-scan-footer small{width:100%;font-size:11px;color:#a7c0d5}
+.gv-scan-body button:disabled,.gv-scan-footer button:disabled{opacity:.48;cursor:not-allowed}
+.gv-scan-add-row{margin:9px 0 5px}
+.gv-scan-launch{background:transparent!important;color:#80cdb8!important;border:1px solid #4d877c!important;font-weight:750!important;border-radius:11px!important;padding:9px 12px!important;font-size:12px!important}
+@media(max-width:580px){.gv-scan-overlay{padding:0;background:#101f31}.gv-scan-dialog{margin:0;min-height:100dvh;width:100%;border:0;border-radius:0}.gv-scan-heading{padding:19px 16px 14px}.gv-scan-heading h2{font-size:21px}.gv-scan-body{padding:17px 16px;gap:18px}.gv-scan-grid{grid-template-columns:1fr;gap:12px}.gv-scan-footer{padding:15px 16px}.gv-scan-controls button{flex:1 1 155px}}
+
 </style></head><body>
 <div id="sample-indicator" style="font:700 11px system-ui;padding:9px 15px;text-align:center;background:#1c3540;color:#c5f9e5">INTERACTIVE PREVIEW · SAMPLE CARDS · NO REAL ACCOUNT CONNECTED</div>
 <div id="appScreen" style="display:block"></div>
@@ -329,6 +373,45 @@
     document.getElementById("demo-spend-confirm")?.addEventListener("click",submitSampleSpend);
     document.getElementById("demo-spend-cancel")?.addEventListener("click",closeSampleSpend);
   });
+
+  let scanDraft=null;
+  function showDemoScanDraft(draft){
+    scanDraft={...draft,code:null,codeConfirmed:false}; // discard all secrets in the public demo
+    document.getElementById("demo-scan-merchant").value=draft.store||"";
+    document.getElementById("demo-scan-currency").value=draft.currency||"";
+    document.getElementById("demo-scan-balance").value=draft.amount===null?"":String(draft.amount);
+    document.getElementById("demo-scan-expiry").value=draft.expiry||"";
+    document.getElementById("demo-scan-draft").hidden=false;
+    document.getElementById("demo-scan-merchant").focus();
+  }
+  function dismissDemoScanDraft(){
+    scanDraft=null;
+    document.getElementById("demo-scan-draft").hidden=true;
+  }
+  function saveDemoScanDraft(event){
+    event.preventDefault();
+    if(!scanDraft)return;
+    const brand=document.getElementById("demo-scan-merchant").value.trim();
+    const currency=document.getElementById("demo-scan-currency").value;
+    const amount=Number(document.getElementById("demo-scan-balance").value);
+    const expiry=document.getElementById("demo-scan-expiry").value;
+    if(!brand||!["INR","CAD","USD"].includes(currency)||
+      !Number.isFinite(amount)||amount<0||!expiry)return;
+    demo.cards.push({
+      id:"scanned-demo-"+Date.now(),store:brand.slice(0,75),account:"Personal",
+      type:"Gift Card / Wallet",amount,initialAmount:amount,
+      currency,expiry,notes:"From fictional F05 scan demo — reviewed manually",
+      status:amount>0?"active":"used",hasSecretCode:false,codeVisibility:"private"
+    });
+    dismissDemoScanDraft();
+    window.walletLiveRefresh?.();
+    notify("Sample card created after review (preview only). Codes discarded.");
+  }
+  document.addEventListener("DOMContentLoaded",()=>{
+    document.getElementById("demo-scan-form")?.addEventListener("submit",saveDemoScanDraft);
+    document.getElementById("demo-scan-dismiss")?.addEventListener("click",dismissDemoScanDraft);
+  });
+
   window.giftVaultLiveBridge={
     snapshot:()=>demo,
     canEdit:()=>true,
@@ -338,6 +421,7 @@
     hideCode:()=>{},
     request:()=>notify("Access requests work after sign-in."),
     add:()=>{const store=prompt("Enter a sample store name:");if(!store||!store.trim())return;demo.cards.push({id:"new-"+demo.cards.length,store:store.trim().slice(0,35),account:"Personal",type:"Gift Card / Wallet",amount:1000,expiry:"2027-01-01",notes:"",status:"active",hasSecretCode:false,codeVisibility:"public",currency:"CAD"});window.walletLiveRefresh();notify("Sample card added to this preview.")},
+    scan:()=>window.GiftVaultScan.open({preview:true,onApply:showDemoScanDraft}),
     edit:()=>notify("Editing opens the existing secured form when signed in."),
     spend:id=>openSampleSpend(id),
     approveCurrency:()=>notify("Issuer verification is admin-only in the real connected application."),
@@ -379,6 +463,25 @@
     <button type="button" id="demo-spend-cancel">Cancel</button>
   </div>
 </div>
+<style>
+#demo-scan-draft[hidden]{display:none!important}
+#demo-scan-draft{position:fixed;inset:0;background:rgba(4,9,20,.89);display:grid;place-items:center;z-index:4500;padding:14px}
+#demo-scan-draft form{background:#16293e;color:#e9f5ff;width:min(440px,100%);max-height:90vh;overflow-y:auto;padding:23px;border-radius:19px;border:1px solid #56708c;font-family:system-ui;box-sizing:border-box}
+#demo-scan-draft label{display:block;font-size:12px;margin-top:13px;color:#e1ecf8;font-weight:750}
+#demo-scan-draft input,#demo-scan-draft select{width:100%;background:#0a192b;color:white;box-sizing:border-box;padding:10px;margin-top:6px;border:1px solid #526b85;border-radius:10px}
+#demo-scan-draft button{padding:11px 14px;margin-top:16px;border-radius:10px;border:none;background:#71ddb9;color:#163529;font-weight:800}
+#demo-scan-dismiss{background:#344f65!important;color:white!important;margin-left:8px}
+</style>
+<div id="demo-scan-draft" hidden>
+<form id="demo-scan-form">
+<h2 style="margin:0 0 8px;font-size:21px">Review scanned draft</h2>
+<p style="font-size:12px;line-height:1.5;color:#b1c9d9">This is a sample-only wallet. All values must be confirmed; gift card codes and PINs are discarded.</p>
+<label for="demo-scan-merchant">Merchant / brand *</label><input id="demo-scan-merchant" maxlength="75" required>
+<label for="demo-scan-currency">Card currency *</label><select id="demo-scan-currency" required><option value="">Choose denomination</option><option value="INR">INR</option><option value="CAD">CAD</option><option value="USD">USD</option></select>
+<label for="demo-scan-balance">Remaining balance *</label><input id="demo-scan-balance" type="number" min="0" step="0.01" required>
+<label for="demo-scan-expiry">Expiry date *</label><input id="demo-scan-expiry" type="date" required>
+<button type="submit">Add sample card</button><button id="demo-scan-dismiss" type="button">Discard draft</button>
+</form></div>
 <div id="demo-toast" hidden style="position:fixed;z-index:2500;bottom:90px;left:50%;transform:translateX(-50%);background:#d2ffeb;color:#123b30;padding:12px 16px;border-radius:12px;max-width:90%;font:700 13px system-ui"></div>
 <script>/* F02: device-local expiry reminder rules. No networking, secrets or push. */
 (function (root, factory) {
@@ -656,6 +759,312 @@ return Object.freeze({sorts,statuses,windows,defaults,normalize,days,statusOf,so
  return Object.freeze({CURRENCIES,code,cardCurrency,format,totals,summary,approvedFor,validate});
 });
 </script>
+<script>/* F05 — privacy-first extraction of tentative gift card metadata from OCR text.
+ * Pure, synchronous, no network/storage. OCR errors must never trigger a save.
+ * Only a confirmed user action can copy suggestions into an editable draft. */
+(function (root, factory) {
+  const api=factory();
+  if (typeof module==="object"&&module.exports) module.exports=api;
+  if (root) root.GiftVaultScanExtract=api;
+})(typeof globalThis!=="undefined"?globalThis:undefined, function(){
+"use strict";
+const MAX_TEXT=12000;
+const currencies=Object.freeze(["INR","CAD","USD"]);
+const monthNames={jan:1,feb:2,mar:3,apr:4,may:5,jun:6,
+  jul:7,aug:8,sep:9,oct:10,nov:11,dec:12};
+function clean(s){return String(s==null?"":s).replace(/\u00a0/g," ").replace(/[ \t]+/g," ").trim();}
+function normalizeDate(year,month,day){
+  const y=Number(year),m=Number(month),d=Number(day);
+  if(!Number.isInteger(y)||y<2000||y>2100||m<1||m>12||d<1||d>31)return null;
+  const date=new Date(Date.UTC(y,m-1,d));
+  return date.getUTCFullYear()===y&&date.getUTCMonth()===m-1&&date.getUTCDate()===d
+    ?[y,String(m).padStart(2,"0"),String(d).padStart(2,"0")].join("-"):null;
+}
+function parseDate(input){
+  const s=clean(input);
+  let m=s.match(/^(\d{4})[-/.](\d{1,2})[-/.](\d{1,2})$/);
+  if(m)return normalizeDate(m[1],m[2],m[3]);
+  m=s.match(/^(\d{1,2})[-/.](\d{1,2})[-/.](\d{4})$/);
+  if(m){
+    const a=Number(m[1]),b=Number(m[2]);
+    // Both interpretations plausible: never silently choose DD/MM vs MM/DD.
+    if(a<=12&&b<=12)return null;
+    if(a>12)return normalizeDate(m[3],b,a);
+    return normalizeDate(m[3],a,b);
+  }
+  m=s.match(/^(\d{1,2})\s+([A-Za-z]{3,9})\s+(\d{4})$/i);
+  if(m)return normalizeDate(m[3],monthNames[m[2].slice(0,3).toLowerCase()],m[1]);
+  m=s.match(/^([A-Za-z]{3,9})\s+(\d{1,2}),?\s+(\d{4})$/i);
+  if(m)return normalizeDate(m[3],monthNames[m[1].slice(0,3).toLowerCase()],m[2]);
+  return null;
+}
+function currencyFromLine(line){
+  const s=String(line||"");
+  const tokens=new Set();
+  if(/\bINR\b|₹/i.test(s))tokens.add("INR");
+  if(/\bCAD\b|CA\$|C\$/i.test(s))tokens.add("CAD");
+  if(/\bUSD\b|US\$/i.test(s))tokens.add("USD");
+  // A bare $ has multiple meanings: do not infer CAD or USD.
+  return tokens.size===1?[...tokens][0]:null;
+}
+function parseMoney(fragment){
+  const matches=String(fragment||"").match(/(?:\d{1,3}(?:,\d{3})+|\d{1,11})(?:\.\d{1,2})?/g)||[];
+  for(const raw of matches){
+    const value=Number(raw.replace(/,/g,""));
+    if(Number.isFinite(value)&&value>=0&&value<=9999999999.99)return value;
+  }
+  return null;
+}
+function choose(candidates){
+  return candidates.sort((a,b)=>b.confidence-a.confidence||a.lineIndex-b.lineIndex)[0]||null;
+}
+function suggested(value,confidence,reason){
+  return {value,confidence,reason,confirmed:false};
+}
+function maskCode(code){
+  const normalized=String(code||"").replace(/[\s-]+/g,"");
+  return normalized.length<=4?"••••":"•••• "+normalized.slice(-4);
+}
+function extract(input){
+  const raw=String(input||"").slice(0,MAX_TEXT);
+  const lines=raw.split(/\r?\n/).map(clean).filter(Boolean).slice(0,140);
+  const warnings=[],res={
+    merchant:null,amount:null,currency:null,expiry:null,code:null,
+    pinDetected:false,warnings,sourceLength:raw.length
+  };
+  if(!raw.trim())return res;
+  const merchant=[],amounts=[],currenciesFound=[],expiries=[],codes=[];
+  const moneyLabels=/(?:gift\s*card\s*(?:balance|value|amount)?|e-?gift|voucher\s*(?:value|balance)?|stored\s*value|remaining\s*balance|available\s*balance|card\s*balance|balance|value|amount)/i;
+  const expLabels=/(?:\bexp\.?\b|\bexpires?\b|\bexpir(?:y|ation)\b|valid\s*(?:until|till|through)|use\s*by)/i;
+  const cardCodeLabels=/(?:gift\s*card\s*(?:number|no\.?|#|code|id)|e-?gift\s*(?:code|number)|voucher\s*(?:code|number)|redemption\s*(?:code|number)|claim\s*code)/i;
+  for(let i=0;i<lines.length;i++){
+    const line=lines[i],lower=line.toLowerCase();
+    if(/(?:pin|security code|cvv|cvc)\s*(?:[:#=-]|\b)/i.test(line))res.pinDetected=true;
+    const cur=currencyFromLine(line);
+    if(cur)currenciesFound.push({value:cur,confidence:/\b(?:currency|denomination)\b/i.test(line)?0.96:0.79,lineIndex:i});
+    if(/^(?:store|merchant|brand)\s*[:=-]\s*\S+/i.test(line)){
+      const m=clean(line.replace(/^(?:store|merchant|brand)\s*[:=-]\s*/i,""));
+      if(m.length>=2&&m.length<=70)merchant.push({value:m,confidence:0.94,lineIndex:i});
+    } else if(i<=2&&line.length>=3&&line.length<=42&&/[A-Za-z]{3}/.test(line)&&
+      !/^(?:receipt|invoice|tax invoice|gift card|thank you|order|date|total|balance|amount|value|pin|expiry|valid until|card number)\b/i.test(line)&&
+      !/https?:\/\/|www\.|@|(\d{4}[-/.]\d{2}[-/.]\d{2})/i.test(line)){
+      merchant.push({value:line,confidence:0.48,lineIndex:i});
+    }
+    if(expLabels.test(line)){
+      const match=line.match(/(\d{4}[-/.]\d{1,2}[-/.]\d{1,2}|\d{1,2}[-/.]\d{1,2}[-/.]\d{4}|\d{1,2}\s+[A-Za-z]{3,9}\s+\d{4}|[A-Za-z]{3,9}\s+\d{1,2},?\s+\d{4})/i);
+      if(match){
+        const v=parseDate(match[1]);
+        if(v)expiries.push({value:v,confidence:0.93,lineIndex:i});
+        else warnings.push("Expiry date was ambiguous or invalid; enter it manually.");
+      }
+    }
+    // Gift card numbers, serials and PINs are not balances.
+    const isIdentifier=/\b(?:gift\s*card|voucher|e-?gift)\s*(?:no\.?|number|#|code|id|pin|serial)\b/i.test(line);
+    if(moneyLabels.test(line)&&!isIdentifier){
+      // Prefer an explicit currency-prefixed amount or a value after a label.
+      let remainder=line.replace(/^.*?(?:gift\s*card\s*(?:balance|value|amount)?|e-?gift|voucher\s*(?:value|balance)?|stored\s*value|remaining\s*balance|available\s*balance|card\s*balance|balance|value|amount)\s*(?:[:=\-]|is)?\s*/i,"");
+      let v=parseMoney(remainder);
+      if(v===null&&i+1<lines.length)v=parseMoney(lines[i+1]);
+      if(v!==null){
+        const strong=/(?:gift\s*card|voucher|stored\s*value|remaining|available|card\s*balance)/i.test(line);
+        amounts.push({value:v,confidence:strong?0.89:0.57,lineIndex:i});
+        if(cur)currenciesFound.push({value:cur,confidence:0.93,lineIndex:i});
+      }
+    }
+    if(cardCodeLabels.test(line)&&!/\b(?:visa|mastercard|amex|credit|debit)\b/i.test(line)){
+      let remainder=clean(line.replace(/^.*?(?:gift\s*card\s*(?:number|no\.?|#|code|id)|e-?gift\s*(?:code|number)|voucher\s*(?:code|number)|redemption\s*(?:code|number)|claim\s*code)\s*(?:[:#=-])?\s*/i,""));
+      if(!remainder&&i+1<lines.length)remainder=lines[i+1];
+      const candidate=clean(remainder).replace(/^(?:#|no\.)\s*/i,"");
+      if(/^[A-Za-z0-9][A-Za-z0-9 -]{5,47}$/.test(candidate)&&/[0-9]/.test(candidate)&&
+        !/\bpin\b/i.test(candidate)){
+        codes.push({value:candidate,confidence:0.7,lineIndex:i});
+      }
+    }
+  }
+  const cMerchant=choose(merchant),cAmount=choose(amounts),cDate=choose(expiries),cCode=choose(codes);
+  const distinctCurrencies=[...new Set(currenciesFound.map(c=>c.value))];
+  if(distinctCurrencies.length>1)warnings.push("More than one currency appears in the image. Confirm the gift card denomination.");
+  if(cMerchant)res.merchant=suggested(cMerchant.value,cMerchant.confidence,cMerchant.confidence<.7?"Merchant inferred from heading; verify the brand.":"Explicit merchant label.");
+  if(cAmount)res.amount=suggested(cAmount.value,cAmount.confidence,cAmount.confidence<.8?"Amount may be a receipt total, not remaining gift card balance.":"Likely gift card value or balance.");
+  if(distinctCurrencies.length===1){
+    const best=choose(currenciesFound.filter(x=>x.value===distinctCurrencies[0]));
+    res.currency=suggested(best.value,best.confidence,"Currency found in visible text; confirm it matches the card denomination.");
+  }else if(/\$\s*\d/.test(raw))warnings.push("A $ symbol alone does not establish USD versus CAD. Choose the card currency manually.");
+  if(cDate)res.expiry=suggested(cDate.value,cDate.confidence,"Expiry label found; check against issuer terms.");
+  if(cCode)res.code=suggested(cCode.value,cCode.confidence,"Sensitive card identifier: reveal or apply only with explicit confirmation.");
+  if(res.pinDetected)warnings.push("A PIN/security code may be present. PINs are not copied automatically.");
+  if(raw.length===MAX_TEXT)warnings.push("Long OCR text was truncated; verify all details.");
+  return res;
+}
+return Object.freeze({MAX_TEXT,currencies,parseDate,currencyFromLine,parseMoney,extract,maskCode});
+});
+</script>
+<script>/* F05 privacy-first image intake, OCR and review-to-draft. No image uploads or persistence. */
+(function(){
+"use strict";
+const api=window.GiftVaultScanExtract;
+if(!api){console.error("F05 parser unavailable");return;}
+const get=id=>document.getElementById(id);
+const validTypes=new Set(["image/jpeg","image/png","image/webp","image/heic","image/heif"]);
+const MAX_SIZE=8*1024*1024,MAX_PIXELS=24*1000*1000;
+let root=null,handler=null,file=null,url=null,busy=false,serial=0,result=null,focusBefore=null;
+let externalScript=null;
+function build(){
+  if(root)return;
+  root=document.createElement("section");
+  root.id="gv-scan-panel";root.className="gv-scan-overlay";root.hidden=true;
+  root.innerHTML="<div class=\"gv-scan-dialog\" role=\"dialog\" aria-modal=\"true\" aria-labelledby=\"gv-scan-title\">\n<header class=\"gv-scan-heading\"><div><small>GIFT VAULT · PRIVACY-FIRST</small><h2 id=\"gv-scan-title\">Scan a card or receipt</h2><p>Review every suggestion before filling a new card draft.</p></div><button type=\"button\" id=\"gv-scan-close\" class=\"gv-scan-secondary\">Close</button></header>\n<div class=\"gv-scan-body\">\n<section class=\"gv-scan-upload\"><label for=\"gv-scan-file\">Choose or photograph a card / receipt</label><input id=\"gv-scan-file\" type=\"file\" accept=\"image/jpeg,image/png,image/webp,image/heic,image/heif\" capture=\"environment\"><small>JPG, PNG, WebP, HEIC where supported · 8 MB max · no app upload</small><div id=\"gv-scan-preview-wrap\" hidden><img id=\"gv-scan-preview\" alt=\"Selected card or receipt\" /></div></section>\n<section class=\"gv-scan-ocr\"><div class=\"gv-scan-controls\"><button id=\"gv-scan-native\" type=\"button\">Read text on device</button><button id=\"gv-scan-enhanced\" type=\"button\" class=\"gv-scan-secondary\">Enhanced OCR (optional)</button><button id=\"gv-scan-example\" type=\"button\" class=\"gv-scan-secondary\" hidden>Try fictional example</button></div>\n<label class=\"gv-scan-privacy-consent\" for=\"gv-scan-optin\"><input id=\"gv-scan-optin\" type=\"checkbox\"><span>Enhanced OCR downloads third-party OCR code and language data from a CDN. It processes images in-browser, but requires trusting that downloaded code with this image.</span></label>\n<p class=\"gv-scan-hint\">Built-in OCR is not supported by all browsers. Enhanced OCR uses third-party code after explicit consent. Do not scan sensitive codes with it unless you trust the provider. Manual entry is always available.</p>\n<label for=\"gv-scan-raw\">Recognized text (optional — paste text or correct OCR mistakes)</label><textarea id=\"gv-scan-raw\" rows=\"4\" maxlength=\"12000\" placeholder=\"STORE: Demo Store&#10;GIFT CARD BALANCE: CAD 50.00&#10;VALID UNTIL: 30 Nov 2027\"></textarea><button type=\"button\" id=\"gv-scan-parse\" class=\"gv-scan-secondary\">Find details in text</button></section>\n<p id=\"gv-scan-status\" role=\"status\" aria-live=\"polite\">Select a photo or enter details manually.</p>\n<section class=\"gv-scan-review\"><h3>Review before transferring</h3><p>All suggested values may be wrong. Verify the actual issuer, remaining balance, denomination and expiration.</p><div class=\"gv-scan-grid\">\n<label for=\"gv-scan-store\">Merchant / brand <small id=\"gv-scan-store-confidence\"></small><input id=\"gv-scan-store\" type=\"text\" maxlength=\"100\" autocomplete=\"off\" placeholder=\"Confirm issuer or store\"></label>\n<label for=\"gv-scan-currency\">Card denomination <small id=\"gv-scan-currency-confidence\"></small><select id=\"gv-scan-currency\"><option value=\"\">Select currency</option><option value=\"INR\">INR (₹)</option><option value=\"CAD\">CAD (CA$)</option><option value=\"USD\">USD (US$)</option></select></label>\n<label for=\"gv-scan-amount\">Remaining card balance <small id=\"gv-scan-amount-confidence\"></small><input id=\"gv-scan-amount\" type=\"number\" min=\"0\" step=\"0.01\" inputmode=\"decimal\" placeholder=\"Not necessarily receipt total\"></label>\n<label for=\"gv-scan-expiry\">Expiry date <small id=\"gv-scan-expiry-confidence\"></small><input id=\"gv-scan-expiry\" type=\"date\"></label></div>\n<div class=\"gv-scan-code\"><p>Possible gift card number: <strong id=\"gv-scan-masked\">Not found</strong></p><label><input type=\"checkbox\" id=\"gv-scan-code-consent\" disabled> Include detected number in the private code field</label><small>A PIN is never copied automatically; confirm it manually using your card's issuer instructions.</small></div><div id=\"gv-scan-warnings\" aria-live=\"polite\"></div></section>\n</div><footer class=\"gv-scan-footer\"><button id=\"gv-scan-apply\" type=\"button\">Apply to new card draft</button><button id=\"gv-scan-cancel\" type=\"button\" class=\"gv-scan-secondary\">Discard and close</button><small>Only copies the reviewed fields. Save to Vault is a separate action.</small></footer></div>";
+  document.body.append(root);
+  get("gv-scan-close").addEventListener("click",close);
+  get("gv-scan-cancel").addEventListener("click",close);
+  get("gv-scan-file").addEventListener("change",selectFile);
+  get("gv-scan-native").addEventListener("click",nativeOCR);
+  get("gv-scan-enhanced").addEventListener("click",enhancedOCR);
+  get("gv-scan-parse").addEventListener("click",parseText);
+  get("gv-scan-example").addEventListener("click",example);
+  get("gv-scan-apply").addEventListener("click",apply);
+  root.addEventListener("click",e=>{if(e.target===root&&!busy)close();});
+  document.addEventListener("keydown",e=>{if(e.key==="Escape"&&root&&!root.hidden&&!busy){e.preventDefault();close();}});
+}
+function status(text,kind="info"){const el=get("gv-scan-status");if(el){el.textContent=String(text);el.dataset.kind=kind;}}
+function setBusy(value){
+  busy=value;
+  if(!root)return;
+  root.querySelectorAll("button,input[type=file]").forEach(el=>{el.disabled=value;});
+}
+function clearImage(){
+  if(url){URL.revokeObjectURL(url);url=null;}
+  file=null;
+  if(root){get("gv-scan-preview").removeAttribute("src");get("gv-scan-preview-wrap").hidden=true;get("gv-scan-file").value="";}
+}
+function clearData(){
+  serial++;clearImage();result=null;
+  if(!root)return;
+  for(const k of ["raw","store","currency","amount","expiry"])get("gv-scan-"+k).value="";
+  for(const k of ["store","currency","amount","expiry"])get("gv-scan-"+k+"-confidence").textContent="";
+  get("gv-scan-optin").checked=false;
+  get("gv-scan-code-consent").checked=false;get("gv-scan-code-consent").disabled=true;
+  get("gv-scan-masked").textContent="Not found";get("gv-scan-warnings").replaceChildren();
+}
+function open(config={}){
+  build();if(busy)return;
+  clearData();handler=typeof config.onApply==="function"?config.onApply:null;
+  get("gv-scan-example").hidden=!config.preview;
+  focusBefore=document.activeElement;
+  root.hidden=false;status("Image is never uploaded by Gift Vault. You can also enter fields manually.");
+  get("gv-scan-file").focus();
+}
+function close(){
+  if(!root||root.hidden||busy)return;
+  root.hidden=true;clearData();handler=null;
+  if(focusBefore?.isConnected&&typeof focusBefore.focus==="function")focusBefore.focus();
+  focusBefore=null;
+}
+async function selectFile(event){
+  clearImage();
+  const f=event.target.files&&event.target.files[0];
+  if(!f)return;
+  if(!validTypes.has(f.type)){status("Use a JPG, PNG, WebP or supported HEIC/HEIF file. SVG and PDF are not supported.","error");return;}
+  if(f.size<1||f.size>MAX_SIZE){status("Choose an image no larger than 8 MB.","error");return;}
+  file=f;url=URL.createObjectURL(f);
+  const img=get("gv-scan-preview");img.src=url;
+  try{
+    await img.decode();
+    if(img.naturalWidth*img.naturalHeight>MAX_PIXELS)throw new Error("Image too large");
+    get("gv-scan-preview-wrap").hidden=false;
+    status("Image loaded locally. Run OCR or enter details manually.");
+  }catch{clearImage();status("The image could not be decoded or is too large. Try a smaller JPG or PNG.","error");}
+}
+function display(p){
+  result=p;
+  for(const [id,key] of [["store","merchant"],["amount","amount"],["currency","currency"],["expiry","expiry"]]){
+    const suggestion=p[key];
+    get("gv-scan-"+id).value=suggestion?.value??"";
+    get("gv-scan-"+id+"-confidence").textContent=suggestion?
+      suggestion.confidence>=0.8?"Suggestion · verify":"Uncertain · verify manually":"Not found";
+  }
+  get("gv-scan-masked").textContent=p.code?api.maskCode(p.code.value):"Not found";
+  get("gv-scan-code-consent").checked=false;
+  get("gv-scan-code-consent").disabled=!p.code;
+  const warnings=get("gv-scan-warnings");warnings.replaceChildren();
+  for(const message of p.warnings){const line=document.createElement("p");line.textContent=message;warnings.append(line);}
+  status("Candidate details found. Check and edit every field before applying.","success");
+}
+function parseText(){display(api.extract(get("gv-scan-raw").value));}
+async function nativeOCR(){
+  if(busy)return;
+  const ticket=++serial;let bitmap=null;setBusy(true);
+  try{
+    if(!file)throw Error("Choose an image first.");
+    if(typeof window.TextDetector!=="function")throw Error("Built-in on-device OCR is unavailable in this browser. Try Enhanced OCR with consent, paste recognized text, or enter details manually.");
+    status("Reading text on device…");
+    bitmap=await createImageBitmap(file);
+    const items=await new window.TextDetector().detect(bitmap);
+    if(ticket!==serial)return;
+    const detected=items.map(i=>String(i.rawValue||"")).filter(Boolean).join("\n");
+    if(!detected.trim())throw Error("No readable text found. Try a clearer photo or enter values manually.");
+    get("gv-scan-raw").value=detected.slice(0,api.MAX_TEXT);
+    parseText();
+  }catch(err){status(err.message||"Could not read this image.","error");}
+  finally{if(bitmap?.close)bitmap.close();setBusy(false);}
+}
+function loadEnhancedOCR(){
+  if(window.Tesseract?.createWorker)return Promise.resolve(window.Tesseract);
+  if(externalScript)return externalScript;
+  externalScript=new Promise((resolve,reject)=>{
+    const script=document.createElement("script");
+    script.src="https://cdnjs.cloudflare.com/ajax/libs/tesseract.js/6.0.1/tesseract.min.js";
+    script.crossOrigin="anonymous";script.async=true;
+    script.onload=()=>window.Tesseract?.createWorker?resolve(window.Tesseract):reject(Error("Third-party OCR code did not initialize."));
+    script.onerror=()=>reject(Error("Third-party OCR code could not be downloaded."));
+    document.head.append(script);
+  }).catch(err=>{externalScript=null;throw err;});
+  return externalScript;
+}
+async function enhancedOCR(){
+  if(busy)return;
+  if(!get("gv-scan-optin").checked){status("Explicitly agree to the optional third-party OCR download first.","error");return;}
+  if(!file){status("Choose an image first.","error");return;}
+  const ticket=++serial;let worker=null;setBusy(true);
+  try{
+    status("Downloading optional OCR engine and language data. Recognition runs in the browser…");
+    const tesseract=await loadEnhancedOCR();
+    worker=await tesseract.createWorker("eng",1,{logger:m=>{
+      if(ticket===serial&&m.status==="recognizing text")status("Reading the image: "+Math.round(100*(m.progress||0))+"%");
+    }});
+    const out=await worker.recognize(file);
+    if(ticket!==serial)return;
+    const text=String(out?.data?.text||"").slice(0,api.MAX_TEXT);
+    if(!text.trim())throw Error("No text found in the photo.");
+    get("gv-scan-raw").value=text;parseText();
+  }catch(err){status("Enhanced OCR unavailable: "+(err.message||"unknown error")+". You can enter details manually.","error");}
+  finally{if(worker)try{await worker.terminate();}catch{}setBusy(false);}
+}
+function example(){
+  get("gv-scan-raw").value="STORE: Fictional Demo Market\nGIFT CARD BALANCE: CAD 75.00\nVALID UNTIL: 30 Nov 2027\nGIFT CARD NUMBER: DEMO-1234-5678\nPIN: 9999";
+  parseText();
+}
+function apply(){
+  if(busy||typeof handler!=="function")return;
+  const store=get("gv-scan-store").value.trim(),currency=get("gv-scan-currency").value;
+  const numText=get("gv-scan-amount").value.trim(),amount=numText===""?null:Number(numText);
+  const expiry=get("gv-scan-expiry").value;
+  if(!store&&!currency&&amount===null&&!expiry){status("Confirm at least one detail first.","error");return;}
+  if(currency&&!api.currencies.includes(currency)){status("Select INR, CAD or USD.","error");return;}
+  if(amount!==null&&(!Number.isFinite(amount)||amount<0||amount>9999999999.99||Math.round(amount*100)/100!==amount)){
+    status("Use a nonnegative balance with up to two decimals.","error");return;
+  }
+  if(expiry&&!api.parseDate(expiry)){status("Enter a valid expiry date.","error");return;}
+  const approved=Boolean(result?.code&&get("gv-scan-code-consent").checked);
+  // No network or save call here: it only supplies explicitly reviewed draft fields.
+  try{
+    handler({store:store.slice(0,100),currency,amount,expiry,code:approved?result.code.value:null,codeConfirmed:approved});
+    close();
+  }catch{status("Could not apply the draft. Nothing has been saved.","error");}
+}
+window.GiftVaultScan=Object.freeze({open,close,isOpen:()=>Boolean(root&&!root.hidden)});
+})();
+</script>
 <script>/* Wallet-first authenticated view. Supabase and authorization remain in index.html. */
 (function(){
 "use strict";
@@ -695,7 +1104,7 @@ return [
 '<nav class="wl-nav" aria-label="Wallet navigation">',
 ...["wallet","expiring","insights","family","settings"].map((n,i)=>'<button type="button" class="'+(!i?"active":"")+'" data-tab="'+n+'">'+icon(n==="wallet"?"wallet":n==="expiring"?"clock":n==="insights"?"chart":n==="family"?"users":"settings")+'<span>'+n[0].toUpperCase()+n.slice(1)+'</span></button>'),
 '</nav><div class="wl-search" id="wl-search">',icon("search"),'<input type="search" id="wl-query" placeholder="Search stores and accounts" aria-label="Search"><button type="button" data-act="clear-search" aria-label="Clear search">',icon("x"),'</button></div>',
-'<section id="wl-view-wallet" class="wl-view"><div class="wl-title"><div><small>YOUR WALLET</small><h1>My cards</h1><p>Everything you need, all in one place.</p></div><button type="button" class="wl-add" data-act="add">',icon("plus"),'<span>Add card</span></button></div>',
+'<section id="wl-view-wallet" class="wl-view"><div class="wl-title"><div><small>YOUR WALLET</small><h1>My cards</h1><p>Everything you need, all in one place.</p></div><button type="button" class="wl-add" data-act="add">',icon("plus"),'<span>Add card</span></button><button type="button" class="wl-scan-entry" data-act="scan">Scan card / receipt</button></div>',
 '<div class="wl-filter-toolbar"><button class="wl-filter-trigger" type="button" data-act="toggle-filters" aria-controls="wl-filter-panel" aria-expanded="false">',icon("settings"),'<span>Filters</span><span class="wl-filter-active-count" id="wl-filter-active-count" hidden>0</span></button><button type="button" id="wl-clear-filters" data-act="reset-filters" hidden>Clear all</button><span class="wl-filter-result-count" id="wl-filter-results" role="status" aria-live="polite"></span></div>',
 '<div class="wl-filter-panel" id="wl-filter-panel" hidden><div class="wl-filter-grid">',
 '<label>Store<select id="wl-filter-store"><option value="all">All stores</option></select></label>',
@@ -842,6 +1251,7 @@ if(name==="clear-search"){$("wl-query").value="";filters={...filters,query:""};i
 if(name==="open"||name==="details"||name==="code"){if(c)openDetails(c);return;}
 if(name==="close"){closeDetails();return;}
 if(name==="add"){adapter.add();return;}
+if(name==="scan"){if(snap()?.canAdd&&adapter.scan)adapter.scan();return;}
 if(name==="notifications"){
   if(window.walletExpiryOpenCenter){window.walletExpiryOpenCenter();return;}
   hide();adapter.legacy("notifications");return;
