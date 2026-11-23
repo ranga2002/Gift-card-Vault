@@ -49,3 +49,7 @@ jobs:
         run: psql -X -v ON_ERROR_STOP=1 -f tests/db/f07_integration.sql
       - name: Test concurrent redemptions from two connections
         run: bash tests/db/f07_concurrency.sh
+      - name: Apply F04 currency and issuer guard migration
+        run: psql -X -v ON_ERROR_STOP=1 -f supabase/migrations/20261122234500_currency_issuer_redemption_guard.sql
+      - name: Test merchant-currency rules, approval, revocation and ledger integrity
+        run: psql -X -v ON_ERROR_STOP=1 -f tests/db/f04_currency_integration.sql
