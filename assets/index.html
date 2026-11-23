@@ -3535,6 +3535,28 @@
     document.getElementById("redemptionHistoryModalBackdrop").classList.remove("show");
   }
 
+
+  // The card debit is always in the original denomination. Different checkout
+  // currency requires issuer-verification for this precise card and currency.
+  function updateSpendCurrencyUi(){
+    const c=state.coupons.find(x=>x.id===selectedSpendId);
+    if(!c)return;
+    const target=document.getElementById("spendCurrencySelect").value;
+    const different=c.currency!==target;
+    const verified=window.GiftVaultCurrency.approvedFor(c,target,state.currencyPermissions||[]);
+    const allowed=!different||Boolean(verified);
+    document.getElementById("spendSettlementRow").style.display=different?"block":"none";
+    document.getElementById("spendCardDebitLabel").textContent="Amount deducted from card ("+c.currency+")";
+    document.getElementById("spendPartialButton").disabled=!allowed;
+    document.getElementById("spendFullButton").disabled=!allowed;
+    const info=document.getElementById("spendCurrencyMessage");
+    info.style.color=allowed?"#9bf3d1":"#ffc5a1";
+    info.textContent=!different
+      ?"Same-currency tracking. Merchant and region restrictions may still apply."
+      :allowed
+      ?"Issuer permission verified for this exact card. Enter the actual checkout amount in "+target+"; no FX conversion is assumed."
+      :"Blocked: the issuer has not verified "+c.currency+" → "+target+" for this gift card.";
+  }
   let pendingRedemption = null;
   let redemptionInFlight = false;
 
@@ -3557,10 +3579,13 @@
     }
     selectedSpendId = id;
     pendingRedemption = null;
+    document.getElementById("spendCurrencySelect").value = c.currency || "INR";
+    document.getElementById("spendSettlementAmount").value = "";
     document.getElementById("spendModalInfo").innerHTML =
       '<strong>' + escapeHtml(c.store) + '</strong> — ' + escapeHtml(c.account) +
-      '<br/>Available balance: <strong>' + formatINR(c.amount) + '</strong>';
+      '<br/>Available balance: <strong>' + formatCurrency(c.amount,c.currency) + '</strong> ('+c.currency+')';
     document.getElementById("spendAmountInput").value = "";
+    updateSpendCurrencyUi();
     document.getElementById("spendModalBackdrop").classList.add("show");
   }
 
@@ -3587,8 +3612,17 @@
       return;
     }
 
-    if (!pendingRedemption || pendingRedemption.couponId !== c.id || pendingRedemption.amount !== amount) {
-      pendingRedemption = { couponId:c.id, amount, requestId:createRedemptionRequestId() };
+    const target=document.getElementById("spendCurrencySelect").value;
+    const merchantAmount=document.getElementById("spendSettlementAmount").value;
+    const validation=window.GiftVaultCurrency.validate(
+      c,target,amount,c.currency===target?null:merchantAmount,state.currencyPermissions||[]
+    );
+    if(!validation.ok){alert(validation.message);return;}
+    if (!pendingRedemption || pendingRedemption.couponId!==c.id
+        || pendingRedemption.amount!==amount || pendingRedemption.target!==target
+        || pendingRedemption.merchantAmount!==validation.chargedAmount) {
+      pendingRedemption={couponId:c.id,amount,target,
+        merchantAmount:validation.chargedAmount,requestId:createRedemptionRequestId()};
     }
     const intent = pendingRedemption;
     redemptionInFlight = true;
@@ -3597,7 +3631,8 @@
     try {
       // Database migration is mandatory; never fall back to a direct UPDATE.
       const { data, error } = await supabaseClient.rpc("redeem_coupon", {
-        p_coupon_id: intent.couponId, p_amount: intent.amount, p_request_id: intent.requestId
+        p_coupon_id: intent.couponId, p_amount: intent.amount, p_request_id: intent.requestId,
+        p_spend_currency:intent.target, p_settlement_amount:intent.merchantAmount
       });
       if (error) {
         alert((error.code === "PGRST202" || error.code === "42883")
