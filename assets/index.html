@@ -2747,9 +2747,9 @@
 
   function renderStats() {
     const activeList = state.coupons.filter(isCouponActive);
-    const totalValue = activeList.reduce((acc, c) => acc + (Number(c.amount) || 0), 0);
+    const totalValue = balanceSummary(activeList);
     const expiringSoon = activeList.filter(c => daysUntil(c.expiry) <= 7);
-    const expiringValue = expiringSoon.reduce((acc, c) => acc + (Number(c.amount) || 0), 0);
+    const expiringValue = balanceSummary(expiringSoon);
     const uniqueStores = new Set(activeList.map(c => c.store.trim().toLowerCase())).size;
     const uniqueAccounts = new Set(activeList.map(c => (c.store + "::" + c.account).toLowerCase())).size;
     const unreadNotifs = (state.notifications || []).filter(n => !n.isRead).length;
@@ -2757,12 +2757,12 @@
     document.getElementById("statsGrid").innerHTML = `
       <div class="stat-card">
         <span class="stat-label">Total Active Balance</span>
-        <span class="stat-value" style="color:#34d399;">${formatINR(totalValue)}</span>
+        <span class="stat-value" style="color:#34d399;">${totalValue}</span>
         <span class="stat-sub">Across ${activeList.length} active coupon${activeList.length === 1 ? "" : "s"} / gift cards</span>
       </div>
       <div class="stat-card">
         <span class="stat-label">Expiring Within 7 Days</span>
-        <span class="stat-value" style="color:${expiringSoon.length > 0 ? "#fbbf24" : "#94a3b8"};">${expiringSoon.length} (${formatINR(expiringValue)})</span>
+        <span class="stat-value" style="color:${expiringSoon.length > 0 ? "#fbbf24" : "#94a3b8"};">${expiringSoon.length} (${expiringValue})</span>
         <span class="stat-sub">${expiringSoon.length > 0 ? "Use these balances first!" : "No urgent expirations this week"}</span>
       </div>
       <div class="stat-card">
@@ -2782,9 +2782,9 @@
     const storeMap = {};
     state.coupons.filter(isCouponActive).forEach(c => {
       const key = c.store.trim();
-      if (!storeMap[key]) storeMap[key] = { count: 0, total: 0 };
+      if (!storeMap[key]) storeMap[key] = { count: 0, cards: [] };
       storeMap[key].count++;
-      storeMap[key].total += Number(c.amount) || 0;
+      storeMap[key].cards.push(c);
     });
 
     const stores = Object.keys(storeMap).sort();
@@ -2792,7 +2792,7 @@
       const isSelected = activeQuickSearch.toLowerCase() === st.toLowerCase();
       return `<button class="store-chip ${isSelected ? "active" : ""}" onclick="selectStoreChip('${escapeHtml(st)}')">
         <span>🛒 ${escapeHtml(st)}</span>
-        <span style="color:#34d399; font-weight:800;">${formatINR(storeMap[st].total)}</span>
+        <span style="color:#34d399; font-weight:800;">${balanceSummary(storeMap[st].cards)}</span>
       </button>`;
     }).join("");
   }
@@ -2849,17 +2849,17 @@
       return;
     }
 
-    const totalAvail = matches.reduce((sum, item) => sum + (Number(item.amount) || 0), 0);
+    const totalAvail = balanceSummary(matches);
     const earliest = matches[0];
 
     panel.innerHTML = `
       <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px; padding-bottom:10px; border-bottom:1px solid var(--border);">
         <div>
           <div style="font-size:17px; font-weight:800; color:#34d399;">
-            ✅ Yes! ${matches.length} active balance${matches.length === 1 ? "" : "s"} totaling ${formatINR(totalAvail)}
+            ✅ Yes! ${matches.length} active balance${matches.length === 1 ? "" : "s"} totaling ${totalAvail}
           </div>
           <div style="font-size:12.5px; color:#cbd5e1; margin-top:3px;">
-            💡 <strong>Use First:</strong> Use <strong>${escapeHtml(earliest.account)}</strong> (${formatINR(earliest.amount)}) first — expires on <strong>${formatDateReadable(earliest.expiry)}</strong>.
+            💡 <strong>Use First:</strong> Use <strong>${escapeHtml(earliest.account)}</strong> (${formatCurrency(earliest.amount,earliest.currency)}) first — expires on <strong>${formatDateReadable(earliest.expiry)}</strong>.
           </div>
         </div>
       </div>
@@ -2872,7 +2872,7 @@
                 <div class="account-pill">👤 Account: ${escapeHtml(c.account)}</div>
               </div>
               <div style="text-align:right;">
-                <div style="font-size:21px; font-weight:900; color:#34d399;">${formatINR(c.amount)}</div>
+                <div style="font-size:21px; font-weight:900; color:#34d399;">${formatCurrency(c.amount,c.currency)}</div>
                 <div style="font-size:11.5px; color:var(--text-muted);">${escapeHtml(c.type)}</div>
               </div>
             </div>
@@ -2948,7 +2948,7 @@
               <div class="account-pill">👤 ${escapeHtml(c.account)}</div>
             </div>
             <div style="text-align:right;">
-              <div style="font-size:23px; font-weight:900; color:#34d399;">${formatINR(c.amount)}</div>
+              <div style="font-size:23px; font-weight:900; color:#34d399;">${formatCurrency(c.amount,c.currency)}</div>
               <div style="font-size:11.5px; color:var(--text-muted);">${escapeHtml(c.type)}</div>
             </div>
           </div>
@@ -3004,7 +3004,7 @@
 
       container.innerHTML = Object.keys(groups).sort().map(storeName => {
         const items = window.sortVaultCards ? window.sortVaultCards(groups[storeName]) : groups[storeName].sort((a,b) => daysUntil(a.expiry)-daysUntil(b.expiry));
-        const storeTotal = items.reduce((s, x) => s + (Number(x.amount) || 0), 0);
+        const storeTotal = balanceSummary(items);
 
         return `
           <div class="store-group">
@@ -3017,7 +3017,7 @@
                 </div>
               </div>
               <div style="display:flex; align-items:center; gap:10px;">
-                <span class="store-total-pill">Total: ${formatINR(storeTotal)}</span>
+                <span class="store-total-pill">Total: ${storeTotal}</span>
                 ${canCurrentUserAdd() ? `<button class="btn btn-sm btn-primary" onclick="openCouponModal('${escapeHtml(storeName)}')">➕ Add Account</button>` : ""}
               </div>
             </div>
@@ -3416,7 +3416,7 @@
         delete revealedSecrets[editId];
       }
 
-      await writeActivityLog("EDITED", `Updated ${store} (${account}) — ${formatINR(amount)}`, `Expires ${expiry}`);
+      await writeActivityLog("EDITED", `Updated ${store} (${account}) — ${formatCurrency(amount,currency)}`, `Expires ${expiry}`);
       savedCouponForCal = { id: editId, store, account, type: benefitType, amount, expiry, notes };
     } else {
       const { data: inserted, error: insErr } = await supabaseClient
@@ -3451,7 +3451,7 @@
         });
       }
 
-      await writeActivityLog("ADDED", `Added ${formatINR(amount)} for ${store} (${account})`, `${benefitType} • ${codeVisibility === "private" ? "Private code" : "Public code"} • Expires ${expiry}`);
+      await writeActivityLog("ADDED", `Added ${formatCurrency(amount,currency)} for ${store} (${account})`, `${benefitType} • ${codeVisibility === "private" ? "Private code" : "Public code"} • Expires ${expiry}`);
       savedCouponForCal = { id: inserted.id, store, account, type: benefitType, amount, expiry, notes };
     }
 
@@ -3475,11 +3475,11 @@
       const entries = state.redemptions.filter(t => t.couponId === couponId);
       target.innerHTML = entries.length ? entries.map(t => {
         const kind = t.type === "redemption" ? "Redeemed" : "Balance adjustment";
-        const delta = (t.amountDelta > 0 ? "+" : "−") + formatINR(Math.abs(t.amountDelta));
+        const delta = (t.amountDelta > 0 ? "+" : "−") + formatCurrency(Math.abs(t.amountDelta),t.currency);
         return '<div style="display:flex;justify-content:space-between;gap:12px;padding:12px;border-bottom:1px solid var(--border);font-size:13px;">' +
           '<div><strong>' + kind + '</strong><div style="color:var(--text-muted);font-size:11px;margin-top:4px;">' +
           escapeHtml(formatDateTimeReadable(t.createdAt)) + '</div><div style="color:var(--text-muted);font-size:11px;margin-top:4px;">' +
-          formatINR(t.balanceBefore) + ' → ' + formatINR(t.balanceAfter) + '</div></div>' +
+          formatCurrency(t.balanceBefore,t.currency) + ' → ' + formatCurrency(t.balanceAfter,t.currency) + '</div></div>' +
           '<strong style="white-space:nowrap;color:' + (t.amountDelta>0?'#77e3b4':'#f7c78d') + ';">' + delta + '</strong></div>';
       }).join("") : '<div class="empty-state">No redemptions or balance adjustments recorded yet.</div>';
     }
@@ -3589,7 +3589,7 @@
     if (!isCurrentUserSuperAdmin() || !supabaseClient) return;
     const c = state.coupons.find(x => x.id === id);
     if (!c) return;
-    if (!confirm(`Delete ${formatINR(c.amount)} for ${c.store} (${c.account})?`)) return;
+    if (!confirm(`Delete ${formatCurrency(c.amount,c.currency)} for ${c.store} (${c.account})?`)) return;
 
     const { error } = await supabaseClient.from("coupons").delete().eq("id", id);
     if (error) {
@@ -3597,7 +3597,7 @@
       return;
     }
 
-    await writeActivityLog("DELETED", `Deleted ${c.store} (${c.account}) — ${formatINR(c.amount)}`, "");
+    await writeActivityLog("DELETED", `Deleted ${c.store} (${c.account}) — ${formatCurrency(c.amount,c.currency)}`, "");
     await fetchVaultStatus();
   }
 
@@ -3606,7 +3606,7 @@
     if (!c) return;
     selectedCalId = id;
     document.getElementById("calModalDesc").innerHTML = `
-      Set a Google Calendar reminder for <strong>${escapeHtml(c.store)} (${escapeHtml(c.account)}) — ${formatINR(c.amount)}</strong> expiring on <strong>${formatDateReadable(c.expiry)}</strong>:
+      Set a Google Calendar reminder for <strong>${escapeHtml(c.store)} (${escapeHtml(c.account)}) — ${formatCurrency(c.amount,c.currency)}</strong> expiring on <strong>${formatDateReadable(c.expiry)}</strong>:
     `;
     document.getElementById("calModalBackdrop").classList.add("show");
   }
@@ -3624,12 +3624,12 @@
   }
 
   function launchGoogleCalendarForCoupon(c, daysBefore) {
-    const title = `🎁 Use ${formatINR(c.amount)} ${c.store} (${c.account}) before it expires!`;
+    const title = `🎁 Use ${formatCurrency(c.amount,c.currency)} ${c.store} (${c.account}) before it expires!`;
     const codeDisplay = "Open Gift Vault to reveal this code securely";
     const desc = [
       `Store / Website: ${c.store}`,
       `Account: ${c.account}`,
-      `Balance / Value: ${formatINR(c.amount)} (${c.type})`,
+      `Balance / Value: ${formatCurrency(c.amount,c.currency)} (${c.type})`,
       `Code / PIN: ${codeDisplay}`,
       `Expiry Date: ${formatDateReadable(c.expiry)}`,
       c.notes ? `Notes: ${c.notes}` : ""
