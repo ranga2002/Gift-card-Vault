@@ -1859,10 +1859,13 @@
 
       const redemptionsPromise = supabaseClient
         .from("coupon_transactions")
-        .select("id, coupon_id, actor_id, transaction_type, amount_delta, balance_before, balance_after, created_at")
+        .select("id, coupon_id, actor_id, transaction_type, amount_delta, balance_before, balance_after, currency_code, settlement_currency, settlement_amount, issuer_evidence_url, created_at")
         .order("created_at", { ascending: false })
         .limit(500);
 
+      const currencyPermissionsPromise = supabaseClient
+        .from("coupon_currency_exceptions")
+        .select("coupon_id, source_currency, target_currency, evidence_url, issuer_approval_note, verified_by, verified_at, valid_until, active");
       const logsPromise = isCurrentUserSuperAdmin()
         ? supabaseClient
             .from("activity_logs")
@@ -1871,19 +1874,21 @@
             .limit(300)
         : Promise.resolve({ data: [], error: null });
 
-      const [profRes, invRes, cpnRes, reqRes, notifRes, logRes, redemptionRes] = await Promise.all([
+      const [profRes, invRes, cpnRes, reqRes, notifRes, logRes, redemptionRes, currencyRes] = await Promise.all([
         profilePromise,
         invitesPromise,
         couponsPromise,
         requestsPromise,
         notificationsPromise,
         logsPromise,
-        redemptionsPromise
+        redemptionsPromise,
+        currencyPermissionsPromise
       ]);
 
       if (profRes.error) throw profRes.error;
-      if (cpnRes.error) throw cpnRes.error;
+      if (cpnRes.error) throw new Error("Could not load cards. Install F04 database migration before this branch: "+cpnRes.error.message);
       if (logRes.error) throw logRes.error;
+      if (currencyRes.error) throw new Error("Issuer approvals unavailable. Install F04 migration: "+currencyRes.error.message);
 
       const profiles = profRes.data || [];
       const me = profiles.find(p => p.id === currentUser.id);
@@ -1991,9 +1996,18 @@
         id: t.id, couponId: t.coupon_id, actorId: t.actor_id,
         type: t.transaction_type, amountDelta: Number(t.amount_delta),
         balanceBefore: Number(t.balance_before), balanceAfter: Number(t.balance_after),
+        currency: t.currency_code,
+        settlementCurrency: t.settlement_currency,
+        settlementAmount: t.settlement_amount===null ? null : Number(t.settlement_amount),
+        issuerEvidenceUrl: t.issuer_evidence_url,
         createdAt: t.created_at
       }));
 
+      const currencyPermissions = (currencyRes.data || []).map(x => ({
+        couponId:x.coupon_id,sourceCurrency:x.source_currency,targetCurrency:x.target_currency,
+        evidenceUrl:x.evidence_url,approvalNote:x.issuer_approval_note,
+        verifiedBy:x.verified_by,verifiedAt:x.verified_at,validUntil:x.valid_until,active:x.active===true
+      }));
       const logs = (logRes.data || []).map(l => ({
         id: l.id,
         action: l.action,
@@ -2010,7 +2024,8 @@
         notifications,
         logs,
         redemptions,
-        redemptionsReady: Boolean(redemptionRes && !redemptionRes.error)
+        redemptionsReady: Boolean(redemptionRes && !redemptionRes.error),
+        currencyPermissions
       };
 
       setStatusSubtext("● Supabase Cloud Sync • RLS Protected");
@@ -2580,9 +2595,22 @@
     return Math.ceil((target - today) / (1000 * 60 * 60 * 24));
   }
 
-  function formatINR(num) {
-    const n = Number(num) || 0;
-    return "₹" + n.toLocaleString("en-IN", { maximumFractionDigits: 2 });
+  function formatCurrency(num, code) {
+    const valid = ["INR","CAD","USD"].includes(code) ? code : "INR";
+    if (window.GiftVaultCurrency) return window.GiftVaultCurrency.format(num,valid);
+    const locale = valid === "INR" ? "en-IN" : "en-CA";
+    return new Intl.NumberFormat(locale, {style:"currency",currency:valid,
+      minimumFractionDigits:2,maximumFractionDigits:2}).format(Number(num)||0);
+  }
+  function formatINR(num) { return formatCurrency(num,"INR"); }
+  function balanceSummary(cards) {
+    const groups = {INR:0,CAD:0,USD:0};
+    (cards||[]).forEach(c => {
+      const currency=["INR","CAD","USD"].includes(c.currency)?c.currency:"INR";
+      groups[currency]+=Number(c.amount)||0;
+    });
+    return Object.keys(groups).filter(currency=>groups[currency]!==0)
+      .map(currency=>formatCurrency(groups[currency],currency)+" "+currency).join(" · ")||"No balance";
   }
 
   function formatDateReadable(dateStr) {
@@ -3786,7 +3814,8 @@
       })),
       unread: state.notifications.filter(n => !n.isRead).length,
       transactions: state.redemptions,
-      historyAvailable: state.redemptionsReady
+      historyAvailable: state.redemptionsReady,
+      currencyPermissions:state.currencyPermissions || []
     }) : null,
     canSpend: id => {
       const c = state.coupons.find(x => x.id === id);
