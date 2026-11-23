@@ -1220,7 +1220,16 @@
         </div>
 
         <div class="form-group">
-          <label>Amount / Value (₹) *</label>
+          <label for="fCurrency">Gift card denomination *</label>
+          <select id="fCurrency" class="form-control" required>
+            <option value="INR">INR — Indian Rupee (₹)</option>
+            <option value="CAD">CAD — Canadian Dollar (CA$)</option>
+            <option value="USD">USD — US Dollar (US$)</option>
+          </select>
+          <small id="fCurrencyHint" style="color:var(--text-muted);">Currency is locked after saving.</small>
+        </div>
+        <div class="form-group">
+          <label for="fAmount">Value (in selected currency) *</label>
           <input type="number" step="0.01" min="0" id="fAmount" class="form-control" placeholder="e.g., 2000" required />
         </div>
 
@@ -1834,7 +1843,7 @@
 
       const couponsPromise = supabaseClient
         .from("coupons")
-        .select("id, store, account, benefit_type, amount, initial_amount, expiry, notes, status, admin_only_code, code_visibility, has_secret_code, created_by, created_at")
+        .select("id, store, account, benefit_type, amount, initial_amount, currency_code, expiry, notes, status, admin_only_code, code_visibility, has_secret_code, created_by, created_at")
         .order("created_at", { ascending: false });
 
       const requestsPromise = supabaseClient
@@ -1926,6 +1935,7 @@
           type: c.benefit_type,
           amount: Number(c.amount) || 0,
           initialAmount: Number(c.initial_amount) || 0,
+          currency: c.currency_code,
           expiry: c.expiry,
           notes: c.notes || "",
           status: c.status,
@@ -3224,6 +3234,9 @@
     document.getElementById("fAccount").value = "";
     document.getElementById("fType").value = "Gift Card / Wallet";
     document.getElementById("fAmount").value = "";
+    document.getElementById("fCurrency").value = "INR";
+    document.getElementById("fCurrency").disabled = false;
+    document.getElementById("fCurrencyHint").textContent = "Select the currency printed on the card. It cannot be changed later.";
     document.getElementById("fExpiry").value = getFutureDateStr(30);
     resetCouponCodeInputUi();
     document.getElementById("fCode").value = "";
@@ -3252,6 +3265,9 @@
     document.getElementById("fAccount").value = c.account;
     document.getElementById("fType").value = c.type;
     document.getElementById("fAmount").value = c.amount;
+    document.getElementById("fCurrency").value = c.currency || "INR";
+    document.getElementById("fCurrency").disabled = true;
+    document.getElementById("fCurrencyHint").textContent = "Locked denomination. Create a new card if the currency is wrong.";
     document.getElementById("fExpiry").value = c.expiry;
     document.getElementById("fNotes").value = c.notes || "";
 
@@ -3302,7 +3318,13 @@
     const store = document.getElementById("fStore").value.trim();
     const account = document.getElementById("fAccount").value.trim();
     const benefitType = document.getElementById("fType").value;
-    const amount = parseFloat(document.getElementById("fAmount").value) || 0;
+    const amount = Number(document.getElementById("fAmount").value);
+    const currency = document.getElementById("fCurrency").value;
+    if (!["INR","CAD","USD"].includes(currency) || !Number.isFinite(amount)
+        || amount < 0 || amount !== Math.round(amount * 100) / 100) {
+      alert("Select INR, CAD or USD and enter a valid amount with at most two decimals.");
+      return;
+    }
     const expiry = document.getElementById("fExpiry").value;
     const code = document.getElementById("fCode").value.trim();
     const notes = document.getElementById("fNotes").value.trim();
@@ -3316,6 +3338,10 @@
     if (editId) {
       const existing = state.coupons.find(x => x.id === editId);
       if (!existing) return;
+      if (existing.currency !== currency) {
+        alert("Card currency cannot be changed. Create a new card in the correct denomination.");
+        return;
+      }
       if (!canCurrentUserEditCoupon(existing)) {
         alert("🔒 Protected Action: Only the creator of this coupon can edit it.");
         return;
@@ -3373,6 +3399,7 @@
           benefit_type: benefitType,
           amount,
           initial_amount: amount,
+          currency_code: currency,
           expiry,
           notes,
           admin_only_code: adminOnlyCode,
@@ -3750,7 +3777,7 @@
       canAdd: canCurrentUserAdd(),
       cards: state.coupons.map(c => ({
         id: c.id, store: c.store, account: c.account, type: c.type,
-        amount: c.amount, initialAmount: c.initialAmount, expiry: c.expiry,
+        amount: c.amount, initialAmount: c.initialAmount, currency:c.currency, expiry: c.expiry,
         status: c.status, notes: c.notes, hasSecretCode: c.hasSecretCode,
         codeVisibility: c.codeVisibility, createdBy: c.createdBy
       })),
@@ -3801,6 +3828,7 @@
 <script src="vault-enhancements.js" defer></script>
 <script src="vault-icons.js" defer></script>
 <script src="expiry-reminders.js" defer></script>
+<script src="wallet-currency.js" defer></script>
 <script src="wallet-filter-engine.js" defer></script>
 <script src="wallet-live.js" defer></script>
 <script src="wallet-expiry-ui.js" defer></script>
