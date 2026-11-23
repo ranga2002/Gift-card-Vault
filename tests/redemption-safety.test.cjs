@@ -15,15 +15,23 @@ function makeHarness(options={}) {
   const alerts=[],calls=[],buttons=[{disabled:false},{disabled:false},{disabled:false}];
   const fields={
     spendAmountInput:{value:options.amount===undefined?'25':String(options.amount)},
+    spendCurrencySelect:{value:'INR'},
+    spendSettlementAmount:{value:''},
+    spendSettlementRow:{style:{}},
+    spendCardDebitLabel:{textContent:''},
+    spendCurrencyMessage:{style:{},textContent:''},
+    spendPartialButton:{disabled:false},
+    spendFullButton:{disabled:false},
     spendModalInfo:{innerHTML:''},
     spendModalBackdrop:{classList:{visible:false,add(){this.visible=true},remove(){this.visible=false}}}
   };
-  const coupon={id:'card1',store:'Test Store',account:'Personal',amount:100,status:'active'};
+  const coupon={id:'card1',store:'Test Store',account:'Personal',amount:100,currency:'INR',status:'active'};
   let requests=0,refreshes=0;
   const sandbox={
     crypto:{randomUUID:()=>('00000000-0000-4000-8000-'+String(++requests).padStart(12,'0'))},
     selectedSpendId:null,
-    state:{coupons:[coupon]},
+    state:{coupons:[coupon],currencyPermissions:[]},
+    window:{GiftVaultCurrency:require('../assets/wallet-currency.js')},
     canCurrentUserAdd:()=>options.allowed!==false,
     isCouponOwnerOrAdmin:()=>options.owner!==false,
     isCouponActive:c=>c.status==='active'&&c.amount>0,
@@ -33,6 +41,7 @@ function makeHarness(options={}) {
     },
     escapeHtml:s=>String(s),
     formatINR:n=>String(n),
+    formatCurrency:(n,c)=>String(n)+' '+c,
     alert:s=>alerts.push(String(s)),
     fetchVaultStatus:async()=>{refreshes++},
     supabaseClient:{rpc:async(name,args)=>{
@@ -68,6 +77,8 @@ test('partial redemption calls RPC with intended amount and UUID',async()=>{
   assert.equal(h.calls[0].name,'redeem_coupon');
   assert.equal(h.calls[0].args.p_coupon_id,'card1');
   assert.equal(h.calls[0].args.p_amount,25);
+  assert.equal(h.calls[0].args.p_spend_currency,'INR');
+  assert.equal(h.calls[0].args.p_settlement_amount,25);
   assert.match(h.calls[0].args.p_request_id,/^[0-9a-f-]{36}$/);
   assert.equal(h.refreshes(),1);
   assert.equal(h.fields.spendModalBackdrop.classList.visible,false);
