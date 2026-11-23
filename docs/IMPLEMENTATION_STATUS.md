@@ -75,6 +75,46 @@ production readiness and backend email/push scheduling pending.
 **Still pending:** validation with real Supabase users and database; optimized
 server-side pagination/search for very large vaults.
 
+## F04 — Multi-currency and issuer-specific redemption restrictions
+
+**Implemented in feature-branch code; Supabase staging migration pending.**
+
+- Gift cards have a fixed original denomination: **INR, CAD or USD**.
+- Legacy cards and legacy ledger rows are backfilled as **INR**; check those
+  assumptions during migration planning, especially if imported records may
+  originally have represented CAD or USD.
+- All wallet, classic dashboard, expiry alerts, history and card forms use
+  native denomination labels; unrelated currencies are never added together.
+- Currency filter is available. Balance filtering and balance-based sorting
+  require selecting one denomination when more than one currency is present.
+- Editing an existing card cannot change its denomination (UI check and SQL trigger).
+- The 3-parameter F07 redemption function is **removed** after F04 migration.
+  The new 5-parameter RPC requires card debit, request UUID, merchant currency
+  and actual merchant charge.
+- **Default block:** Cross-currency redemption fails in PostgreSQL unless an
+  active issuer exception exists for the precise card, original denomination
+  and merchant checkout currency. No store-wide permission is assumed.
+- Only a Super Admin may record or revoke an issuer approval. Verification
+  requires an issuer HTTPS terms URL and written evidence about that exact card.
+  A human must actually verify the terms; the code does NOT certify any brand.
+- Every successful foreign-currency redemption records original card debit,
+  merchant checkout denomination, actual merchant-charged amount, and an issuer
+  evidence URL. No automatic exchange rate, currency conversion or inferred
+  merchant charge is performed.
+- Isolated PostgreSQL tests verify default block, exact pair approvals,
+  admin-only verification, revocation, zero/overdraw protection, original
+  denomination preservation, and immutable transaction history.
+- **67/67 JavaScript tests and disposable PostgreSQL CI passed.**
+- Sample preview displays separate INR/CAD/USD balances and includes a clearly
+  **fictional issuer-approved test card**, not a real merchant policy.
+- Interactive preview is in-memory only. It is never a real payment/redemption.
+
+**Not completed:** Live Supabase integration, actual issuer-brand policy research,
+actual merchant acceptance verification, production/staging deployment or
+scheduled exchange-rate integrations. These are intentionally separate concerns.
+The product records eligibility only after a trusted administrator documents
+specific issuer evidence, not because another branch or location uses the brand.
+
 ## Deployment gate — do not skip
 
 1. Do NOT apply the F07 migration to production before testing in staging.
@@ -95,5 +135,6 @@ server-side pagination/search for very large vaults.
   (the isolated PostgreSQL CI checks already pass).
 - Add atomic balance-adjustment RPC and cursor-based ledger pagination.
 - F02 server-side email/push delivery and durable cross-device preferences.
-- Multi-currency data, scanning/OCR, barcode/QR display, family isolation,
-  advanced analytics and full Supabase integration tests.
+- F04 multi-currency issuer eligibility regression with real Supabase users.
+- Scanning/OCR, barcode/QR display, family isolation, advanced analytics and
+  full Supabase integration tests.
