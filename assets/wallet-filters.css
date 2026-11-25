@@ -1,0 +1,28 @@
+/* F03 — Wallet search, status, expiry, balance and sorting controls */
+.wl-root .wl-filter-toolbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:-2px 0 18px}
+.wl-root .wl-filter-trigger{display:inline-flex;align-items:center;gap:9px;min-height:41px;padding:9px 14px;border:1px solid #49617a;border-radius:13px;color:#e5f6ff;background:#23384c;font-size:12px;font-weight:780;white-space:nowrap}
+.wl-root .wl-filter-trigger:hover,.wl-root .wl-filter-trigger[aria-expanded="true"]{border-color:#66cbaa;background:#2a4b52}
+.wl-root .wl-filter-trigger .wl-icon{height:17px;width:17px}
+.wl-root .wl-filter-active-count{min-width:21px;height:21px;display:inline-flex;align-items:center;justify-content:center;border-radius:99px;background:#5ddeb7;color:#132b23;font-size:11px;font-weight:900;padding:0 6px}
+.wl-root .wl-filter-result-count{color:#9fb6ce;font-size:12px;margin-left:auto;font-variant-numeric:tabular-nums}
+.wl-root #wl-clear-filters,.wl-root .wl-inline-clear{border:0;background:transparent;color:#91d6ff;font-size:12px;font-weight:740;padding:7px 3px;cursor:pointer}
+.wl-root .wl-filter-panel{max-width:100%;padding:16px;border:1px solid #3c536b;border-radius:20px;background:linear-gradient(140deg,#1b2d40,#18273a);margin:-4px 0 23px;box-shadow:0 14px 35px #0002}
+.wl-root .wl-filter-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}
+.wl-root .wl-filter-grid label{min-width:0;font-size:11px;font-weight:750;letter-spacing:.025em;color:#bfcee0;display:flex;flex-direction:column;gap:7px}
+.wl-root .wl-filter-grid select,.wl-root .wl-filter-grid input{width:100%;min-height:42px;max-width:100%;border:1px solid #455b73;border-radius:11px;color:#f1f7ff;background:#122237;padding:9px 11px;font-size:13px;font-weight:550;outline:none}
+.wl-root .wl-filter-grid select:focus,.wl-root .wl-filter-grid input:focus{border-color:#70dfbd;box-shadow:0 0 0 2px #69dbbb29}
+.wl-root .wl-filter-grid select option{color:#152b3d;background:#e7f2fb}
+.wl-root .wl-filter-grid input::placeholder{color:#829bb4}
+.wl-root .wl-search:focus-within{border-color:#6addbc}
+.wl-root .wl-empty .wl-inline-clear{padding:0 3px}
+@media(max-width:940px){.wl-root .wl-filter-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:630px){
+.wl-root .wl-filter-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:13px 10px}
+.wl-root .wl-filter-toolbar{gap:8px;margin-bottom:16px}
+.wl-root .wl-filter-result-count{width:100%;margin-left:0;font-size:11px}
+.wl-root .wl-filter-panel{padding:14px 12px;border-radius:16px}
+.wl-root .wl-filter-grid select,.wl-root .wl-filter-grid input{padding:9px 8px;font-size:12px}
+}
+@media(max-width:345px){.wl-root .wl-filter-grid{grid-template-columns:1fr}}
+
+.wl-root .wl-currency-note{font-size:12px;line-height:1.5;color:#bfdbeb;background:#20374b;padding:10px 12px;border-radius:12px}

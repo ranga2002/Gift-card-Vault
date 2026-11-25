@@ -2,8 +2,10 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-<title>Coupon &amp; Gift Vault</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Gift Vault | Make every card count</title>
+<meta name="theme-color" content="#101b30" />
+<link rel="manifest" href="manifest.webmanifest" />
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 <script src="supabase-config.js?v=202611152212"></script>
@@ -714,6 +716,11 @@
     .form-grid { grid-template-columns: 1fr; }
   }
 </style>
+<link rel="stylesheet" href="vault-refresh.css" />
+<link rel="stylesheet" href="wallet-live.css" />
+<link rel="stylesheet" href="wallet-expiry-ui.css" />
+<link rel="stylesheet" href="wallet-filters.css" />
+<link rel="stylesheet" href="wallet-scan.css" />
 </head>
 <body>
 
@@ -919,6 +926,7 @@
       </div>
     </div>
     <div class="topbar-actions">
+      <button class="btn" id="returnWalletBtn" type="button" onclick="window.walletLiveStart && window.walletLiveStart()">Back to wallet</button>
       <div class="user-pill" id="activeUserPill"></div>
       <button class="btn" id="topNotificationsBtn" onclick="switchMainView('notifications')">🔔 Notifications <span class="badge badge-amber" id="topNotifBadge" style="display:none; margin-left:4px;">0</span></button>
       <button class="btn" id="topBackupBtn" onclick="exportBackupJson()">💾 Save Backup to PC</button>
@@ -930,8 +938,11 @@
 
   <main class="container">
 
+    <section class="vault-hero" aria-label="Your wallet overview"><div><div class="vault-eyebrow">THE SMARTER WAY TO MANAGE VALUE</div><h2>More value. Less waste.</h2><p>All your gift cards and coupons in one secure place. Know what you have and use it before it expires.</p></div><div class="vault-hero-badge">✦ Your secure shared vault</div></section>
     <!-- KPI Stats Strip -->
     <section class="stats-grid" id="statsGrid"></section>
+    <div class="vault-section-title"><h2>✦ Smart insights</h2><span style="color:var(--text-muted);font-size:12px">Use the earliest-expiring card first</span></div>
+    <section class="vault-insights" id="vaultInsights" aria-live="polite"></section>
 
     <!-- SHOPPING QUICK-CHECK BAR -->
     <section class="quick-check-box">
@@ -966,6 +977,7 @@
       </div>
     </div>
 
+    <section class="vault-filters" id="advancedFilterPanel" aria-label="Filter gift cards"><div class="vault-filter"><label for="vaultFilterSearch">Search cards</label><input id="vaultFilterSearch" type="search" placeholder="Store, account, notes" autocomplete="off"></div><div class="vault-filter"><label for="vaultFilterStatus">Status</label><select id="vaultFilterStatus"><option value="any">Any</option><option value="active">Active</option><option value="expiring">Expiring in 7 days</option><option value="history">Used / expired</option></select></div><div class="vault-filter"><label for="vaultFilterSort">Sort cards</label><select id="vaultFilterSort"><option value="expiry">Expiry soonest</option><option value="store">Store name</option><option value="balance-high">Highest balance</option><option value="balance-low">Lowest balance</option></select></div><button class="btn vault-filter-reset" id="vaultFilterReset" type="button">Reset</button></section>
     <!-- Vault Content Area -->
     <section id="vaultContentArea"></section>
 
@@ -1011,8 +1023,8 @@
     <section class="panel-box" id="loggerPanel">
       <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px;">
         <div>
-          <h2 style="font-size:19px; font-weight:800;">📜 Data &amp; Transaction Logger</h2>
-          <p style="font-size:13px; color:var(--text-muted);">Complete history of added coupons, partial balance spends, edits, invitations, and deletions.</p>
+          <h2 style="font-size:19px; font-weight:800;">📜 Activity Logger</h2>
+          <p style="font-size:13px; color:var(--text-muted);">Administrative actions and notes. Redemption and balance-adjustment history is available on each card.</p>
         </div>
         <div style="display:flex; gap:8px; flex-wrap:wrap;">
           <button class="btn btn-sm btn-primary" onclick="openCouponModal()" id="loggerAddBtn">➕ Add Entry</button>
@@ -1172,6 +1184,7 @@
       <h2 id="couponModalTitle" style="font-size:19px; font-weight:800;">➕ Add Coupon or Gift Card</h2>
       <button class="btn btn-sm" onclick="closeCouponModal()">✕ Close</button>
     </div>
+    <div class="gv-scan-add-row"><button type="button" class="btn gv-scan-launch" onclick="openGiftCardScan()">Scan a card or receipt</button></div>
     <form id="couponForm" onsubmit="saveCouponForm(event)">
       <input type="hidden" id="editCouponId" />
       <div class="form-grid">
@@ -1209,7 +1222,17 @@
         </div>
 
         <div class="form-group">
-          <label>Amount / Value (₹) *</label>
+          <label for="fCurrency">Gift card denomination *</label>
+          <select id="fCurrency" class="form-control" required>
+            <option value="">Select currency</option>
+            <option value="INR">INR — Indian Rupee (₹)</option>
+            <option value="CAD">CAD — Canadian Dollar (CA$)</option>
+            <option value="USD">USD — US Dollar (US$)</option>
+          </select>
+          <small id="fCurrencyHint" style="color:var(--text-muted);">Currency is locked after saving.</small>
+        </div>
+        <div class="form-group">
+          <label for="fAmount">Value (in selected currency) *</label>
           <input type="number" step="0.01" min="0" id="fAmount" class="form-control" placeholder="e.g., 2000" required />
         </div>
 
@@ -1276,16 +1299,72 @@
     </div>
     <div id="spendModalInfo" style="margin-bottom:14px; font-size:14px; color:var(--text-muted);"></div>
     <div class="form-group" style="margin-bottom:14px;">
-      <label>How much did you spend from this balance? (₹)</label>
-      <input type="number" step="0.01" min="0" id="spendAmountInput" class="form-control" placeholder="Enter amount spent..." />
+      <label id="spendCardDebitLabel" for="spendAmountInput">Card amount deducted (card currency)</label>
+      <input type="number" step="0.01" min="0.01" id="spendAmountInput" class="form-control" placeholder="Amount from card balance" />
+    </div>
+    <div class="form-group" style="margin-bottom:14px;">
+      <label for="spendCurrencySelect">Merchant checkout currency</label>
+      <select id="spendCurrencySelect" class="form-control" onchange="updateSpendCurrencyUi()">
+        <option value="INR">INR (₹)</option>
+        <option value="CAD">CAD (CA$)</option>
+        <option value="USD">USD (US$)</option>
+      </select>
+      <p id="spendCurrencyMessage" style="font-size:12px;margin-top:8px;line-height:1.5;" aria-live="polite"></p>
+    </div>
+    <div class="form-group" id="spendSettlementRow" style="margin-bottom:14px;display:none;">
+      <label for="spendSettlementAmount">Amount actually charged by merchant (checkout currency)</label>
+      <input type="number" step="0.01" min="0.01" id="spendSettlementAmount" class="form-control" placeholder="From merchant receipt or issuer terms" />
+      <small style="color:var(--text-muted);">No automatic FX conversion. Use the merchant-confirmed amount.</small>
     </div>
     <div style="display:flex; justify-content:space-between; gap:8px; flex-wrap:wrap;">
-      <button class="btn btn-amber" onclick="confirmFullUse()">✅ Mark 100% Used</button>
+      <button class="btn btn-amber" id="spendFullButton" onclick="confirmFullUse()">Mark 100% Used</button>
       <div style="display:flex; gap:8px;">
         <button class="btn" onclick="closeSpendModal()">Cancel</button>
-        <button class="btn btn-primary" onclick="confirmPartialSpend()">Deduct &amp; Log</button>
+        <button class="btn btn-primary" id="spendPartialButton" onclick="confirmPartialSpend()">Deduct &amp; Log</button>
       </div>
     </div>
+  </div>
+</div>
+
+<!-- ISSUER-VERIFIED, CARD-SPECIFIC CROSS-CURRENCY PERMISSIONS -->
+<div class="modal-backdrop" id="currencyApprovalModalBackdrop">
+  <div class="modal" style="max-width:520px;">
+    <div class="modal-header">
+      <h2 id="currencyApprovalTitle" style="font-size:18px;font-weight:800;">Verify issuer currency eligibility</h2>
+      <button class="btn btn-sm" type="button" onclick="closeCurrencyApprovalModal()">Close</button>
+    </div>
+    <p style="font-size:12px;color:var(--text-muted);line-height:1.5;">
+      Never assume a brand accepts gift cards from another country or currency.
+      Verify this exact card product with the issuer. Approval permits wallet
+      tracking only, not actual merchant acceptance.
+    </p>
+    <form onsubmit="saveCurrencyIssuerApproval(event)">
+      <label for="currencyApprovalTarget">Permitted merchant checkout currency</label>
+      <select id="currencyApprovalTarget" class="form-control" required></select>
+      <label for="currencyEvidenceUrl" style="margin-top:12px;display:block;">Issuer's official terms / written confirmation (HTTPS URL)</label>
+      <input id="currencyEvidenceUrl" class="form-control" type="url" required maxlength="2000" placeholder="https://issuer.example/official-terms" />
+      <label for="currencyApprovalNote" style="margin-top:12px;display:block;">Confirmation details for this card product</label>
+      <textarea id="currencyApprovalNote" class="form-control" required minlength="12" maxlength="1000" placeholder="Exact card product, region, and issuer-approved currency pair"></textarea>
+      <label for="currencyApprovalUntil" style="margin-top:12px;display:block;">Verification expiry (optional)</label>
+      <input id="currencyApprovalUntil" class="form-control" type="date" />
+      <label style="display:flex;gap:9px;margin:13px 0;align-items:start;font-size:12px;">
+        <input id="currencyVerificationConfirmed" type="checkbox" required />
+        I checked the issuer's terms for this exact card and checkout currency.
+      </label>
+      <button class="btn btn-primary" type="submit">Save verified issuer permission</button>
+    </form>
+    <div id="currencyApprovalExisting" style="margin-top:15px;" aria-live="polite"></div>
+  </div>
+</div>
+
+<!-- REDEMPTION HISTORY (read-only) -->
+<div class="modal-backdrop" id="redemptionHistoryModalBackdrop">
+  <div class="modal" style="max-width:560px;">
+    <div class="modal-header">
+      <h2 id="redemptionHistoryTitle" style="font-size:18px;font-weight:800;">Transaction history</h2>
+      <button type="button" class="btn btn-sm" onclick="closeRedemptionHistoryModal()" aria-label="Close transaction history">Close</button>
+    </div>
+    <div id="redemptionHistoryList" aria-live="polite"></div>
   </div>
 </div>
 
@@ -1342,13 +1421,32 @@
   let revealedSecrets = {}; // couponId -> decrypted secret_code ONLY after clicking Reveal Code
 
   let currentUser = null; // { id, name, email, role, canReadCodes }
+  // Every account transition invalidates older asynchronous Supabase results.
+  let authEpoch = 0;
+  let authRequestSerial = 0;
+  let vaultFetchSerial = 0;
+  function clearAuthenticatedVault() {
+    authEpoch++;
+    authRequestSerial++;
+    vaultFetchSerial++;
+    revealedSecrets = {};
+    currentUser = null;
+    stopNotificationsSync();
+    window.GiftVaultScan?.close();
+    window.walletLiveHandleBack?.();
+    state = { updatedAt: 0, members: [], coupons: [], accessRequests: [],
+      notifications: [], logs: [], redemptions: [], redemptionsReady: false,
+      currencyPermissions: [] };
+  }
   let state = {
     updatedAt: 0,
     members: [],
     coupons: [],
     accessRequests: [],
     notifications: [],
-    logs: []
+    logs: [],
+    redemptions: [],
+    redemptionsReady: false
   };
 
   const LOCAL_CFG_KEY = "COUPON_VAULT_SUPABASE_CONFIG";
@@ -1486,11 +1584,8 @@
         return;
       }
       if (event === "SIGNED_OUT") {
-        currentUser = null;
-        state = { updatedAt: 0, members: [], coupons: [], logs: [] };
-        if (!pendingInviteToken) {
-          showAuthScreen();
-        }
+        clearAuthenticatedVault();
+        if (!pendingInviteToken) showAuthScreen();
         return;
       }
       if ((event === "SIGNED_IN" || event === "TOKEN_REFRESHED") && session) {
@@ -1557,17 +1652,25 @@
 
   async function syncCurrentUserFromSession(session) {
     if (!supabaseClient || !session || !session.user) {
-      currentUser = null;
+      clearAuthenticatedVault();
       showAuthScreen();
       return;
     }
-
+    if (currentUser && currentUser.id !== session.user.id) {
+      clearAuthenticatedVault();
+      showAuthScreen();
+    }
+    const requestedEpoch = authEpoch;
+    const requestedRequest = ++authRequestSerial;
+    const requestedUserId = session.user.id;
     const { data: profile, error } = await supabaseClient
       .from("profiles")
       .select("id, email, display_name, role, can_read_codes")
       .eq("id", session.user.id)
       .maybeSingle();
 
+    if (requestedEpoch !== authEpoch || requestedRequest !== authRequestSerial) return;
+    if (profile && profile.id !== requestedUserId) return;
     if (error || !profile) {
       await supabaseClient.auth.signOut();
       currentUser = null;
@@ -1586,6 +1689,7 @@
 
     pendingInviteToken = null;
     await fetchVaultStatus();
+    if (requestedEpoch !== authEpoch || requestedRequest !== authRequestSerial || currentUser?.id !== requestedUserId) return;
     showMainAppScreen();
   }
 
@@ -1771,13 +1875,17 @@
   }
 
   async function logoutCurrentUser() {
-    stopNotificationsSync();
-    revealedSecrets = {};
-    currentUser = null;
-    if (supabaseClient) {
-      await supabaseClient.auth.signOut();
-    }
+    // Clear private UI state immediately, BEFORE the network sign-out.
+    clearAuthenticatedVault();
     showAuthScreen();
+    if (supabaseClient) {
+      try {
+        const { error } = await supabaseClient.auth.signOut();
+        if (error) showAuthError("loginError", "Locally signed out, but server sign-out could not be confirmed.");
+      } catch {
+        showAuthError("loginError", "Locally signed out. Network sign-out could not be confirmed.");
+      }
+    }
   }
 
   function showMainAppScreen() {
@@ -1785,6 +1893,7 @@
     document.getElementById("appScreen").style.display = "block";
     startNotificationsSync();
     renderAll();
+    if (window.walletLiveStart) window.walletLiveStart();
   }
 
   // =========================================================================
@@ -1792,6 +1901,12 @@
   // =========================================================================
   async function fetchVaultStatus() {
     if (!supabaseClient || !currentUser) return;
+    const capturedEpoch = authEpoch;
+    const capturedUserId = currentUser.id;
+    const capturedFetch = ++vaultFetchSerial;
+    const stillCurrent = () => authEpoch === capturedEpoch &&
+      vaultFetchSerial === capturedFetch &&
+      currentUser?.id === capturedUserId;
 
     try {
       const profilePromise = supabaseClient
@@ -1809,7 +1924,7 @@
 
       const couponsPromise = supabaseClient
         .from("coupons")
-        .select("id, store, account, benefit_type, amount, initial_amount, expiry, notes, status, admin_only_code, code_visibility, has_secret_code, created_by, created_at")
+        .select("id, store, account, benefit_type, amount, initial_amount, currency_code, expiry, notes, status, admin_only_code, code_visibility, has_secret_code, created_by, created_at")
         .order("created_at", { ascending: false });
 
       const requestsPromise = supabaseClient
@@ -1823,6 +1938,15 @@
         .order("created_at", { ascending: false })
         .limit(100);
 
+      const redemptionsPromise = supabaseClient
+        .from("coupon_transactions")
+        .select("id, coupon_id, actor_id, transaction_type, amount_delta, balance_before, balance_after, currency_code, settlement_currency, settlement_amount, issuer_evidence_url, created_at")
+        .order("created_at", { ascending: false })
+        .limit(500);
+
+      const currencyPermissionsPromise = supabaseClient
+        .from("coupon_currency_exceptions")
+        .select("coupon_id, source_currency, target_currency, evidence_url, issuer_approval_note, verified_by, verified_at, valid_until, active");
       const logsPromise = isCurrentUserSuperAdmin()
         ? supabaseClient
             .from("activity_logs")
@@ -1831,18 +1955,24 @@
             .limit(300)
         : Promise.resolve({ data: [], error: null });
 
-      const [profRes, invRes, cpnRes, reqRes, notifRes, logRes] = await Promise.all([
+      const [profRes, invRes, cpnRes, reqRes, notifRes, logRes, redemptionRes, currencyRes] = await Promise.all([
         profilePromise,
         invitesPromise,
         couponsPromise,
         requestsPromise,
         notificationsPromise,
-        logsPromise
+        logsPromise,
+        redemptionsPromise,
+        currencyPermissionsPromise
       ]);
 
+      // Ignore results that completed after logout, account switch, or
+      // a newer refresh. Never remap/re-render the previous user's data.
+      if (!stillCurrent()) return;
       if (profRes.error) throw profRes.error;
-      if (cpnRes.error) throw cpnRes.error;
+      if (cpnRes.error) throw new Error("Could not load cards. Install F04 database migration before this branch: "+cpnRes.error.message);
       if (logRes.error) throw logRes.error;
+      if (currencyRes.error) throw new Error("Issuer approvals unavailable. Install F04 migration: "+currencyRes.error.message);
 
       const profiles = profRes.data || [];
       const me = profiles.find(p => p.id === currentUser.id);
@@ -1894,6 +2024,7 @@
           type: c.benefit_type,
           amount: Number(c.amount) || 0,
           initialAmount: Number(c.initial_amount) || 0,
+          currency: c.currency_code,
           expiry: c.expiry,
           notes: c.notes || "",
           status: c.status,
@@ -1945,6 +2076,22 @@
         }
       });
 
+      const redemptions = ((redemptionRes && !redemptionRes.error && redemptionRes.data) || []).map(t => ({
+        id: t.id, couponId: t.coupon_id, actorId: t.actor_id,
+        type: t.transaction_type, amountDelta: Number(t.amount_delta),
+        balanceBefore: Number(t.balance_before), balanceAfter: Number(t.balance_after),
+        currency: t.currency_code,
+        settlementCurrency: t.settlement_currency,
+        settlementAmount: t.settlement_amount===null ? null : Number(t.settlement_amount),
+        issuerEvidenceUrl: t.issuer_evidence_url,
+        createdAt: t.created_at
+      }));
+
+      const currencyPermissions = (currencyRes.data || []).map(x => ({
+        couponId:x.coupon_id,sourceCurrency:x.source_currency,targetCurrency:x.target_currency,
+        evidenceUrl:x.evidence_url,approvalNote:x.issuer_approval_note,
+        verifiedBy:x.verified_by,verifiedAt:x.verified_at,validUntil:x.valid_until,active:x.active===true
+      }));
       const logs = (logRes.data || []).map(l => ({
         id: l.id,
         action: l.action,
@@ -1959,12 +2106,16 @@
         coupons,
         accessRequests,
         notifications,
-        logs
+        logs,
+        redemptions,
+        redemptionsReady: Boolean(redemptionRes && !redemptionRes.error),
+        currencyPermissions
       };
 
       setStatusSubtext("● Supabase Cloud Sync • RLS Protected");
       renderAll();
     } catch (e) {
+      if (!stillCurrent()) return;
       console.error("Failed syncing with Supabase:", e);
       setStatusSubtext("⚠️ Sync error — retrying...");
     }
@@ -2522,15 +2673,29 @@
   // RENDERING UI
   // =========================================================================
   function daysUntil(dateStr) {
+    if (!dateStr) return Infinity;
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const target = new Date(dateStr + "T00:00:00");
     return Math.ceil((target - today) / (1000 * 60 * 60 * 24));
   }
 
-  function formatINR(num) {
-    const n = Number(num) || 0;
-    return "₹" + n.toLocaleString("en-IN", { maximumFractionDigits: 2 });
+  function formatCurrency(num, code) {
+    const valid = ["INR","CAD","USD"].includes(code) ? code : "INR";
+    if (window.GiftVaultCurrency) return window.GiftVaultCurrency.format(num,valid);
+    const locale = valid === "INR" ? "en-IN" : "en-CA";
+    return new Intl.NumberFormat(locale, {style:"currency",currency:valid,
+      minimumFractionDigits:2,maximumFractionDigits:2}).format(Number(num)||0);
+  }
+  function formatINR(num) { return formatCurrency(num,"INR"); }
+  function balanceSummary(cards) {
+    const groups = {INR:0,CAD:0,USD:0};
+    (cards||[]).forEach(c => {
+      const currency=["INR","CAD","USD"].includes(c.currency)?c.currency:"INR";
+      groups[currency]+=Number(c.amount)||0;
+    });
+    return Object.keys(groups).filter(currency=>groups[currency]!==0)
+      .map(currency=>formatCurrency(groups[currency],currency)+" "+currency).join(" · ")||"No balance";
   }
 
   function formatDateReadable(dateStr) {
@@ -2541,6 +2706,7 @@
   }
 
   function getExpiryBadgeHtml(coupon) {
+    if (!coupon.expiry && coupon.status === "active") return `<span class="badge badge-green">No expiry</span>`;
     if (coupon.status === "used") return `<span class="badge badge-red">✔️ Marked Used</span>`;
     const days = daysUntil(coupon.expiry);
     if (days < 0) return `<span class="badge badge-red">⚠️ Expired ${Math.abs(days)}d ago</span>`;
@@ -2661,13 +2827,14 @@
     renderLogger();
     document.getElementById("logCountBadge").textContent = state.logs.length;
     document.getElementById("friendsCountBadge").textContent = state.members.length;
+    if (window.walletLiveRefresh) window.walletLiveRefresh();
   }
 
   function renderStats() {
     const activeList = state.coupons.filter(isCouponActive);
-    const totalValue = activeList.reduce((acc, c) => acc + (Number(c.amount) || 0), 0);
+    const totalValue = balanceSummary(activeList);
     const expiringSoon = activeList.filter(c => daysUntil(c.expiry) <= 7);
-    const expiringValue = expiringSoon.reduce((acc, c) => acc + (Number(c.amount) || 0), 0);
+    const expiringValue = balanceSummary(expiringSoon);
     const uniqueStores = new Set(activeList.map(c => c.store.trim().toLowerCase())).size;
     const uniqueAccounts = new Set(activeList.map(c => (c.store + "::" + c.account).toLowerCase())).size;
     const unreadNotifs = (state.notifications || []).filter(n => !n.isRead).length;
@@ -2675,12 +2842,12 @@
     document.getElementById("statsGrid").innerHTML = `
       <div class="stat-card">
         <span class="stat-label">Total Active Balance</span>
-        <span class="stat-value" style="color:#34d399;">${formatINR(totalValue)}</span>
+        <span class="stat-value" style="color:#34d399;">${totalValue}</span>
         <span class="stat-sub">Across ${activeList.length} active coupon${activeList.length === 1 ? "" : "s"} / gift cards</span>
       </div>
       <div class="stat-card">
         <span class="stat-label">Expiring Within 7 Days</span>
-        <span class="stat-value" style="color:${expiringSoon.length > 0 ? "#fbbf24" : "#94a3b8"};">${expiringSoon.length} (${formatINR(expiringValue)})</span>
+        <span class="stat-value" style="color:${expiringSoon.length > 0 ? "#fbbf24" : "#94a3b8"};">${expiringSoon.length} (${expiringValue})</span>
         <span class="stat-sub">${expiringSoon.length > 0 ? "Use these balances first!" : "No urgent expirations this week"}</span>
       </div>
       <div class="stat-card">
@@ -2700,9 +2867,9 @@
     const storeMap = {};
     state.coupons.filter(isCouponActive).forEach(c => {
       const key = c.store.trim();
-      if (!storeMap[key]) storeMap[key] = { count: 0, total: 0 };
+      if (!storeMap[key]) storeMap[key] = { count: 0, cards: [] };
       storeMap[key].count++;
-      storeMap[key].total += Number(c.amount) || 0;
+      storeMap[key].cards.push(c);
     });
 
     const stores = Object.keys(storeMap).sort();
@@ -2710,7 +2877,7 @@
       const isSelected = activeQuickSearch.toLowerCase() === st.toLowerCase();
       return `<button class="store-chip ${isSelected ? "active" : ""}" onclick="selectStoreChip('${escapeHtml(st)}')">
         <span>🛒 ${escapeHtml(st)}</span>
-        <span style="color:#34d399; font-weight:800;">${formatINR(storeMap[st].total)}</span>
+        <span style="color:#34d399; font-weight:800;">${balanceSummary(storeMap[st].cards)}</span>
       </button>`;
     }).join("");
   }
@@ -2767,17 +2934,17 @@
       return;
     }
 
-    const totalAvail = matches.reduce((sum, item) => sum + (Number(item.amount) || 0), 0);
+    const totalAvail = balanceSummary(matches);
     const earliest = matches[0];
 
     panel.innerHTML = `
       <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px; padding-bottom:10px; border-bottom:1px solid var(--border);">
         <div>
           <div style="font-size:17px; font-weight:800; color:#34d399;">
-            ✅ Yes! ${matches.length} active balance${matches.length === 1 ? "" : "s"} totaling ${formatINR(totalAvail)}
+            ✅ Yes! ${matches.length} active balance${matches.length === 1 ? "" : "s"} totaling ${totalAvail}
           </div>
           <div style="font-size:12.5px; color:#cbd5e1; margin-top:3px;">
-            💡 <strong>Use First:</strong> Use <strong>${escapeHtml(earliest.account)}</strong> (${formatINR(earliest.amount)}) first — expires on <strong>${formatDateReadable(earliest.expiry)}</strong>.
+            💡 <strong>Use First:</strong> Use <strong>${escapeHtml(earliest.account)}</strong> (${formatCurrency(earliest.amount,earliest.currency)}) first — expires on <strong>${formatDateReadable(earliest.expiry)}</strong>.
           </div>
         </div>
       </div>
@@ -2790,7 +2957,7 @@
                 <div class="account-pill">👤 Account: ${escapeHtml(c.account)}</div>
               </div>
               <div style="text-align:right;">
-                <div style="font-size:21px; font-weight:900; color:#34d399;">${formatINR(c.amount)}</div>
+                <div style="font-size:21px; font-weight:900; color:#34d399;">${formatCurrency(c.amount,c.currency)}</div>
                 <div style="font-size:11.5px; color:var(--text-muted);">${escapeHtml(c.type)}</div>
               </div>
             </div>
@@ -2822,6 +2989,7 @@
 
     const isSpecialPanel = view === "logger" || view === "admin" || view === "notifications";
     document.getElementById("vaultContentArea").style.display = isSpecialPanel ? "none" : "block";
+    document.getElementById("advancedFilterPanel").style.display = isSpecialPanel ? "none" : "flex";
     document.getElementById("notificationsPanel").classList.toggle("show", view === "notifications");
     document.getElementById("loggerPanel").classList.toggle("show", view === "logger");
     document.getElementById("adminPanel").classList.toggle("show", view === "admin");
@@ -2865,7 +3033,7 @@
               <div class="account-pill">👤 ${escapeHtml(c.account)}</div>
             </div>
             <div style="text-align:right;">
-              <div style="font-size:23px; font-weight:900; color:#34d399;">${formatINR(c.amount)}</div>
+              <div style="font-size:23px; font-weight:900; color:#34d399;">${formatCurrency(c.amount,c.currency)}</div>
               <div style="font-size:11.5px; color:var(--text-muted);">${escapeHtml(c.type)}</div>
             </div>
           </div>
@@ -2880,8 +3048,10 @@
             ${getExpiryBadgeHtml(c)}
           </div>
           <div class="card-actions">
+            <button class="btn btn-sm" onclick="openRedemptionHistoryModal('${c.id}')">History</button>
+            ${isCurrentUserSuperAdmin() ? `<button class="btn btn-sm" onclick="openCurrencyApprovalModal('${c.id}')">Issuer currency terms</button>` : ""}
             <button class="btn btn-sm btn-blue" onclick="openCalModal('${c.id}')">📅 Remind</button>
-            ${(isCouponActive(c) && canCurrentUserAdd()) ? `<button class="btn btn-sm btn-amber" onclick="openSpendModal('${c.id}')">💸 Spend / Deduct</button>` : ""}
+            ${(isCouponActive(c) && canCurrentUserAdd() && isCouponOwnerOrAdmin(c)) ? `<button class="btn btn-sm btn-amber" onclick="openSpendModal('${c.id}')">💸 Spend / Deduct</button>` : ""}
             ${canCurrentUserEditCoupon(c) ? `<button class="btn btn-sm" onclick="openEditCouponModal('${c.id}')">✏️ Edit</button>` : ""}
             ${isCurrentUserSuperAdmin() ? `<button class="btn btn-sm btn-danger" onclick="deleteCoupon('${c.id}')">🗑️ Delete</button>` : ""}
           </div>
@@ -2902,6 +3072,7 @@
         (c.notes && c.notes.toLowerCase().includes(q))
       );
     });
+    if (window.applyVaultFilters) filtered = window.applyVaultFilters(filtered);
 
     if (currentView === "grouped") {
       const activeOnly = filtered.filter(isCouponActive);
@@ -2918,8 +3089,8 @@
       });
 
       container.innerHTML = Object.keys(groups).sort().map(storeName => {
-        const items = groups[storeName].sort((a, b) => daysUntil(a.expiry) - daysUntil(b.expiry));
-        const storeTotal = items.reduce((s, x) => s + (Number(x.amount) || 0), 0);
+        const items = window.sortVaultCards ? window.sortVaultCards(groups[storeName]) : groups[storeName].sort((a,b) => daysUntil(a.expiry)-daysUntil(b.expiry));
+        const storeTotal = balanceSummary(items);
 
         return `
           <div class="store-group">
@@ -2932,7 +3103,7 @@
                 </div>
               </div>
               <div style="display:flex; align-items:center; gap:10px;">
-                <span class="store-total-pill">Total: ${formatINR(storeTotal)}</span>
+                <span class="store-total-pill">Total: ${storeTotal}</span>
                 ${canCurrentUserAdd() ? `<button class="btn btn-sm btn-primary" onclick="openCouponModal('${escapeHtml(storeName)}')">➕ Add Account</button>` : ""}
               </div>
             </div>
@@ -2950,7 +3121,7 @@
     else if (currentView === "all") list = filtered.filter(isCouponActive);
     else if (currentView === "history") list = filtered.filter(c => !isCouponActive(c));
 
-    list.sort((a, b) => daysUntil(a.expiry) - daysUntil(b.expiry));
+    list = window.sortVaultCards ? window.sortVaultCards(list) : list.sort((a,b) => daysUntil(a.expiry) - daysUntil(b.expiry));
     if (list.length === 0) {
       container.innerHTML = `<div class="empty-state"><h3>No items in this view</h3></div>`;
       return;
@@ -3166,6 +3337,35 @@
     }
   }
 
+  function openGiftCardScan() {
+    if (!canCurrentUserAdd()) {
+      alert("Only contributors and administrators may add gift cards.");
+      return;
+    }
+    if (!window.GiftVaultScan) {
+      alert("Scanner is unavailable. Refresh the page and try again.");
+      return;
+    }
+    window.GiftVaultScan.open({
+      onApply: draft => {
+        // Create a NEW unsaved card draft. Never auto-submit to Supabase.
+        openCouponModal();
+        document.getElementById("fStore").value = draft.store || "";
+        document.getElementById("fAmount").value = draft.amount === null ? "" : String(draft.amount);
+        document.getElementById("fCurrency").value = draft.currency || "";
+        document.getElementById("fExpiry").value = draft.expiry || "";
+        if (draft.codeConfirmed && draft.code) {
+          document.getElementById("fCode").value = draft.code;
+          document.getElementById("fCodeVisibility").value = "private";
+        }
+        document.getElementById("fCurrencyHint").textContent =
+          "Please verify the denomination from the issuer; OCR is not proof of a card's currency.";
+        document.getElementById("couponModalTitle").textContent = "Review scanned card · Not saved";
+        document.getElementById("fStore").focus();
+      }
+    });
+  }
+
   function openCouponModal(prefillStore) {
     if (!canCurrentUserAdd()) {
       alert("🔒 Protected Action: Your account is set to 'Viewer Only'.");
@@ -3177,6 +3377,9 @@
     document.getElementById("fAccount").value = "";
     document.getElementById("fType").value = "Gift Card / Wallet";
     document.getElementById("fAmount").value = "";
+    document.getElementById("fCurrency").value = "INR";
+    document.getElementById("fCurrency").disabled = false;
+    document.getElementById("fCurrencyHint").textContent = "Select the currency printed on the card. It cannot be changed later.";
     document.getElementById("fExpiry").value = getFutureDateStr(30);
     resetCouponCodeInputUi();
     document.getElementById("fCode").value = "";
@@ -3205,6 +3408,9 @@
     document.getElementById("fAccount").value = c.account;
     document.getElementById("fType").value = c.type;
     document.getElementById("fAmount").value = c.amount;
+    document.getElementById("fCurrency").value = c.currency || "INR";
+    document.getElementById("fCurrency").disabled = true;
+    document.getElementById("fCurrencyHint").textContent = "Locked denomination. Create a new card if the currency is wrong.";
     document.getElementById("fExpiry").value = c.expiry;
     document.getElementById("fNotes").value = c.notes || "";
 
@@ -3255,7 +3461,13 @@
     const store = document.getElementById("fStore").value.trim();
     const account = document.getElementById("fAccount").value.trim();
     const benefitType = document.getElementById("fType").value;
-    const amount = parseFloat(document.getElementById("fAmount").value) || 0;
+    const amount = Number(document.getElementById("fAmount").value);
+    const currency = document.getElementById("fCurrency").value;
+    if (!["INR","CAD","USD"].includes(currency) || !Number.isFinite(amount)
+        || amount < 0 || amount !== Math.round(amount * 100) / 100) {
+      alert("Select INR, CAD or USD and enter a valid amount with at most two decimals.");
+      return;
+    }
     const expiry = document.getElementById("fExpiry").value;
     const code = document.getElementById("fCode").value.trim();
     const notes = document.getElementById("fNotes").value.trim();
@@ -3269,6 +3481,10 @@
     if (editId) {
       const existing = state.coupons.find(x => x.id === editId);
       if (!existing) return;
+      if (existing.currency !== currency) {
+        alert("Card currency cannot be changed. Create a new card in the correct denomination.");
+        return;
+      }
       if (!canCurrentUserEditCoupon(existing)) {
         alert("🔒 Protected Action: Only the creator of this coupon can edit it.");
         return;
@@ -3315,8 +3531,8 @@
         delete revealedSecrets[editId];
       }
 
-      await writeActivityLog("EDITED", `Updated ${store} (${account}) — ${formatINR(amount)}`, `Expires ${expiry}`);
-      savedCouponForCal = { id: editId, store, account, type: benefitType, amount, expiry, notes };
+      await writeActivityLog("EDITED", `Updated ${store} (${account}) — ${formatCurrency(amount,currency)}`, `Expires ${expiry}`);
+      savedCouponForCal = { id: editId, store, account, type: benefitType, amount, currency, expiry, notes };
     } else {
       const { data: inserted, error: insErr } = await supabaseClient
         .from("coupons")
@@ -3326,6 +3542,7 @@
           benefit_type: benefitType,
           amount,
           initial_amount: amount,
+          currency_code: currency,
           expiry,
           notes,
           admin_only_code: adminOnlyCode,
@@ -3349,8 +3566,8 @@
         });
       }
 
-      await writeActivityLog("ADDED", `Added ${formatINR(amount)} for ${store} (${account})`, `${benefitType} • ${codeVisibility === "private" ? "Private code" : "Public code"} • Expires ${expiry}`);
-      savedCouponForCal = { id: inserted.id, store, account, type: benefitType, amount, expiry, notes };
+      await writeActivityLog("ADDED", `Added ${formatCurrency(amount,currency)} for ${store} (${account})`, `${benefitType} • ${codeVisibility === "private" ? "Private code" : "Public code"} • Expires ${expiry}`);
+      savedCouponForCal = { id: inserted.id, store, account, type: benefitType, amount, currency, expiry, notes };
     }
 
     closeCouponModal();
@@ -3361,85 +3578,253 @@
     }
   }
 
+
+  function openRedemptionHistoryModal(couponId) {
+    const c = state.coupons.find(x => x.id === couponId);
+    if (!c) return;
+    document.getElementById("redemptionHistoryTitle").textContent = c.store + " · History";
+    const target = document.getElementById("redemptionHistoryList");
+    if (!state.redemptionsReady) {
+      target.innerHTML = '<div class="empty-state">Transaction history is not enabled on this database. Apply the F07 migration in staging first.</div>';
+    } else {
+      const entries = state.redemptions.filter(t => t.couponId === couponId);
+      target.innerHTML = entries.length ? entries.map(t => {
+        const kind = t.type === "redemption" ? "Redeemed" : "Balance adjustment";
+        const delta = (t.amountDelta > 0 ? "+" : "−") + formatCurrency(Math.abs(t.amountDelta),t.currency);
+        return '<div style="display:flex;justify-content:space-between;gap:12px;padding:12px;border-bottom:1px solid var(--border);font-size:13px;">' +
+          '<div><strong>' + kind + '</strong><div style="color:var(--text-muted);font-size:11px;margin-top:4px;">' +
+          escapeHtml(formatDateTimeReadable(t.createdAt)) + '</div><div style="color:var(--text-muted);font-size:11px;margin-top:4px;">' +
+          formatCurrency(t.balanceBefore,t.currency) + ' → ' + formatCurrency(t.balanceAfter,t.currency) + '</div></div>' +
+          '<strong style="white-space:nowrap;color:' + (t.amountDelta>0?'#77e3b4':'#f7c78d') + ';">' + delta + '</strong></div>';
+      }).join("") : '<div class="empty-state">No redemptions or balance adjustments recorded yet.</div>';
+    }
+    document.getElementById("redemptionHistoryModalBackdrop").classList.add("show");
+  }
+
+  function closeRedemptionHistoryModal() {
+    document.getElementById("redemptionHistoryModalBackdrop").classList.remove("show");
+  }
+
+
+  let selectedCurrencyApprovalId=null;
+  function showIssuerCurrencyApprovals(id){
+    const container=document.getElementById("currencyApprovalExisting");
+    container.replaceChildren();
+    const existing=(state.currencyPermissions||[]).filter(p=>p.couponId===id&&p.active);
+    const title=document.createElement("p");
+    title.textContent=existing.length+" active card-specific issuer approval(s)";
+    container.append(title);
+    existing.forEach(p=>{
+      const line=document.createElement("div");
+      line.style.cssText="display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin-top:9px;";
+      const label=document.createElement("span");
+      label.textContent=p.sourceCurrency+" → "+p.targetCurrency+" (verified)";
+      const link=document.createElement("a");
+      link.textContent="Issuer evidence";
+      link.href=p.evidenceUrl;link.target="_blank";link.rel="noopener noreferrer";
+      const revoke=document.createElement("button");
+      revoke.type="button";revoke.className="btn btn-sm btn-danger";revoke.textContent="Revoke";
+      revoke.onclick=()=>revokeCurrencyIssuerApproval(id,p.targetCurrency);
+      line.append(label,link,revoke);container.append(line);
+    });
+  }
+  function openCurrencyApprovalModal(id){
+    if(!isCurrentUserSuperAdmin())return;
+    const card=state.coupons.find(c=>c.id===id);
+    if(!card)return;
+    selectedCurrencyApprovalId=id;
+    document.getElementById("currencyApprovalTitle").textContent=
+      card.store+" — verify "+card.currency+" card";
+    const select=document.getElementById("currencyApprovalTarget");
+    select.replaceChildren();
+    ["INR","CAD","USD"].filter(code=>code!==card.currency).forEach(code=>{
+      const option=document.createElement("option");option.value=code;option.textContent=code;select.append(option);
+    });
+    ["currencyEvidenceUrl","currencyApprovalNote","currencyApprovalUntil"]
+      .forEach(id=>{document.getElementById(id).value="";});
+    document.getElementById("currencyVerificationConfirmed").checked=false;
+    showIssuerCurrencyApprovals(id);
+    document.getElementById("currencyApprovalModalBackdrop").classList.add("show");
+  }
+  function closeCurrencyApprovalModal(){
+    selectedCurrencyApprovalId=null;
+    document.getElementById("currencyApprovalModalBackdrop").classList.remove("show");
+  }
+  async function saveCurrencyIssuerApproval(event){
+    event.preventDefault();
+    if(!isCurrentUserSuperAdmin()||!selectedCurrencyApprovalId||!supabaseClient)return;
+    if(!document.getElementById("currencyVerificationConfirmed").checked){
+      alert("Review the issuer's terms before granting a currency exception.");return;
+    }
+    const url=document.getElementById("currencyEvidenceUrl").value.trim();
+    const note=document.getElementById("currencyApprovalNote").value.trim();
+    const target=document.getElementById("currencyApprovalTarget").value;
+    const validUntil=document.getElementById("currencyApprovalUntil").value||null;
+    try{const parsed=new URL(url);
+      if(parsed.protocol!=="https:"||!parsed.hostname||note.length<12)throw Error("invalid");
+    }catch{alert("Provide a valid issuer HTTPS URL and an explanation of at least 12 characters.");return;}
+    const selected=selectedCurrencyApprovalId;
+    const {error}=await supabaseClient.rpc("approve_coupon_currency_exception",{
+      p_coupon_id:selected,p_target_currency:target,p_evidence_url:url,
+      p_issuer_approval_note:note,p_valid_until:validUntil
+    });
+    if(error){alert(error.message||"Issuer approval could not be saved.");return;}
+    await fetchVaultStatus();
+    if(selectedCurrencyApprovalId===selected)showIssuerCurrencyApprovals(selected);
+  }
+  async function revokeCurrencyIssuerApproval(id,currency){
+    if(!isCurrentUserSuperAdmin()||!supabaseClient)return;
+    if(!confirm("Revoke cross-currency permission for this gift card?"))return;
+    const {error}=await supabaseClient.rpc("revoke_coupon_currency_exception",{
+      p_coupon_id:id,p_target_currency:currency
+    });
+    if(error){alert(error.message||"Could not revoke permission.");return;}
+    await fetchVaultStatus();
+    if(selectedCurrencyApprovalId===id)showIssuerCurrencyApprovals(id);
+  }
+
+  // The card debit is always in the original denomination. Different checkout
+  // currency requires issuer-verification for this precise card and currency.
+  function updateSpendCurrencyUi(){
+    const c=state.coupons.find(x=>x.id===selectedSpendId);
+    if(!c)return;
+    const target=document.getElementById("spendCurrencySelect").value;
+    const different=c.currency!==target;
+    const verified=window.GiftVaultCurrency.approvedFor(c,target,state.currencyPermissions||[]);
+    const allowed=!different||Boolean(verified);
+    document.getElementById("spendSettlementRow").style.display=different?"block":"none";
+    document.getElementById("spendCardDebitLabel").textContent="Amount deducted from card ("+c.currency+")";
+    document.getElementById("spendPartialButton").disabled=!allowed;
+    document.getElementById("spendFullButton").disabled=!allowed;
+    const info=document.getElementById("spendCurrencyMessage");
+    info.style.color=allowed?"#9bf3d1":"#ffc5a1";
+    info.textContent=!different
+      ?"Same-currency tracking. Merchant and region restrictions may still apply."
+      :allowed
+      ?"Issuer permission verified for this exact card. Enter the actual checkout amount in "+target+"; no FX conversion is assumed."
+      :"Blocked: the issuer has not verified "+c.currency+" → "+target+" for this gift card.";
+  }
+  let pendingRedemption = null;
+  let redemptionInFlight = false;
+
+  function createRedemptionRequestId() {
+    if (crypto.randomUUID) return crypto.randomUUID();
+    const bytes = new Uint8Array(16);
+    crypto.getRandomValues(bytes);
+    bytes[6] = (bytes[6] & 15) | 64;
+    bytes[8] = (bytes[8] & 63) | 128;
+    const h = Array.from(bytes, b => b.toString(16).padStart(2, "0")).join("");
+    return [h.slice(0,8), h.slice(8,12), h.slice(12,16), h.slice(16,20), h.slice(20)].join("-");
+  }
+
   function openSpendModal(id) {
     if (!canCurrentUserAdd()) return;
     const c = state.coupons.find(x => x.id === id);
-    if (!c) return;
+    if (!c || !isCouponActive(c) || !isCouponOwnerOrAdmin(c)) {
+      alert("Only the card creator or Super Admin can redeem an active card.");
+      return;
+    }
     selectedSpendId = id;
-    document.getElementById("spendModalInfo").innerHTML = `
-      <strong>${escapeHtml(c.store)}</strong> — <span style="color:#c4b5fd;">${escapeHtml(c.account)}</span><br/>
-      Available Balance: <strong style="color:#34d399;">${formatINR(c.amount)}</strong>
-    `;
+    pendingRedemption = null;
+    document.getElementById("spendCurrencySelect").value = c.currency || "INR";
+    document.getElementById("spendSettlementAmount").value = "";
+    document.getElementById("spendModalInfo").innerHTML =
+      '<strong>' + escapeHtml(c.store) + '</strong> — ' + escapeHtml(c.account) +
+      '<br/>Available balance: <strong>' + formatCurrency(c.amount,c.currency) + '</strong> ('+c.currency+')';
     document.getElementById("spendAmountInput").value = "";
+    updateSpendCurrencyUi();
     document.getElementById("spendModalBackdrop").classList.add("show");
   }
 
   function closeSpendModal() {
+    if (redemptionInFlight) return;
     selectedSpendId = null;
+    pendingRedemption = null;
     document.getElementById("spendModalBackdrop").classList.remove("show");
   }
 
-  async function confirmPartialSpend() {
-    if (!selectedSpendId || !canCurrentUserAdd() || !supabaseClient) return;
+  async function redeemSelectedAmount(amount) {
+    if (!selectedSpendId || redemptionInFlight || !supabaseClient || !canCurrentUserAdd()) return;
     const c = state.coupons.find(x => x.id === selectedSpendId);
-    if (!c) return;
-    const spent = parseFloat(document.getElementById("spendAmountInput").value);
-    if (isNaN(spent) || spent <= 0) {
-      alert("Enter a valid amount spent.");
+    if (!c || !isCouponActive(c) || !isCouponOwnerOrAdmin(c)) {
+      alert("This card cannot be redeemed. Refresh your wallet.");
       return;
     }
-    const newAmt = Math.max(0, +((Number(c.amount) || 0) - spent).toFixed(2));
-    const newStatus = newAmt === 0 ? "used" : "active";
-
-    const { error } = await supabaseClient
-      .from("coupons")
-      .update({ amount: newAmt, status: newStatus, updated_at: new Date().toISOString() })
-      .eq("id", c.id);
-
-    if (error) {
-      alert(error.message);
+    if (!Number.isFinite(amount) || amount <= 0 || Math.round(amount * 100) / 100 !== amount) {
+      alert("Enter a positive amount with no more than two decimal places.");
+      return;
+    }
+    if (amount > Number(c.amount)) {
+      alert("The spending amount cannot exceed the available balance.");
       return;
     }
 
-    await writeActivityLog("SPENT", `Spent ${formatINR(spent)} on ${c.store} (${c.account})`, `Remaining: ${formatINR(newAmt)}`);
-    closeSpendModal();
-    await fetchVaultStatus();
+    const target=document.getElementById("spendCurrencySelect").value;
+    const merchantAmount=document.getElementById("spendSettlementAmount").value;
+    const validation=window.GiftVaultCurrency.validate(
+      c,target,amount,c.currency===target?null:merchantAmount,state.currencyPermissions||[]
+    );
+    if(!validation.ok){alert(validation.message);return;}
+    if (!pendingRedemption || pendingRedemption.couponId!==c.id
+        || pendingRedemption.amount!==amount || pendingRedemption.target!==target
+        || pendingRedemption.merchantAmount!==validation.chargedAmount) {
+      pendingRedemption={couponId:c.id,amount,target,
+        merchantAmount:validation.chargedAmount,requestId:createRedemptionRequestId()};
+    }
+    const intent = pendingRedemption;
+    redemptionInFlight = true;
+    const buttons = document.querySelectorAll("#spendModalBackdrop button");
+    buttons.forEach(btn => btn.disabled = true);
+    try {
+      // Database migration is mandatory; never fall back to a direct UPDATE.
+      const { data, error } = await supabaseClient.rpc("redeem_coupon", {
+        p_coupon_id: intent.couponId, p_amount: intent.amount, p_request_id: intent.requestId,
+        p_spend_currency:intent.target, p_settlement_amount:intent.merchantAmount
+      });
+      if (error) {
+        alert((error.code === "PGRST202" || error.code === "42883")
+          ? "Redemption history is not installed. Apply the F07 migration in staging before using this feature."
+          : (error.message || "Could not complete the redemption."));
+        return;
+      }
+      if (!data || !data.transaction_id) {
+        alert("Could not confirm the redemption. Refresh and check history before retrying.");
+        return;
+      }
+      selectedSpendId = null;
+      pendingRedemption = null;
+      document.getElementById("spendModalBackdrop").classList.remove("show");
+      await fetchVaultStatus();
+    } catch (e) {
+      alert("Could not confirm this redemption. Retry the same action, or refresh and check card history.");
+    } finally {
+      redemptionInFlight = false;
+      buttons.forEach(btn => btn.disabled = false);
+    }
+  }
+
+  async function confirmPartialSpend() {
+    await redeemSelectedAmount(Number(document.getElementById("spendAmountInput").value));
   }
 
   async function confirmFullUse() {
-    if (!selectedSpendId || !canCurrentUserAdd() || !supabaseClient) return;
     const c = state.coupons.find(x => x.id === selectedSpendId);
-    if (!c) return;
-    const oldAmt = c.amount;
-
-    const { error } = await supabaseClient
-      .from("coupons")
-      .update({ amount: 0, status: "used", updated_at: new Date().toISOString() })
-      .eq("id", c.id);
-
-    if (error) {
-      alert(error.message);
-      return;
-    }
-
-    await writeActivityLog("USED", `Marked ${c.store} (${c.account}) ${formatINR(oldAmt)} as 100% Used`, "");
-    closeSpendModal();
-    await fetchVaultStatus();
+    if (c) await redeemSelectedAmount(Number(c.amount));
   }
 
   async function deleteCoupon(id) {
     if (!isCurrentUserSuperAdmin() || !supabaseClient) return;
     const c = state.coupons.find(x => x.id === id);
     if (!c) return;
-    if (!confirm(`Delete ${formatINR(c.amount)} for ${c.store} (${c.account})?`)) return;
+    if (!confirm(`Delete ${formatCurrency(c.amount,c.currency)} for ${c.store} (${c.account})?`)) return;
 
     const { error } = await supabaseClient.from("coupons").delete().eq("id", id);
     if (error) {
-      alert(error.message);
+      alert(error.code === "23503" ? "This card has transaction history and cannot be permanently deleted. Preserve its history and mark it used instead." : error.message);
       return;
     }
 
-    await writeActivityLog("DELETED", `Deleted ${c.store} (${c.account}) — ${formatINR(c.amount)}`, "");
+    await writeActivityLog("DELETED", `Deleted ${c.store} (${c.account}) — ${formatCurrency(c.amount,c.currency)}`, "");
     await fetchVaultStatus();
   }
 
@@ -3448,7 +3833,7 @@
     if (!c) return;
     selectedCalId = id;
     document.getElementById("calModalDesc").innerHTML = `
-      Set a Google Calendar reminder for <strong>${escapeHtml(c.store)} (${escapeHtml(c.account)}) — ${formatINR(c.amount)}</strong> expiring on <strong>${formatDateReadable(c.expiry)}</strong>:
+      Set a Google Calendar reminder for <strong>${escapeHtml(c.store)} (${escapeHtml(c.account)}) — ${formatCurrency(c.amount,c.currency)}</strong> expiring on <strong>${formatDateReadable(c.expiry)}</strong>:
     `;
     document.getElementById("calModalBackdrop").classList.add("show");
   }
@@ -3466,13 +3851,12 @@
   }
 
   function launchGoogleCalendarForCoupon(c, daysBefore) {
-    const title = `🎁 Use ${formatINR(c.amount)} ${c.store} (${c.account}) before it expires!`;
-    const revealed = c.id ? revealedSecrets[c.id] : "";
-    const codeDisplay = revealed || "Hidden in Coupon Vault (Use Reveal Code in app)";
+    const title = `🎁 Use ${formatCurrency(c.amount,c.currency)} ${c.store} (${c.account}) before it expires!`;
+    const codeDisplay = "Open Gift Vault to reveal this code securely";
     const desc = [
       `Store / Website: ${c.store}`,
       `Account: ${c.account}`,
-      `Balance / Value: ${formatINR(c.amount)} (${c.type})`,
+      `Balance / Value: ${formatCurrency(c.amount,c.currency)} (${c.type})`,
       `Code / PIN: ${codeDisplay}`,
       `Expiry Date: ${formatDateReadable(c.expiry)}`,
       c.notes ? `Notes: ${c.notes}` : ""
@@ -3559,6 +3943,7 @@
             benefit_type: String(item.type || "Gift Card / Wallet"),
             amount: Number(item.amount) || 0,
             initial_amount: Number(item.initialAmount || item.amount) || 0,
+            currency_code: ["INR","CAD","USD"].includes(item.currency) ? item.currency : "INR",
             expiry: item.expiry || getFutureDateStr(30),
             notes: String(item.notes || ""),
             status: item.status === "used" ? "used" : "active",
@@ -3626,6 +4011,8 @@
   }
 
   window.handleAndroidBack = function() {
+    if (window.GiftVaultScan?.isOpen()) { window.GiftVaultScan.close(); return true; }
+    if (window.walletLiveHandleBack && window.walletLiveHandleBack()) return true;
     const openModal = document.querySelector(".modal-backdrop.show");
     if (openModal) {
       openModal.classList.remove("show");
@@ -3638,6 +4025,59 @@
     return false;
   };
 
+
+  // Authenticated wallet adapter: only metadata and RLS-authorized actions.
+  // Redemption codes are never included in snapshots or persisted to browser storage.
+  window.giftVaultLiveBridge = {
+    snapshot: () => currentUser ? ({
+      user: { id: currentUser.id, name: currentUser.name, email: currentUser.email, role: currentUser.role },
+      canAdd: canCurrentUserAdd(),
+      cards: state.coupons.map(c => ({
+        id: c.id, store: c.store, account: c.account, type: c.type,
+        amount: c.amount, initialAmount: c.initialAmount, currency:c.currency, expiry: c.expiry,
+        status: c.status, notes: c.notes, hasSecretCode: c.hasSecretCode,
+        codeVisibility: c.codeVisibility, createdBy: c.createdBy
+      })),
+      members: state.members.map(m => ({
+        name: m.name, role: m.role, isPendingInvite: m.isPendingInvite
+      })),
+      unread: state.notifications.filter(n => !n.isRead).length,
+      transactions: state.redemptions,
+      historyAvailable: state.redemptionsReady,
+      currencyPermissions:state.currencyPermissions || []
+    }) : null,
+    canSpend: id => {
+      const c = state.coupons.find(x => x.id === id);
+      return c ? (canCurrentUserAdd() && isCouponActive(c) && isCouponOwnerOrAdmin(c)) : false;
+    },
+    canEdit: id => {
+      const c = state.coupons.find(x => x.id === id);
+      return c ? (canCurrentUserAdd() && canCurrentUserEditCoupon(c)) : false;
+    },
+    canReveal: id => {
+      const c = state.coupons.find(x => x.id === id);
+      return c ? canCurrentUserRevealCode(c) : false;
+    },
+    reveal: async id => {
+      const c = state.coupons.find(x => x.id === id);
+      if (!c || !canCurrentUserRevealCode(c)) return null;
+      await revealCouponCode(id);
+      return canCurrentUserRevealCode(c) ? (revealedSecrets[id] || null) : null;
+    },
+    hideCode: id => { if (id) hideCouponCode(id); },
+    request: id => openRequestAccessModal(id),
+    add: () => openCouponModal(),
+    scan: () => openGiftCardScan(),
+    edit: id => openEditCouponModal(id),
+    spend: id => openSpendModal(id),
+    approveCurrency: id => openCurrencyApprovalModal(id),
+    remind: id => openCalModal(id),
+    refresh: () => fetchVaultStatus(),
+    legacy: view => switchMainView(view),
+    backup: () => { if (isCurrentUserSuperAdmin()) exportBackupJson(); },
+    logout: () => logoutCurrentUser()
+  };
+
   initApp();
   setInterval(() => {
     if (currentUser && !pendingInviteToken) {
@@ -3645,5 +4085,14 @@
     }
   }, 15000);
 </script>
+<script src="vault-enhancements.js" defer></script>
+<script src="vault-icons.js" defer></script>
+<script src="expiry-reminders.js" defer></script>
+<script src="wallet-currency.js" defer></script>
+<script src="wallet-filter-engine.js" defer></script>
+<script src="wallet-live.js" defer></script>
+<script src="scan-extract.js" defer></script>
+<script src="wallet-scan.js" defer></script>
+<script src="wallet-expiry-ui.js" defer></script>
 </body>
 </html>

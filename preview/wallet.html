@@ -1,0 +1,360 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#10131c">
+<meta name="description" content="Gift Vault wallet design preview. Sample cards only; no account connection.">
+<title>My Wallet | Gift Vault</title>
+<style>
+:root{--bg:#0d1017;--panel:#171c28;--panel2:#202839;--edge:rgba(255,255,255,.09);--line:rgba(255,255,255,.16);--txt:#f4f6fc;--muted:#a2aec4;--green:#5de1b2;--blue:#8dafff;--amber:#ffcf8a;--shadow:0 22px 54px rgba(0,0,0,.32)}
+*{box-sizing:border-box}
+html{font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color-scheme:dark}
+body{margin:0;min-height:100vh;background:radial-gradient(ellipse 70% 32% at 16% -10%,rgba(55,116,158,.21),transparent),radial-gradient(ellipse 70% 25% at 100% 16%,rgba(71,52,112,.12),transparent),var(--bg);color:var(--txt)}
+button,input,select{font:inherit}
+button{cursor:pointer;color:inherit}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--green);outline-offset:3px}
+button:disabled{cursor:default;opacity:.5}
+svg.icon{width:20px;height:20px;flex-shrink:0;stroke:currentColor;stroke-width:1.8;fill:none;stroke-linecap:round;stroke-linejoin:round}
+.shell{max-width:1100px;margin:0 auto;padding:23px 32px 90px}
+.head{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:30px}
+.brand{display:flex;align-items:center;gap:12px}
+.logo{width:44px;height:44px;border-radius:15px;display:grid;place-items:center;background:linear-gradient(140deg,#3a8d7c,#376bb8);box-shadow:0 12px 22px rgba(47,148,149,.2);color:#fff}
+.logo .icon{width:23px;height:23px}
+.brand strong{font-size:18px;letter-spacing:-.035em}
+.brand small{display:block;margin-top:2px;color:var(--muted);font-size:12px}
+.head-right{display:flex;gap:9px;align-items:center}
+.square-btn{height:41px;width:41px;display:inline-flex;align-items:center;justify-content:center;background:rgba(255,255,255,.045);border:1px solid var(--edge);border-radius:14px}
+.avatar{background:#253655;color:#d7e4ff;font-weight:800;border-color:#3c5477}
+.demo-pill{display:inline-flex;padding:5px 9px;border:1px solid rgba(135,160,195,.22);border-radius:999px;background:#1d2737;font-size:10px;color:#b9c8db;letter-spacing:.035em;font-weight:750}
+.nav{display:flex;gap:6px;padding:6px;background:#171d29;border:1px solid var(--edge);border-radius:19px;margin-bottom:26px;width:max-content;max-width:100%}
+.nav button{border:0;background:transparent;padding:10px 15px;border-radius:13px;display:flex;align-items:center;gap:8px;font-size:13px;color:#aab8ce;font-weight:720;white-space:nowrap}
+.nav button.active{background:#2a3c4f;color:#d9fff2}
+.nav .icon{width:17px;height:17px}
+.welcome{display:flex;justify-content:space-between;align-items:end;gap:16px;margin-bottom:22px}
+.eyebrow{font-size:11px;font-weight:850;letter-spacing:.16em;text-transform:uppercase;color:#77e7c3;margin-bottom:7px}
+h1{font-size:clamp(29px,4vw,40px);letter-spacing:-.055em;line-height:1.05;margin:0}
+.subtitle{color:var(--muted);font-size:14px;margin:9px 0 0;line-height:1.45}
+.add-btn{border:0;border-radius:14px;background:#54d7ab;color:#10251d;font-size:13px;font-weight:800;display:inline-flex;gap:8px;align-items:center;padding:12px 16px;min-height:44px;white-space:nowrap}
+.add-btn:hover{background:#82e9c5}
+.add-btn .icon{width:18px;height:18px}
+.summary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-bottom:27px}
+.metric{background:linear-gradient(140deg,#1c2635,#181e2a);border:1px solid var(--edge);border-radius:20px;padding:17px 18px;min-width:0}
+.metric label{display:flex;align-items:center;gap:7px;color:#b6c4d8;font-size:11px;font-weight:720}
+.metric .icon{width:16px;height:16px;color:#90adc7}
+.metric strong{display:block;margin-top:10px;font-size:25px;letter-spacing:-.05em}
+.metric small{display:block;margin-top:5px;font-size:11px;color:var(--muted)}
+.main-grid{display:grid;grid-template-columns:minmax(0,1.03fr) minmax(0,.97fr);gap:30px;align-items:start}
+.section-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px}
+.section-head h2{font-size:18px;letter-spacing:-.03em;margin:0}
+.section-head .muted{color:var(--muted);font-size:12px}
+.text-action{border:0;background:transparent;color:#9bb7ff;font-weight:750;font-size:12px;padding:5px 0}
+.stage{position:relative;height:290px;margin:0 3px 10px}
+.stage-card,.stage-shadow{position:absolute;left:0;right:0;border-radius:24px;overflow:hidden}
+.stage-shadow{height:222px;pointer-events:none;background:#1b283c;border:1px solid rgba(255,255,255,.12)}
+.stage-shadow:nth-child(1){top:0;transform:scale(.93);opacity:.42}
+.stage-shadow:nth-child(2){top:18px;transform:scale(.965);opacity:.64}
+.stage-card{top:36px;height:237px;background:linear-gradient(140deg,#314d9b,#5379d7);box-shadow:0 26px 36px rgba(0,0,0,.32);border:1px solid rgba(255,255,255,.2);padding:23px 23px 21px;text-align:left;width:100%;display:flex;flex-direction:column;justify-content:space-between}
+.stage-card:before,.tile:before,.detail-art:before{content:"";position:absolute;width:240px;height:240px;border:1px solid rgba(255,255,255,.13);border-radius:50%;right:-66px;top:-89px;pointer-events:none;box-shadow:0 0 0 40px rgba(255,255,255,.028),0 0 0 83px rgba(255,255,255,.025)}
+.stage-top,.stage-bottom{display:flex;justify-content:space-between;gap:15px;align-items:start;position:relative;z-index:1}
+.stage-label{font-size:11px;font-weight:700;color:rgba(255,255,255,.8);letter-spacing:.12em;text-transform:uppercase}
+.stage-brand{font-size:29px;font-weight:850;line-height:1.15;letter-spacing:-.045em;margin-top:8px}
+.stage-logo{font-size:15px;color:rgba(255,255,255,.85);font-weight:850}
+.stage-bottom small{display:block;font-size:11px;color:rgba(255,255,255,.73);margin-bottom:6px}
+.stage-bottom strong{font-size:26px;letter-spacing:-.04em}
+.stage-bottom span{display:block;font-size:12px;font-weight:700}
+.stage-caption{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:-3px}
+.stack-switcher{display:flex;align-items:center;gap:10px}
+.round-btn{display:grid;place-items:center;width:35px;height:35px;border-radius:50%;background:#1b2737;border:1px solid var(--edge)}
+.round-btn .icon{height:16px;width:16px}
+.counter{color:#b2c0d6;font-size:12px}
+.quick-actions{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:16px 0 30px}
+.quick-actions button{display:flex;align-items:center;justify-content:center;gap:7px;padding:11px 5px;min-height:43px;border-radius:13px;background:#1a2230;border:1px solid var(--edge);font-size:12px;font-weight:720}
+.quick-actions .icon{width:17px;height:17px}
+.card-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.tile{position:relative;overflow:hidden;border:1px solid rgba(255,255,255,.13);text-align:left;border-radius:22px;min-height:164px;padding:16px 17px;display:flex;flex-direction:column;justify-content:space-between}
+.tile-title{position:relative;z-index:1;font-size:18px;font-weight:830;letter-spacing:-.035em;line-height:1.14;overflow-wrap:anywhere}
+.tile-sub{position:relative;z-index:1;font-size:12px;color:rgba(255,255,255,.78);margin-top:5px}
+.tile-value{position:relative;z-index:1;font-size:21px;letter-spacing:-.04em;font-weight:830}
+.tile-kind{position:relative;z-index:1;font-size:11px;font-weight:650;color:rgba(255,255,255,.81)}
+.panel{background:linear-gradient(135deg,#1b2331,#171d29);border:1px solid var(--edge);border-radius:24px;padding:20px}
+.urgent{display:flex;gap:12px;align-items:center;background:rgba(255,194,112,.065);border:1px solid rgba(255,194,112,.16);border-radius:16px;padding:14px;margin-bottom:19px}
+.urgent .icon{color:var(--amber);width:22px;height:22px}
+.urgent strong{font-size:13px}
+.urgent small{display:block;font-size:12px;color:var(--muted);margin-top:3px}
+.list{display:grid;gap:10px}
+.list-card{width:100%;text-align:left;background:#1d2735;border:1px solid var(--edge);border-radius:17px;padding:13px;display:flex;gap:12px;align-items:center}
+.list-card:hover,.tile:hover{border-color:rgba(135,200,222,.52)}
+.list-badge{width:42px;height:42px;border-radius:13px;display:grid;place-items:center;font-size:17px;font-weight:850;flex:0 0 auto}
+.list-main{flex:1;min-width:0}
+.list-main strong{font-size:13px;display:block}
+.list-main small{display:block;font-size:11px;color:#abb8cc;margin-top:4px}
+.list-val{text-align:right;font-size:14px;font-weight:800}
+.list-val small{display:block;font-size:10px;color:#abb8cc;font-weight:650;margin-top:4px}
+.empty{padding:25px 15px;color:var(--muted);text-align:center}
+.search-box{display:none;align-items:center;gap:10px;background:#1b2534;border:1px solid var(--line);border-radius:13px;padding:10px 12px;margin:0 0 18px}
+.search-box.show{display:flex}
+.search-box input{background:transparent;color:var(--txt);border:0;outline:0;width:100%;min-width:0;font-size:14px}
+.page-section{display:none}
+.page-section.active{display:block}
+.page-card{background:#1b2230;border:1px solid var(--edge);border-radius:20px;padding:20px;margin:0 0 12px}
+.page-card h3{font-size:16px;margin:0 0 7px}
+.page-card p{font-size:13px;color:var(--muted);line-height:1.55;margin:0}
+.page-button{border:1px solid var(--line);background:#263449;border-radius:12px;padding:10px 14px;font-weight:700;margin-top:12px}
+.form-field{display:block;margin:14px 0;font-size:12px;font-weight:750;color:#d2deec}
+.form-field input,.form-field select{margin-top:7px;border:1px solid rgba(255,255,255,.16);border-radius:12px;background:#121a28;width:100%;color:#f3f6ff;padding:12px;min-height:44px}
+.sheet-backdrop{display:none;position:fixed;inset:0;background:rgba(3,6,14,.74);z-index:50;padding:18px;align-items:center;justify-content:center}
+.sheet-backdrop.open{display:flex}
+.sheet{background:#182130;border:1px solid #36455c;max-width:450px;width:100%;max-height:90vh;overflow:auto;border-radius:27px;padding:20px;box-shadow:var(--shadow)}
+.sheet-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:15px}
+.sheet-head h2{margin:0;font-size:20px;letter-spacing:-.03em}
+.sheet-close{background:#273448;border:0;border-radius:50%;width:36px;height:36px;display:grid;place-items:center}
+.detail-art{position:relative;overflow:hidden;border-radius:21px;padding:19px;min-height:185px;display:flex;flex-direction:column;justify-content:space-between}
+.detail-art h3{font-size:26px;letter-spacing:-.045em;margin:5px 0}
+.detail-art small{opacity:.8;font-size:12px}
+.detail-info{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:16px 0}
+.detail-info div{background:#202b3c;border-radius:14px;padding:14px}
+.detail-info small{display:block;font-size:11px;color:var(--muted);margin-bottom:8px}
+.detail-info strong{font-size:15px}
+.code-row{background:#111a26;border:1px dashed #415268;border-radius:14px;padding:14px;display:flex;justify-content:space-between;align-items:center;gap:10px}
+.code-row strong{font:700 13px ui-monospace,monospace;letter-spacing:.13em}
+.sheet-buttons{display:flex;gap:10px;margin-top:15px}
+.sheet-buttons button{flex:1;border:1px solid var(--edge);border-radius:13px;background:#25364a;padding:12px 7px;font-size:12px;font-weight:750}
+.sheet-buttons .accent{background:#52d7aa;color:#142821}
+.toast{position:fixed;bottom:85px;left:50%;transform:translateX(-50%);max-width:92vw;background:#e5fff2;color:#183729;border-radius:13px;padding:11px 17px;font-size:13px;font-weight:750;z-index:100;box-shadow:var(--shadow);display:none}
+.toast.show{display:block}
+.only-mobile{display:none}
+.light{--bg:#edf2f8;--panel:#fff;--panel2:#e6edf7;--edge:rgba(34,49,73,.12);--txt:#152236;--muted:#63748c;color-scheme:light}
+.light .metric,.light .panel,.light .page-card{background:#fff}
+.light .head,.light .welcome{color:var(--txt)}
+.light .nav,.light .list-card,.light .search-box,.light .summary,.light .page-card{color:var(--txt)}
+.light .nav{background:#fff}
+.light .nav button{color:#53657b}
+.light .nav button.active{background:#d6eae4;color:#194f3f}
+.light .list-card{background:#f7faff}
+.light .list-main small,.light .list-val small{color:#61748d}
+.light .metric label,.light .metric small{color:#62758c}
+.light .square-btn{color:#26384f}
+.light .sheet{background:#fff;color:#152236}
+.light .sheet-head h2,.light .detail-info strong{color:#152236}
+.light .detail-info div,.light .sheet-close{background:#eaf0f6;color:#20374e}
+.light .code-row{background:#eaf0f6;color:#22364e}
+.light .code-row strong{color:#253852}
+.light .sheet-buttons button{background:#dce9ef;color:#162939}
+.light .sheet-buttons .accent{background:#52d7aa;color:#142821}
+@media(max-width:800px){
+.shell{padding:17px 18px 95px}
+.main-grid{grid-template-columns:1fr;gap:25px}
+.stage{max-width:520px;margin:auto;height:295px}
+.card-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+.right-column{display:none}
+}
+@media(max-width:540px){
+.shell{padding:15px 15px 104px}
+.head{margin-bottom:24px}
+.brand strong{font-size:16px}
+.brand small{font-size:11px}
+.head-right{gap:7px}
+.head-right .square-btn{height:38px;width:38px;border-radius:12px}
+.head-right .demo-pill{display:none}
+.nav{position:fixed;bottom:0;left:0;right:0;margin:0;width:100%;max-width:100%;z-index:25;border-radius:20px 20px 0 0;justify-content:space-around;padding:9px 5px calc(10px + env(safe-area-inset-bottom));background:rgba(18,25,37,.97);backdrop-filter:blur(18px);box-shadow:0 -9px 35px rgba(0,0,0,.25)}
+.nav button{flex-direction:column;gap:4px;padding:8px 4px;min-width:54px;font-size:10px;border-radius:12px}
+.nav .icon{width:19px;height:19px}
+.welcome{align-items:center}
+.welcome h1{font-size:28px}
+.subtitle{font-size:12px}
+.add-btn{width:43px;height:43px;min-height:43px;justify-content:center;border-radius:14px;padding:0}
+.add-btn span{display:none}
+.summary{gap:9px;margin-bottom:23px}
+.metric{padding:13px 12px;border-radius:16px}
+.metric strong{font-size:19px;white-space:nowrap}
+.metric label{font-size:10px}
+.metric small{font-size:10px}
+.metric:nth-child(3){display:none}
+.stage{height:271px}
+.stage-card{top:35px;height:221px;padding:21px}
+.stage-shadow{height:206px}
+.stage-brand{font-size:26px}
+.stage-bottom strong{font-size:23px}
+.quick-actions{margin:13px 0 27px}
+.quick-actions button{font-size:11px;gap:5px}
+.quick-actions .icon{width:16px;height:16px}
+.tile{min-height:149px;padding:14px;border-radius:19px}
+.tile-title{font-size:16px}
+.tile-value{font-size:19px}
+.only-mobile{display:block}
+.right-column{display:none}
+.toast{bottom:91px}
+}
+@media(max-width:350px){.metric{padding:11px 9px}.metric strong{font-size:17px}.tile{min-height:138px}.nav button{min-width:45px}}
+@media(prefers-reduced-motion:reduce){*,*:before,*:after{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<svg aria-hidden="true" style="position:absolute;width:0;height:0;overflow:hidden" xmlns="http://www.w3.org/2000/svg"><defs>
+<symbol id="ic-wallet" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="15" rx="3"/><path d="M16 12h5M3 8h18"/></symbol>
+<symbol id="ic-bell" viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"/><path d="M10 21h4"/></symbol>
+<symbol id="ic-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+<symbol id="ic-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m16 16 5 5"/></symbol>
+<symbol id="ic-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol>
+<symbol id="ic-chart" viewBox="0 0 24 24"><path d="M4 20V11M10 20V4M16 20v-7M22 20V8"/></symbol>
+<symbol id="ic-users" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"/><path d="M3 20v-2a6 6 0 0 1 12 0v2M17 5a3 3 0 0 1 0 6m4 9v-2a6 6 0 0 0-4-5.65"/></symbol>
+<symbol id="ic-settings" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="m19 12 2-1-2-4-2 1-2-1-.5-2h-5L9 7 7 8 5 7l-2 4 2 1v2l-2 1 2 4 2-1 2 1 .5 2h5l.5-2 2-1 2 1 2-4-2-1v-2Z"/></symbol>
+<symbol id="ic-eye" viewBox="0 0 24 24"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></symbol>
+<symbol id="ic-shield" viewBox="0 0 24 24"><path d="m12 2 9 4v6c0 5-4 8-9 10-5-2-9-5-9-10V6l9-4Z"/><path d="m8 12 3 3 5-6"/></symbol>
+<symbol id="ic-left" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></symbol>
+<symbol id="ic-right" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></symbol>
+<symbol id="ic-x" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></symbol>
+<symbol id="ic-sparkles" viewBox="0 0 24 24"><path d="m12 3 1.6 5.4L19 10l-5.4 1.6L12 17l-1.6-5.4L5 10l5.4-1.6L12 3Z"/></symbol>
+</defs></svg>
+<div class="shell">
+<header class="head">
+  <div class="brand"><div class="logo"><svg class="icon"><use href="#ic-wallet"/></svg></div><div><strong>Gift Vault</strong><small>My cards & rewards</small></div></div>
+  <div class="head-right">
+    <span class="demo-pill" title="This is a design preview with sample data">DEMO</span>
+    <button type="button" class="square-btn" id="openSearch" aria-label="Search cards"><svg class="icon"><use href="#ic-search"/></svg></button>
+    <button type="button" class="square-btn" id="openNotifications" aria-label="Notifications"><svg class="icon"><use href="#ic-bell"/></svg></button>
+    <button type="button" class="square-btn avatar" id="openProfile" aria-label="Profile">GV</button>
+  </div>
+</header>
+<nav class="nav" aria-label="Main navigation">
+  <button class="active" type="button" data-view="wallet" aria-current="page"><svg class="icon"><use href="#ic-wallet"/></svg>Wallet</button>
+  <button type="button" data-view="expiring"><svg class="icon"><use href="#ic-clock"/></svg>Expiring</button>
+  <button type="button" data-view="insights"><svg class="icon"><use href="#ic-chart"/></svg>Insights</button>
+  <button type="button" data-view="family"><svg class="icon"><use href="#ic-users"/></svg>Family</button>
+  <button type="button" data-view="settings"><svg class="icon"><use href="#ic-settings"/></svg>Settings</button>
+</nav>
+<div class="search-box" id="searchBox"><svg class="icon"><use href="#ic-search"/></svg><input id="searchInput" aria-label="Search gift cards" placeholder="Search store or card…" autocomplete="off"><button class="square-btn" id="closeSearch" type="button" aria-label="Close search" style="width:29px;height:29px"><svg class="icon" style="width:16px;height:16px"><use href="#ic-x"/></svg></button></div>
+<main>
+<section id="view-wallet" class="page-section active">
+  <div class="welcome"><div><div class="eyebrow">YOUR WALLET</div><h1>My cards</h1><p class="subtitle">Everything you need, all in one place.</p></div>
+    <button id="addCard" class="add-btn" type="button" aria-label="Add gift card"><svg class="icon"><use href="#ic-plus"/></svg><span>Add card</span></button>
+  </div>
+  <div class="summary">
+    <div class="metric"><label><svg class="icon"><use href="#ic-wallet"/></svg>Available</label><strong id="balanceTotal">C$0.00</strong><small id="activeCount">0 cards</small></div>
+    <div class="metric"><label><svg class="icon"><use href="#ic-clock"/></svg>Expiring soon</label><strong id="expiringCount">0 cards</strong><small>Within 14 days</small></div>
+    <div class="metric"><label><svg class="icon"><use href="#ic-shield"/></svg>Private by default</label><strong>Protected</strong><small>Codes stay hidden</small></div>
+  </div>
+  <div class="main-grid">
+    <div>
+      <div class="section-head"><h2>Featured card</h2><span class="muted">Tap to open</span></div>
+      <div class="stage" id="stage">
+        <div class="stage-shadow"></div><div class="stage-shadow"></div>
+        <button class="stage-card" id="featuredCard" type="button" aria-label="Open featured gift card"></button>
+      </div>
+      <div class="stage-caption"><div class="stack-switcher"><button class="round-btn" type="button" id="previousCard" aria-label="Previous card"><svg class="icon"><use href="#ic-left"/></svg></button><span class="counter" id="cardCounter">1 of 1</span><button class="round-btn" type="button" id="nextCard" aria-label="Next card"><svg class="icon"><use href="#ic-right"/></svg></button></div><span class="muted" style="color:#a8b5c8;font-size:12px">Swipe through your cards</span></div>
+      <div class="quick-actions">
+        <button type="button" data-action="code"><svg class="icon"><use href="#ic-eye"/></svg>View code</button>
+        <button type="button" data-action="remind"><svg class="icon"><use href="#ic-bell"/></svg>Remind me</button>
+        <button type="button" data-action="details"><svg class="icon"><use href="#ic-wallet"/></svg>Details</button>
+      </div>
+      <div class="section-head"><h2>All cards</h2><span class="muted" id="allCount"></span></div>
+      <div class="card-grid" id="tileGrid"></div>
+      <p class="only-mobile" style="color:#a3b3c9;font-size:11px;margin:20px 2px 0">Design preview · Sample data only</p>
+    </div>
+    <aside class="right-column">
+      <div class="section-head"><h2>Coming up</h2><button class="text-action" type="button" data-go="expiring">View all</button></div>
+      <div class="panel"><div class="urgent" id="urgentNotice"><svg class="icon"><use href="#ic-clock"/></svg><div><strong>Use your cards before they expire</strong><small>See cards approaching their expiry date.</small></div></div><div class="list" id="upcomingList"></div></div>
+    </aside>
+  </div>
+</section>
+<section id="view-expiring" class="page-section">
+  <div class="welcome"><div><div class="eyebrow">STAY ON TOP</div><h1>Expiring soon</h1><p class="subtitle">Don't let unused value go to waste.</p></div></div>
+  <div class="panel"><div id="expiryList" class="list"></div></div>
+</section>
+<section id="view-insights" class="page-section">
+  <div class="welcome"><div><div class="eyebrow">AT A GLANCE</div><h1>Insights</h1><p class="subtitle">Your balances and card activity.</p></div></div>
+  <div class="summary"><div class="metric"><label>Available value</label><strong id="insightTotal">—</strong><small>CAD sample cards</small></div><div class="metric"><label>Total cards</label><strong id="insightCards">—</strong><small>In your wallet</small></div><div class="metric"><label>Expiring in 14 days</label><strong id="insightExpiring">—</strong><small>Prioritize these</small></div></div>
+  <div class="page-card"><h3>Your top stores</h3><div id="topStores" class="list"></div></div>
+</section>
+<section id="view-family" class="page-section">
+  <div class="welcome"><div><div class="eyebrow">SHARING</div><h1>Family</h1><p class="subtitle">Manage who can access shared cards.</p></div></div>
+  <div class="page-card"><h3>Family vault</h3><p>Card sharing and permission controls will appear here when connected to your account. Redemption codes remain protected until access is approved.</p><button class="page-button" type="button" id="familyInfo">How sharing works</button></div>
+</section>
+<section id="view-settings" class="page-section">
+  <div class="welcome"><div><div class="eyebrow">PREFERENCES</div><h1>Settings</h1><p class="subtitle">Make your wallet feel like yours.</p></div></div>
+  <div class="page-card"><h3>Appearance</h3><p>Switch between dark and light display styles.</p><button class="page-button" type="button" id="toggleTheme">Switch theme</button></div>
+  <div class="page-card"><h3>Privacy</h3><p>This demo doesn't connect to any account, store a real card code, or send information to a server.</p></div>
+</section>
+</main>
+</div>
+<div class="sheet-backdrop" id="sheetBackdrop" role="presentation">
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitle">
+    <div class="sheet-head"><h2 id="sheetTitle">Card details</h2><button class="sheet-close" type="button" id="closeSheet" aria-label="Close"><svg class="icon"><use href="#ic-x"/></svg></button></div>
+    <div id="sheetBody"></div>
+  </div>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<script>
+(function(){
+"use strict";
+var now = new Date("2026-11-20T12:00:00");
+var cards=[
+{id:"s1",name:"Starbucks",kind:"Gift Card",balance:25,expiry:"2026-11-21",account:"Personal",theme:"green",symbol:"S"},
+{id:"s2",name:"Amazon",kind:"Gift Card",balance:150,expiry:"2026-12-18",account:"Personal",theme:"navy",symbol:"a"},
+{id:"s3",name:"Walmart",kind:"Gift Card",balance:75,expiry:"2026-11-30",account:"Family",theme:"blue",symbol:"W"},
+{id:"s4",name:"Indigo",kind:"Gift Card",balance:40,expiry:"2027-01-28",account:"Personal",theme:"violet",symbol:"i"},
+{id:"s5",name:"Uber Eats",kind:"Gift Card",balance:60,expiry:"2026-12-05",account:"Personal",theme:"forest",symbol:"U"},
+{id:"s6",name:"PRESTO",kind:"Transit",balance:12.74,expiry:null,account:"Personal",theme:"silver",symbol:"P"}
+];
+var themes={green:"linear-gradient(145deg,#125947,#218a6d 52%,#116149)",navy:"linear-gradient(145deg,#141c2f,#293f60 55%,#3e5675)",blue:"linear-gradient(145deg,#183b91,#2769d4 56%,#134f9e)",violet:"linear-gradient(145deg,#4f2876,#9851bc 56%,#5f2f8d)",forest:"linear-gradient(145deg,#142d2c,#3c6050 58%,#234737)",silver:"linear-gradient(145deg,#585e72,#7f8a9e 55%,#4b5368)",rose:"linear-gradient(145deg,#8c285e,#d8579c 55%,#a4387c)"};
+var active=0,query="",currentView="wallet",toastTimer=0,opened=null;
+function el(id){return document.getElementById(id)}
+function escapeHtml(s){return String(s).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]})}
+function money(v){return new Intl.NumberFormat("en-CA",{style:"currency",currency:"CAD"}).format(Number(v)||0)}
+function days(s){if(!s)return 9999;return Math.ceil((new Date(s+"T12:00:00")-now)/86400000)}
+function readable(s){return s?new Date(s+"T12:00:00").toLocaleDateString("en-CA",{month:"short",day:"numeric",year:"numeric"}):"No expiry"}
+function cardTheme(c){return themes[c.theme]||themes.navy}
+function visibleCards(){var q=query.trim().toLocaleLowerCase();return cards.filter(function(c){return !q||[c.name,c.kind,c.account].join(" ").toLocaleLowerCase().includes(q)})}
+function icon(name){return '<svg class="icon" aria-hidden="true"><use href="#ic-'+name+'"/></svg>'}
+function toast(text){clearTimeout(toastTimer);el("toast").textContent=text;el("toast").classList.add("show");toastTimer=setTimeout(function(){el("toast").classList.remove("show")},3400)}
+function render(){
+  var list=visibleCards();if(active>=list.length)active=0;
+  var total=cards.reduce(function(sum,c){return sum+c.balance},0);
+  var soon=cards.filter(function(c){return days(c.expiry)>=0&&days(c.expiry)<=14}).length;
+  el("balanceTotal").textContent=money(total);el("activeCount").textContent=cards.length+" cards";
+  el("expiringCount").textContent=soon+" cards";el("allCount").textContent=list.length+" cards";
+  el("insightTotal").textContent=money(total);el("insightCards").textContent=String(cards.length);el("insightExpiring").textContent=String(soon);
+  var card=list[active]||null,stage=el("featuredCard");
+  stage.disabled=!card;
+  if(card){stage.style.background=cardTheme(card);stage.innerHTML='<div class="stage-top"><div><div class="stage-label">'+escapeHtml(card.kind)+'</div><div class="stage-brand">'+escapeHtml(card.name)+'</div></div><div class="stage-logo">'+escapeHtml(card.symbol)+'</div></div><div class="stage-bottom"><div><small>Available balance</small><strong>'+money(card.balance)+'</strong></div><div style="text-align:right"><small>Expiry</small><span>'+escapeHtml(readable(card.expiry))+'</span></div></div>';stage.setAttribute("aria-label","Open "+card.name+" details")}
+  else{stage.style.background=themes.navy;stage.innerHTML='<div class="stage-brand">No cards found</div>'}
+  el("cardCounter").textContent=list.length?String(active+1)+" of "+list.length:"0 cards";
+  el("tileGrid").innerHTML=list.map(function(c){return '<button class="tile" type="button" data-card="'+escapeHtml(c.id)+'" style="background:'+cardTheme(c)+'"><div><div class="tile-title">'+escapeHtml(c.name)+'</div><div class="tile-sub">'+escapeHtml(c.kind)+'</div></div><div><div class="tile-value">'+money(c.balance)+'</div><div class="tile-kind">'+escapeHtml(c.expiry?"Expires "+readable(c.expiry):"No expiry")+'</div></div></button>'}).join("")||'<div class="empty">No matching cards</div>';
+  var ordered=cards.filter(function(c){return Boolean(c.expiry)&&days(c.expiry)>=0}).sort(function(a,b){return days(a.expiry)-days(b.expiry)});
+  var upcoming=ordered.filter(function(c){return days(c.expiry)<=30});
+  el("upcomingList").innerHTML=upcoming.slice(0,4).map(listMarkup).join("")||'<div class="empty">No cards expiring soon</div>';
+  el("expiryList").innerHTML=ordered.map(listMarkup).join("")||'<div class="empty">No upcoming expirations</div>';
+  var top=cards.slice().sort(function(a,b){return b.balance-a.balance}).slice(0,4);
+  el("topStores").innerHTML=top.map(listMarkup).join("");
+}
+function listMarkup(c){var d=days(c.expiry);var label=c.expiry?(d===0?"Expires today":d===1?"Tomorrow":d>0?d+" days left":"Expired"):"No expiry";return '<button class="list-card" data-card="'+escapeHtml(c.id)+'" type="button"><span class="list-badge" style="background:'+cardTheme(c)+'">'+escapeHtml(c.symbol)+'</span><span class="list-main"><strong>'+escapeHtml(c.name)+'</strong><small>'+escapeHtml(c.account)+' · '+escapeHtml(readable(c.expiry))+'</small></span><span class="list-val">'+money(c.balance)+'<small>'+escapeHtml(label)+'</small></span></button>'}
+function currentCard(){return visibleCards()[active]||null}
+function setView(view){if(!el("view-"+view))return;currentView=view;document.querySelectorAll(".page-section").forEach(function(s){s.classList.toggle("active",s.id==="view-"+view)});document.querySelectorAll(".nav button").forEach(function(n){var selected=n.dataset.view===view;n.classList.toggle("active",selected);if(selected)n.setAttribute("aria-current","page");else n.removeAttribute("aria-current")});window.scrollTo({top:0,behavior:"instant"})}
+function openSheet(title,body){el("sheetTitle").textContent=title;el("sheetBody").innerHTML=body;el("sheetBackdrop").classList.add("open");el("closeSheet").focus()}
+function closeSheet(){el("sheetBackdrop").classList.remove("open");opened=null}
+function openCard(id){var c=cards.find(function(x){return x.id===id});if(!c)return;opened=c;var h='<div class="detail-art" style="background:'+cardTheme(c)+'"><div><small>'+escapeHtml(c.kind)+'</small><h3>'+escapeHtml(c.name)+'</h3></div><div><small>Available</small><h3>'+money(c.balance)+'</h3></div></div><div class="detail-info"><div><small>Expires</small><strong>'+escapeHtml(readable(c.expiry))+'</strong></div><div><small>Account</small><strong>'+escapeHtml(c.account)+'</strong></div></div><div class="code-row"><div><small style="color:#aab9cd;font-size:11px;display:block;margin-bottom:7px">Redemption code</small><strong>•••• •••• ••••</strong></div><span style="font-size:11px;color:#9bb3c7">Protected</span></div><div class="sheet-buttons"><button class="accent" type="button" data-demo="code">View code</button><button type="button" data-demo="remind">Remind me</button><button type="button" data-demo="history">History</button></div>';openSheet(c.name,h)}
+function openAdd(){var h='<form id="addForm"><label class="form-field">Store name<input required maxlength="38" name="store" placeholder="e.g. Sephora" autocomplete="off"></label><label class="form-field">Balance (CAD)<input required type="number" name="balance" min="0" max="999999" step="0.01" placeholder="50.00"></label><label class="form-field">Expiry date (optional)<input name="expiry" type="date"></label><label class="form-field">Type<select name="kind"><option>Gift Card</option><option>Voucher</option><option>Transit</option></select></label><button type="submit" class="add-btn" style="width:100%;justify-content:center;margin-top:7px">Add to demo wallet</button><p style="font-size:11px;color:#aab9cd;margin:13px 0 2px">Sample data only. Changes are not saved to an account.</p></form>';openSheet("Add card",h);el("addForm").addEventListener("submit",function(e){e.preventDefault();var fd=new FormData(e.currentTarget);var name=String(fd.get("store")||"").trim();var bal=Number(fd.get("balance"));if(!name||!Number.isFinite(bal)||bal<0){toast("Enter a valid store and balance");return}cards.unshift({id:"demo-"+String(cards.length+1),name:name,kind:String(fd.get("kind")),balance:Math.round(bal*100)/100,expiry:String(fd.get("expiry")||"")||null,account:"Personal",theme:"rose",symbol:name[0].toUpperCase()});active=0;query="";el("searchInput").value="";render();setView("wallet");closeSheet();toast("Added to this demo session")})}
+document.querySelectorAll(".nav button").forEach(function(n){n.addEventListener("click",function(){setView(n.dataset.view)})});
+document.querySelectorAll("[data-go]").forEach(function(n){n.addEventListener("click",function(){setView(n.dataset.go)})});
+el("addCard").addEventListener("click",openAdd);
+el("featuredCard").addEventListener("click",function(){var c=currentCard();if(c)openCard(c.id)});
+el("previousCard").addEventListener("click",function(){var a=visibleCards();if(!a.length)return;active=(active+a.length-1)%a.length;render()});
+el("nextCard").addEventListener("click",function(){var a=visibleCards();if(!a.length)return;active=(active+1)%a.length;render()});
+var touchX=null;el("stage").addEventListener("touchstart",function(e){touchX=e.changedTouches[0].clientX},{passive:true});el("stage").addEventListener("touchend",function(e){if(touchX===null)return;var distance=e.changedTouches[0].clientX-touchX;touchX=null;if(Math.abs(distance)>45){var a=visibleCards();if(!a.length)return;active=(active+(distance<0?1:a.length-1))%a.length;render()}},{passive:true});
+document.addEventListener("click",function(e){var tile=e.target.closest("[data-card]");if(tile){openCard(tile.dataset.card);return}var act=e.target.closest("[data-action]");if(act){var c=currentCard();if(!c){toast("No card selected");return}if(act.dataset.action==="details")openCard(c.id);else if(act.dataset.action==="code")openCard(c.id);else toast("Reminders will be available when connected to your vault")}var demo=e.target.closest("[data-demo]");if(demo){var key=demo.dataset.demo;if(key==="code")toast("Code reveal requires your secure vault account");else if(key==="remind")toast("Reminder setup is not connected in the preview");else toast("Transaction history will appear for real cards")}}); 
+el("openSearch").addEventListener("click",function(){setView("wallet");el("searchBox").classList.add("show");el("searchInput").focus()});
+el("closeSearch").addEventListener("click",function(){el("searchBox").classList.remove("show");el("searchInput").value="";query="";active=0;render()});
+el("searchInput").addEventListener("input",function(e){query=e.target.value;active=0;render()});
+el("openNotifications").addEventListener("click",function(){toast("No new notifications in this demo")});
+el("openProfile").addEventListener("click",function(){setView("settings")});
+el("familyInfo").addEventListener("click",function(){toast("Shared codes require owner approval in the real vault")});
+el("toggleTheme").addEventListener("click",function(){document.body.classList.toggle("light")});
+el("closeSheet").addEventListener("click",closeSheet);
+el("sheetBackdrop").addEventListener("click",function(e){if(e.target===el("sheetBackdrop"))closeSheet()});
+window.addEventListener("keydown",function(e){if(e.key==="Escape"&&el("sheetBackdrop").classList.contains("open"))closeSheet()});
+render();
+})();
+</script>
+</body>
+</html>

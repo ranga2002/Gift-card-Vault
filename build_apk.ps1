@@ -1,6 +1,7 @@
-$ErrorActionPreference = "Continue"
+$ErrorActionPreference = "Stop"
+if (-not $env:VAULT_STORE_PASSWORD -or -not $env:VAULT_KEY_PASSWORD) { throw "Set VAULT_STORE_PASSWORD and VAULT_KEY_PASSWORD for APK signing." }
 
-$projDir = "C:\Users\saibh\.gemini\antigravity\scratch\coupon-vault"
+$projDir = $PSScriptRoot
 $toolsDir = "$projDir\tools"
 $buildTools = "$toolsDir\android-14"
 $jdkBin = "$toolsDir\jdk-17.0.21.0.2+1\bin"
@@ -58,8 +59,8 @@ if (-not (Test-Path $keystore)) {
         -keyalg RSA `
         -keysize 2048 `
         -validity 10000 `
-        -storepass vault123 `
-        -keypass vault123 `
+        -storepass $env:VAULT_STORE_PASSWORD `
+        -keypass $env:VAULT_KEY_PASSWORD `
         -dname "CN=CouponVault, OU=Mobile, O=Saibh, L=IN, S=IN, C=IN"
 }
 
@@ -67,8 +68,8 @@ $finalApk = "$projDir\CouponVault.apk"
 & $java -jar $apksignerJar sign `
     --ks $keystore `
     --ks-key-alias vaultkey `
-    --ks-pass pass:vault123 `
-    --key-pass pass:vault123 `
+    --ks-pass "pass:$env:VAULT_STORE_PASSWORD" `
+    --key-pass "pass:$env:VAULT_KEY_PASSWORD" `
     --out $finalApk `
     "$buildDir\aligned.apk"
 
