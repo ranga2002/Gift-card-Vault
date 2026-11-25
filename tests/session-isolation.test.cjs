@@ -30,6 +30,7 @@ function fixture(uid,store){
 function mockFetch(){
  const queue=[],renders=[],errors=[];let active;
  const box={window:{GiftVaultScan:{close(){}},walletLiveHandleBack(){}},
+ revealedSecrets:{},
  stopNotificationsSync(){},isCurrentUserSuperAdmin(){return false},
  renderAll(){renders.push(true)},setStatusSubtext(){},
  logoutCurrentUser:async()=>{},console:{error(...args){errors.push(args.map(x=>String(x)).join(": "))}}};
