@@ -168,8 +168,9 @@ test('closing or logging out invalidates in-flight OCR and scrubs files',()=>{
  assert.match(ui,/root\.hidden=true;clearData\(\);handler=null;/);
  assert.match(ui,/if\(ticket!==serial\)return; \/\/ user cancelled while the worker downloaded/);
  assert.match(ui,/if\(ticket===serial\)setBusy\(false\)/);
- assert.match(app,/if \(event === "SIGNED_OUT"\) \{\s*window\.GiftVaultScan\?\.close\(\);/);
- assert.match(app,/async function logoutCurrentUser\(\) \{\s*window\.GiftVaultScan\?\.close\(\);/);
+ assert.match(app,/if \(event === "SIGNED_OUT"\) \{\s*clearAuthenticatedVault\(\);/);
+ assert.match(app,/async function logoutCurrentUser\(\) \{[\s\S]*?clearAuthenticatedVault\(\);/);
+ assert.match(app,/function clearAuthenticatedVault\(\) \{[\s\S]*?window\.GiftVaultScan\?\.close\(\);/);
 });
 
 test('F05 selected image remains available after input cleanup and obsolete decode cannot repopulate the dialog',()=>{
