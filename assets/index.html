@@ -1423,9 +1423,11 @@
   let currentUser = null; // { id, name, email, role, canReadCodes }
   // Every account transition invalidates older asynchronous Supabase results.
   let authEpoch = 0;
+  let authRequestSerial = 0;
   let vaultFetchSerial = 0;
   function clearAuthenticatedVault() {
     authEpoch++;
+    authRequestSerial++;
     vaultFetchSerial++;
     revealedSecrets = {};
     currentUser = null;
@@ -1659,6 +1661,7 @@
       showAuthScreen();
     }
     const requestedEpoch = authEpoch;
+    const requestedRequest = ++authRequestSerial;
     const requestedUserId = session.user.id;
     const { data: profile, error } = await supabaseClient
       .from("profiles")
@@ -1666,7 +1669,7 @@
       .eq("id", session.user.id)
       .maybeSingle();
 
-    if (requestedEpoch !== authEpoch) return;
+    if (requestedEpoch !== authEpoch || requestedRequest !== authRequestSerial) return;
     if (profile && profile.id !== requestedUserId) return;
     if (error || !profile) {
       await supabaseClient.auth.signOut();
@@ -1686,7 +1689,7 @@
 
     pendingInviteToken = null;
     await fetchVaultStatus();
-    if (requestedEpoch !== authEpoch || currentUser?.id !== requestedUserId) return;
+    if (requestedEpoch !== authEpoch || requestedRequest !== authRequestSerial || currentUser?.id !== requestedUserId) return;
     showMainAppScreen();
   }
 
