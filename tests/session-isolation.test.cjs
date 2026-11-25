@@ -57,6 +57,7 @@ test('newer same-account refresh wins when older request completes last',async()
  const a=h.add('A','old');const p=h.api.fetch();
  const b=h.add('A','new');const q=h.api.fetch();
  b.gate.resolve();await q;a.gate.resolve();await p;
+ assert.equal(h.errors.length,0,'Sync errors: '+h.errors.map(e=>String(e)).join('; '));
  assert.equal(h.api.state().coupons[0].store,'new');
  assert.equal(h.renders.length,1);
 });
