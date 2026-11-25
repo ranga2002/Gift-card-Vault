@@ -1421,6 +1421,21 @@
   let revealedSecrets = {}; // couponId -> decrypted secret_code ONLY after clicking Reveal Code
 
   let currentUser = null; // { id, name, email, role, canReadCodes }
+  // Every account transition invalidates older asynchronous Supabase results.
+  let authEpoch = 0;
+  let vaultFetchSerial = 0;
+  function clearAuthenticatedVault() {
+    authEpoch++;
+    vaultFetchSerial++;
+    revealedSecrets = {};
+    currentUser = null;
+    stopNotificationsSync();
+    window.GiftVaultScan?.close();
+    window.walletLiveHandleBack?.();
+    state = { updatedAt: 0, members: [], coupons: [], accessRequests: [],
+      notifications: [], logs: [], redemptions: [], redemptionsReady: false,
+      currencyPermissions: [] };
+  }
   let state = {
     updatedAt: 0,
     members: [],
@@ -1567,12 +1582,8 @@
         return;
       }
       if (event === "SIGNED_OUT") {
-        window.GiftVaultScan?.close();
-        currentUser = null;
-        state = { updatedAt: 0, members: [], coupons: [], logs: [] };
-        if (!pendingInviteToken) {
-          showAuthScreen();
-        }
+        clearAuthenticatedVault();
+        if (!pendingInviteToken) showAuthScreen();
         return;
       }
       if ((event === "SIGNED_IN" || event === "TOKEN_REFRESHED") && session) {
@@ -1639,17 +1650,24 @@
 
   async function syncCurrentUserFromSession(session) {
     if (!supabaseClient || !session || !session.user) {
-      currentUser = null;
+      clearAuthenticatedVault();
       showAuthScreen();
       return;
     }
-
+    if (currentUser && currentUser.id !== session.user.id) {
+      clearAuthenticatedVault();
+      showAuthScreen();
+    }
+    const requestedEpoch = authEpoch;
+    const requestedUserId = session.user.id;
     const { data: profile, error } = await supabaseClient
       .from("profiles")
       .select("id, email, display_name, role, can_read_codes")
       .eq("id", session.user.id)
       .maybeSingle();
 
+    if (requestedEpoch !== authEpoch) return;
+    if (profile && profile.id !== requestedUserId) return;
     if (error || !profile) {
       await supabaseClient.auth.signOut();
       currentUser = null;
@@ -1668,6 +1686,7 @@
 
     pendingInviteToken = null;
     await fetchVaultStatus();
+    if (requestedEpoch !== authEpoch || currentUser?.id !== requestedUserId) return;
     showMainAppScreen();
   }
 
@@ -1853,14 +1872,17 @@
   }
 
   async function logoutCurrentUser() {
-    window.GiftVaultScan?.close();
-    stopNotificationsSync();
-    revealedSecrets = {};
-    currentUser = null;
-    if (supabaseClient) {
-      await supabaseClient.auth.signOut();
-    }
+    // Clear private UI state immediately, BEFORE the network sign-out.
+    clearAuthenticatedVault();
     showAuthScreen();
+    if (supabaseClient) {
+      try {
+        const { error } = await supabaseClient.auth.signOut();
+        if (error) showAuthError("loginError", "Locally signed out, but server sign-out could not be confirmed.");
+      } catch {
+        showAuthError("loginError", "Locally signed out. Network sign-out could not be confirmed.");
+      }
+    }
   }
 
   function showMainAppScreen() {
@@ -1876,6 +1898,12 @@
   // =========================================================================
   async function fetchVaultStatus() {
     if (!supabaseClient || !currentUser) return;
+    const capturedEpoch = authEpoch;
+    const capturedUserId = currentUser.id;
+    const capturedFetch = ++vaultFetchSerial;
+    const stillCurrent = () => authEpoch === capturedEpoch &&
+      vaultFetchSerial === capturedFetch &&
+      currentUser?.id === capturedUserId;
 
     try {
       const profilePromise = supabaseClient
@@ -1935,6 +1963,9 @@
         currencyPermissionsPromise
       ]);
 
+      // Ignore results that completed after logout, account switch, or
+      // a newer refresh. Never remap/re-render the previous user's data.
+      if (!stillCurrent()) return;
       if (profRes.error) throw profRes.error;
       if (cpnRes.error) throw new Error("Could not load cards. Install F04 database migration before this branch: "+cpnRes.error.message);
       if (logRes.error) throw logRes.error;
@@ -2081,6 +2112,7 @@
       setStatusSubtext("● Supabase Cloud Sync • RLS Protected");
       renderAll();
     } catch (e) {
+      if (!stillCurrent()) return;
       console.error("Failed syncing with Supabase:", e);
       setStatusSubtext("⚠️ Sync error — retrying...");
     }
