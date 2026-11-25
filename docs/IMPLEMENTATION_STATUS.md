@@ -167,6 +167,41 @@ validation. OCR confidence is heuristic and is never issuer verification.
 
 
 
+## F11 — Analytics & Insights (skipped for now)
+
+**Status: Deferred by user request.** Existing basic wallet overview remains.
+Do not make F11 a launch requirement or add new dashboard features before the
+higher-priority reliability and staging work is addressed.
+
+## F12 — Reliability, code quality and test coverage
+
+**Implemented and verified on feature branch; not deployed.**
+
+- A single centralized session invalidation path clears in-memory card data,
+  pending notification/transaction state, revealed codes, scanner drafts and
+  subscriptions before a network sign-out completes.
+- Account-bound `authEpoch` and `authRequestSerial` stop stale profile
+  lookups from re-opening an earlier user's wallet after logout or switch.
+- Latest-request-wins `vaultFetchSerial` rejects delayed/older Supabase
+  refreshes before they touch current roles, cards, history or UI state.
+- Fixed malformed wallet transaction-history HTML.
+- Merchant balance groups now sort by merchant name rather than attempting to
+  compare totals from different currencies.
+- Sample-only functional preview uses the same updated wallet UI source.
+- Eight new asynchronous and static tests simulate logout during a request,
+  overlapping refreshes, account switches, profile lookup races, immediate
+  private cache scrubbing, correct markup and first-party script parsing.
+- Upgraded the prior F05 scanner sign-out contract test to the new centralized
+  invalidation logic.
+- **96/96 JavaScript tests passed in GitHub Actions.** The isolated PostgreSQL
+  suite continues to protect F07/F04 SQL behavior and remains a staging
+  approximation, not verification against real Supabase.
+
+**Not yet validated:** real Supabase authentication timing, cross-device
+behavior, actual remote sign-out failures, browser accessibility on multiple
+phones, end-to-end encrypted code reveal, migrations and RLS with staging
+accounts. Keep PR draft; do not merge or deploy without the staging gate.
+
 ## Deployment gate — do not skip
 
 1. Do NOT apply the F07 migration to production before testing in staging.
@@ -188,6 +223,7 @@ validation. OCR confidence is heuristic and is never issuer verification.
 - Add atomic balance-adjustment RPC and cursor-based ledger pagination.
 - F02 server-side email/push delivery and durable cross-device preferences.
 - F04 multi-currency issuer eligibility regression with real Supabase users.
-- F05 real-image OCR/browser testing and eventual self-hosted OCR assets, then
-  family isolation, advanced analytics and full Supabase integration tests.
+- F05 real-image OCR/browser testing and eventual self-hosted OCR assets;
+  prioritize family-sharing/RLS security and full Supabase staging validation.
+- F11 analytics deferred; no new insights UI required for MVP.
 - F06 barcode/QR display remains optional/post-launch, not an MVP blocker.
