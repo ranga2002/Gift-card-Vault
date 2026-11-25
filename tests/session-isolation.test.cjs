@@ -32,7 +32,7 @@ function mockFetch(){
  const box={window:{GiftVaultScan:{close(){}},walletLiveHandleBack(){}},
  stopNotificationsSync(){},isCurrentUserSuperAdmin(){return false},
  renderAll(){renders.push(true)},setStatusSubtext(){},
- logoutCurrentUser:async()=>{},console:{error(e){errors.push(e)}}};
+ logoutCurrentUser:async()=>{},console:{error(...args){errors.push(args.map(x=>String(x)).join(": "))}}};
  box.supabaseClient={from(table){
   if(table==='profiles')active=queue.shift();
   if(!active)throw Error('Missing response batch');
